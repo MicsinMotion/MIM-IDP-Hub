@@ -343,6 +343,77 @@ let activeStatus = '';
 let searchQ = '';
 let compareIds = new Set(); // ausgewählte Spieler-IDs für den Vergleich (max. 3)
 
+// ── TOP 50 NACH PUNKTEN JE POSITION ── (identisch zum Muster aus rankings.html)
+// Wird angezeigt, wenn ein Positions-Filter aktiv ist, aber noch kein Suchtext
+// eingegeben wurde — sonst stand da bisher nur der leere "Suche mind. 3 Zeichen"-
+// Hinweis, obwohl schon ein Filter gesetzt war (siehe Chat).
+const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+  idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
+function calcPts(s){
+  if(!s) return 0;
+  let pts = 0;
+  for(const [k,v] of Object.entries(LIGA_SCORING)){ const val = getStat(s,k); if(val && val>0) pts += val*v; }
+  return Math.round(pts*100)/100;
+}
+const TOP50_SEASON = new Date().getMonth() >= 2 ? new Date().getFullYear()-1 : new Date().getFullYear()-2; // letzte ABGESCHLOSSENE Saison
+const TOP50_CACHE_KEY = `mim_players_top50_v1_${TOP50_SEASON}`, TOP50_CACHE_TS = `mim_players_top50_ts_v1_${TOP50_SEASON}`, TOP50_CACHE_TTL = 23*60*60*1000;
+const SL_BULK_SEASON_DIRECT = yr => `https://api.sleeper.com/stats/nfl/${yr}?season_type=regular&position[]=DL&position[]=LB&position[]=DB`;
+const SL_BULK_SEASON_PROXY  = yr => `https://corsproxy.io/?url=${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`;
+let top50ByPos = { DL: [], LB: [], DB: [] }; // sleeper_id-Arrays, schon nach Punkten sortiert & auf 50 gekappt
+
+async function fetchBulkSeasonStats(yr){
+  for(const url of [SL_BULK_SEASON_DIRECT(yr), SL_BULK_SEASON_PROXY(yr)]){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) continue;
+      const t = await r.text();
+      if(!t || t === 'null') continue;
+      const obj = JSON.parse(t);
+      if(Array.isArray(obj) && obj.length) return obj;
+      if(obj && typeof obj === 'object' && Object.keys(obj).length) return Object.values(obj);
+    }catch(e){}
+  }
+  return null;
+}
+
+async function loadTop50ByPosition(){
+  try{
+    const s = getStorage();
+    const ts = s.getItem(TOP50_CACHE_TS);
+    if(ts && Date.now()-parseInt(ts) < TOP50_CACHE_TTL){
+      const cached = s.getItem(TOP50_CACHE_KEY);
+      if(cached){ top50ByPos = JSON.parse(cached); return; }
+    }
+  }catch{}
+
+  const entries = await fetchBulkSeasonStats(TOP50_SEASON);
+  if(!entries) return; // Bulk-Endpoint down/geblockt → Top-50-Ansicht bleibt einfach leer, kein Fehlerfall
+
+  const playerById = new Map(players.map(p => [p.sleeper_id, p]));
+  const scored = { DL: [], LB: [], DB: [] };
+  entries.forEach(entry => {
+    const pid = entry.player_id != null ? String(entry.player_id) : null;
+    if(!pid) return;
+    const p = playerById.get(pid);
+    if(!p) return;
+    const stats = entry.stats || entry;
+    const pts = calcPts(stats);
+    if(pts <= 0) return;
+    (p.positions||[p.position]).forEach(pos => {
+      if(scored[pos]) scored[pos].push({ id: pid, pts });
+    });
+  });
+
+  ['DL','LB','DB'].forEach(pos => {
+    scored[pos].sort((a,b) => b.pts - a.pts);
+    top50ByPos[pos] = scored[pos].slice(0, 50).map(x => x.id);
+  });
+
+  try{ const s = getStorage(); s.setItem(TOP50_CACHE_KEY, JSON.stringify(top50ByPos)); s.setItem(TOP50_CACHE_TS, Date.now().toString()); }catch{}
+}
+
 // ── CACHE ── (localStorage with sessionStorage fallback)
 function getStorage() {
   try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return localStorage; }
@@ -527,6 +598,7 @@ async function init() {
     setTimeout(() => document.getElementById('init-overlay').classList.add('done'), 200);
     document.getElementById('search-hint').textContent =
       `${players.length.toLocaleString()} IDP-Spieler bereit · aus Cache`;
+    loadTop50ByPosition().then(() => { if(searchQ.length < 3 && activePos) renderResults(); });
     return;
   }
 
@@ -601,6 +673,7 @@ async function init() {
     setTimeout(() => document.getElementById('init-overlay').classList.add('done'), 300);
     document.getElementById('search-hint').textContent =
       `${players.length.toLocaleString()} IDP-Spieler · DL, LB, DB`;
+    loadTop50ByPosition().then(() => { if(searchQ.length < 3 && activePos) renderResults(); });
 
   } catch(e) {
     sub.textContent = `Fehler: ${e.message}`;
@@ -642,12 +715,29 @@ function renderResults() {
   const hint = document.getElementById('search-hint');
 
   if (searchQ.length < 3) {
+    // Positions-Filter ohne Suchtext: Top 50 nach Punkten dieser Position zeigen
+    // (alphabetisch sortiert), statt nur den leeren "Suche mind. 3 Zeichen"-Hinweis
+    // — siehe Chat.
+    if (activePos && top50ByPos[activePos] && top50ByPos[activePos].length) {
+      const ids = new Set(top50ByPos[activePos]);
+      let topResults = players.filter(p => ids.has(p.sleeper_id));
+      if (activeStatus === 'Active') topResults = topResults.filter(p => p.status === 'Active');
+      if (activeStatus === 'Inactive') topResults = topResults.filter(p => p.status !== 'Active');
+      topResults.sort((a,b) => (a.full_name||'').localeCompare(b.full_name||''));
+
+      header.style.display = 'flex';
+      hint.textContent = '';
+      document.getElementById('results-count').innerHTML =
+        `<strong>Top ${topResults.length}</strong> ${activePos} nach Punkten (${TOP50_SEASON}) · alphabetisch`;
+      list.innerHTML = topResults.map(p => playerRow(p)).join('');
+      return;
+    }
     header.style.display = 'none';
     if (players.length > 0)
-      hint.textContent = `${players.length.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben`;
+      hint.textContent = `${players.length.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`;
     list.innerHTML = `<div class="state-box">
       <div class="state-icon">🏈</div>
-      <p>Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters.</p>
+      <p>Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters, or pick a position to see the Top 50.</p>
     </div>`;
     return;
   }
@@ -775,5 +865,8 @@ document.getElementById('compare-clear-btn').addEventListener('click', () => {
 
 init();
 </script>
+<footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
+  <div style="margin-top:0;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
+</footer>
 </body>
 </html>

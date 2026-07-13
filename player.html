@@ -289,7 +289,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     </div>
     <div class="hist-note" id="hist-note"></div>
   </div>
-  <div class="section">
+  <div class="section" id="player-ids-section" style="display:none;">
     <div class="sec-hdr">
       <div class="sec-title">Player IDs</div>
       <div class="sec-badge">Reference</div>
@@ -1609,6 +1609,16 @@ function updateTeamCell(yr,team){
 }
 
 function renderIds(p){
+  window._lastLoadedPlayerForIds = p; // damit wir bei späterer Auth-Klärung erneut rendern können
+  const section = document.getElementById('player-ids-section');
+  if(!window._isInternalUser){
+    // Für Community NICHT nur per CSS verstecken, sondern gar nicht erst ins DOM
+    // schreiben (siehe Chat: sonst wären die IDs trotzdem im Seitenquelltext).
+    if(section) section.style.display = 'none';
+    document.getElementById('id-grid').innerHTML = '';
+    return;
+  }
+  if(section) section.style.display = '';
   document.getElementById('id-grid').innerHTML=[
     {l:'Sleeper ID',v:p.sleeper_id,s:'Sleeper'},
     {l:'GSIS ID',v:p.gsis_id,s:p.gsis_src},
@@ -1630,6 +1640,8 @@ import { listAllRankings, loadListDoc, avatarFor, watchAuth } from './firebase-i
 watchAuth(user => {
   const link = document.getElementById('nav-scouting-link');
   if(link) link.style.display = user ? '' : 'none';
+  window._isInternalUser = !!user;
+  if(window._lastLoadedPlayerForIds && typeof renderIds === 'function') renderIds(window._lastLoadedPlayerForIds);
 });
 
 const urlP = new URLSearchParams(location.search);
@@ -1707,5 +1719,8 @@ async function loadRankingsBox(){
 
 loadRankingsBox();
 </script>
+<footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
+  <div style="margin-top:0;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
+</footer>
 </body>
 </html>

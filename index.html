@@ -221,6 +221,13 @@ footer {
   border-top: 1px solid var(--border);
   letter-spacing: 1px;
 }
+.footer-disclaimer {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: .3px;
+  color: var(--muted);
+  opacity: .75;
+}
 
 /* AUTH WIDGET */
 .auth-wrap { display: flex; align-items: center; gap: 10px; }
@@ -616,7 +623,32 @@ footer {
   </div>
 </div>
 
-<footer id="footer-text">MICS IN MOTION · IDP HUB</footer>
+<footer>
+  <div id="footer-text">MICS IN MOTION · IDP HUB</div>
+  <div class="footer-disclaimer">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
+  <div style="margin-top:8px;"><a href="#" id="bugreport-open-btn" style="color:var(--muted);font-size:11px;text-decoration:underline;">Bug melden</a></div>
+</footer>
+
+<div class="modal-overlay" id="bugreport-overlay">
+  <div class="modal" style="max-width:440px;">
+    <button class="modal-close" id="bugreport-close-btn">&times;</button>
+    <div class="modal-title">Bug melden</div>
+    <div class="modal-field" style="margin-top:16px;">
+      <label>Titel</label>
+      <input type="text" id="bugreport-title" placeholder="Kurze Zusammenfassung">
+    </div>
+    <div class="modal-field">
+      <label>Beschreibung</label>
+      <textarea id="bugreport-desc" rows="4" placeholder="Was ist passiert? Was hast du erwartet?" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;resize:vertical;"></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Screenshot (optional)</label>
+      <input type="file" id="bugreport-screenshot" accept="image/*">
+    </div>
+    <button class="modal-submit" id="bugreport-submit">Senden</button>
+    <div class="modal-error" id="bugreport-status"></div>
+  </div>
+</div>
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
@@ -665,6 +697,68 @@ watchAuth(user => {
   } else {
     authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
+  }
+});
+
+// ─── BUG REPORT ─────────────────────────────────────────────────────────────
+// Nutzt Formspree (kostenloser Drittanbieter-Dienst) zum Versand, da eine reine
+// clientseitige Seite ohne eigenen Server keine E-Mails mit Anhang verschicken
+// kann. WICHTIG: Platzhalter-URL unten durch eure eigene Formspree-Endpunkt-ID
+// ersetzen (kostenloser Account auf formspree.io, 2 Minuten, liefert eine URL
+// wie https://formspree.io/f/xxxxxxxx).
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/REPLACE_WITH_YOUR_FORM_ID';
+
+const bugOverlay = document.getElementById('bugreport-overlay');
+const bugStatus = document.getElementById('bugreport-status');
+document.getElementById('bugreport-open-btn').addEventListener('click', (e) => {
+  e.preventDefault();
+  bugStatus.classList.remove('show');
+  bugOverlay.classList.add('open');
+});
+document.getElementById('bugreport-close-btn').addEventListener('click', () => bugOverlay.classList.remove('open'));
+bugOverlay.addEventListener('click', e => { if(e.target === bugOverlay) bugOverlay.classList.remove('open'); });
+
+document.getElementById('bugreport-submit').addEventListener('click', async () => {
+  const titleEl = document.getElementById('bugreport-title');
+  const descEl = document.getElementById('bugreport-desc');
+  const fileEl = document.getElementById('bugreport-screenshot');
+  const submitBtn = document.getElementById('bugreport-submit');
+
+  bugStatus.classList.remove('show');
+  bugStatus.style.color = '';
+
+  if(!titleEl.value.trim() || !descEl.value.trim()){
+    bugStatus.textContent = 'Bitte Titel und Beschreibung ausfüllen.';
+    bugStatus.classList.add('show');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('title', titleEl.value.trim());
+  formData.append('description', descEl.value.trim());
+  formData.append('_subject', `Bug Report: ${titleEl.value.trim()}`);
+  if(fileEl.files[0]) formData.append('screenshot', fileEl.files[0]);
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sende…';
+  try{
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    });
+    if(!res.ok) throw new Error('Server antwortete mit ' + res.status);
+    bugStatus.textContent = 'Danke! Dein Bug-Report wurde verschickt.';
+    bugStatus.style.color = '#3fb950';
+    bugStatus.classList.add('show');
+    titleEl.value = ''; descEl.value = ''; fileEl.value = '';
+    setTimeout(() => bugOverlay.classList.remove('open'), 2000);
+  }catch(err){
+    bugStatus.textContent = 'Senden fehlgeschlagen — bitte später erneut versuchen oder direkt an info@micsinmotion.de schreiben.';
+    bugStatus.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Senden';
   }
 });
 </script>

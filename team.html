@@ -227,6 +227,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .roster-row.open .roster-chevron{transform:rotate(180deg);}
 .roster-detail{display:none;padding:16px 14px;background:var(--bg2);border-bottom:1px solid var(--border);}
 .roster-row.open + .roster-detail{display:block;}
+.roster-total-snaps{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.roster-total-snaps b{color:var(--text);}
 .roster-snap-chart-title{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
 .roster-snap-chart{display:flex;align-items:flex-end;gap:2px;height:56px;margin-bottom:2px;}
 .roster-snap-wk-row{display:flex;gap:2px;margin-bottom:16px;}
@@ -513,6 +515,12 @@ function getCoachData(abbr, year){
 }
 
 const headCoachCache = {};
+// ESPN zeigt vor Saisonstart teils noch den alten/falschen Head Coach (Wechsel im
+// Winter/Frühjahr werden dort nicht sofort übernommen) — deshalb erst ab dem
+// tatsächlichen Saisonstart (1. September) vertrauen, nicht schon ab dem
+// März-Cutoff, den CURRENT_SEASON_YEAR sonst für die Roster-Jahreslogik nutzt.
+function isPastSeptember1(d, year){ return d >= new Date(year, 8, 1); }
+
 async function fetchHeadCoach(abbr, year){
   // Kurskorrektur: dasselbe Muster wie bei den Depth Charts ist zu erwarten — der
   // "season-spezifische" Test (Andy Reid 2021 = KC-Coach) war kein echter Beweis,
@@ -520,6 +528,7 @@ async function fetchHeadCoach(abbr, year){
   // "wirklich historisch" und "gibt einfach den aktuellen Coach zurück" unterscheiden
   // konnte. Ohne belastbaren Gegenbeweis nur noch für die aktuelle Season nutzen.
   if(year !== CURRENT_SEASON_YEAR) return null;
+  if(!isPastSeptember1(new Date(), year)) return null;
   const teamId = ESPN_TEAM_ID[abbr];
   if(!teamId) return null;
   const cacheKey = `${abbr}_${year}`;
@@ -776,8 +785,8 @@ function classifyIdpGroup(pffPos, dcp, pos){
   if(pffPos && ['DI','ED','LB','CB','S'].includes(pffPos)) return pffPos;
   const t = (dcp || pos || '').toUpperCase();
   if(['DT','NT','DL'].includes(t)) return 'DI';
-  if(['DE','EDGE'].includes(t)) return 'ED';
-  if(['LB','ILB','OLB','MLB'].includes(t)) return 'LB';
+  if(['DE','EDGE','OLB'].includes(t)) return 'ED'; // OLB zählt zu ED (siehe Chat, konsistent mit Lineup Details)
+  if(['LB','ILB','MLB'].includes(t)) return 'LB';
   if(t === 'CB') return 'CB';
   if(['S','FS','SS','DB'].includes(t)) return 'S';
   return null; // Offense/Special Teams — für die IDP-Roster-Ansicht nicht relevant
@@ -813,26 +822,52 @@ let currentYearPffIdMapPromise = null;
 // einem älteren Jahres-Snapshot) genauso bei gsis_id auftrat: Micah Parsons zeigte
 // keinen Injury-Status, weil die 2026er-Roster-Zeile eine gsis_id führte, die nicht
 // (mehr) zu nflverses Injury-Daten passte.
+// Identische Fallback-Zuordnung wie player.html's NV_POS_MAP — WICHTIG: dieselbe
+// Tabelle wie im Profil, damit "der lila Wert aus dem Profil" (das dort sichtbare
+// Fallback-Badge) und Team Roster garantiert übereinstimmen (siehe Chat).
+const NV_POS_MAP_TEAMROSTER = {NT:'DI',DT:'DI',DE:'ED',OLB:'ED',ILB:'LB',MLB:'LB',CB:'CB',SS:'S',S:'S'};
+
 function fetchCurrentYearPffIdMap(){
   if(currentYearPffIdMapPromise) return currentYearPffIdMapPromise;
   currentYearPffIdMapPromise = (async () => {
-    const map = new Map(); // sleeper_id -> { pff_id, gsis_id }
-    const text = await fetchNflverseCSV(NV_ROSTER_URL(CURRENT_SEASON_YEAR));
-    if(!text) return map;
-    const lines = text.split('\n').filter(l => l.trim());
-    const H = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
-    const iSl = H.indexOf('sleeper_id'), iPf = H.indexOf('pff_id'), iGs = H.indexOf('gsis_id');
-    if(iSl < 0) return map;
-    for(let i=1;i<lines.length;i++){
-      const row = parseCsvLine(lines[i]);
-      const sid = (row[iSl]||'').trim();
-      if(!sid) continue;
-      const pid = iPf>=0 ? (row[iPf]||'').trim() : '';
-      const gid = iGs>=0 ? (row[iGs]||'').trim() : '';
-      map.set(sid, {
-        pff_id: (pid && pid !== 'NA') ? pid : '',
-        gsis_id: (gid && gid !== 'NA') ? gid : '',
-      });
+    const map = new Map(); // sleeper_id -> { pff_id, gsis_id, fallbackGroup }
+    // WICHTIG (siehe Chat, Kyle Van Noy-Fall): nicht nur die aktuelle Saison-CSV
+    // prüfen, sondern wie player.html's enrichIds() rückwärts bis 2022 suchen und
+    // den jeweils NEUESTEN verfügbaren Wert nehmen — jetzt auch für
+    // depth_chart_position/position, nicht nur für pff_id/gsis_id. Grund: eine
+    // EINZELNE Jahres-Zeile (z.B. 2025 bei einem bestimmten Team) kann einen
+    // anderen depth_chart_position-Wert führen als das, was im Spielerprofil
+    // (mehrjährig aufgelöst) angezeigt wird — genau das hat bei Van Noy zu
+    // unterschiedlichen Ergebnissen zwischen Profil und Team Roster geführt.
+    const MIN_NV_YEAR = 2022;
+    for(let yr = CURRENT_SEASON_YEAR; yr >= MIN_NV_YEAR; yr--){
+      const text = await fetchNflverseCSV(NV_ROSTER_URL(yr));
+      if(!text) continue;
+      const lines = text.split('\n').filter(l => l.trim());
+      const H = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+      const iSl = H.indexOf('sleeper_id'), iPf = H.indexOf('pff_id'), iGs = H.indexOf('gsis_id'),
+            iDcp = H.indexOf('depth_chart_position'), iPos = H.indexOf('position');
+      if(iSl < 0) continue;
+      for(let i=1;i<lines.length;i++){
+        const row = parseCsvLine(lines[i]);
+        const sid = (row[iSl]||'').trim();
+        if(!sid) continue;
+        const pid = iPf>=0 ? (row[iPf]||'').trim() : '';
+        const gid = iGs>=0 ? (row[iGs]||'').trim() : '';
+        const dcp = iDcp>=0 ? (row[iDcp]||'').trim() : '';
+        const pos = iPos>=0 ? (row[iPos]||'').trim() : '';
+        const existing = map.get(sid) || { pff_id: '', gsis_id: '', fallbackGroup: null };
+        // Nur befüllen, was noch fehlt — wir gehen absteigend (neuestes Jahr
+        // zuerst), ein schon gefundener Wert aus einem neueren Jahr hat also
+        // automatisch Vorrang und wird nicht mehr überschrieben.
+        if(!existing.pff_id && pid && pid !== 'NA') existing.pff_id = pid;
+        if(!existing.gsis_id && gid && gid !== 'NA') existing.gsis_id = gid;
+        if(!existing.fallbackGroup){
+          const t = ((dcp && dcp !== 'NA') ? dcp : (pos && pos !== 'NA') ? pos : '').toUpperCase();
+          if(t && NV_POS_MAP_TEAMROSTER[t]) existing.fallbackGroup = NV_POS_MAP_TEAMROSTER[t];
+        }
+        map.set(sid, existing);
+      }
     }
     return map;
   })();
@@ -1771,17 +1806,26 @@ async function fetchTeamRosterYear(abbr, year){
   if(idx.team < 0 || idx.sleeper < 0) return [];
   const val = (row,i) => (i>=0 && row[i] && row[i]!=='NA') ? row[i].trim() : '';
   const out = [];
+  let skippedNoSleeperId = 0;
+  const skippedNames = [];
   for(let i=1;i<lines.length;i++){
     const row = parseCsvLine(lines[i]);
     if(val(row, idx.team) !== abbr) continue;
     const sid = val(row, idx.sleeper);
-    if(!sid) continue;
+    if(!sid){
+      skippedNoSleeperId++;
+      skippedNames.push(val(row, idx.full) || '(kein Name)');
+      continue;
+    }
     out.push({
       sleeper_id: sid, full_name: val(row, idx.full) || '–',
       gsis_id: val(row, idx.gsis), pff_id: val(row, idx.pff), espn_id: val(row, idx.espn), pfr_id: val(row, idx.pfr),
       depth_chart_position: val(row, idx.dcp), position: val(row, idx.pos),
       jersey_number: val(row, idx.jersey), status: val(row, idx.status),
     });
+  }
+  if(skippedNoSleeperId > 0){
+    console.log(`[Roster] ${skippedNoSleeperId} Spieler bei ${abbr} ${year} übersprungen (nflverse hat noch keine sleeper_id zugeordnet — meist frische Rookies/Neuzugänge, löst sich von selbst sobald nflverses Crosswalk nachzieht): ${skippedNames.join(', ')}`);
   }
   return out;
 }
@@ -1982,6 +2026,7 @@ function renderRosterPlayerRow(p, snapInfo, summary){
       <span class="roster-chevron">▾</span>
     </div>
     <div class="roster-detail">
+      <div class="roster-total-snaps">Total Snaps: <b>${snapInfo.seasonSnaps!=null?snapInfo.seasonSnaps:'–'}</b></div>
       ${renderSnapChart(snapInfo.byWeek)}
       <div class="roster-season-grid">${seasonStats}</div>
       <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}">Spielerprofil öffnen →</a>
@@ -2243,8 +2288,14 @@ async function renderRoster(abbr, year){
         ) : null;
         console.info(`[Roster] Gar keine pff_id für ${p.full_name} (weder aktuelle noch Jahres-CSV) — ähnlichster PFF-Eintrag bei ${p.currentTeam}:`, nearMatch);
       }
-      const group = classifyIdpGroup(pffPos, p.depth_chart_position, p.position);
-      if(group) grouped[group].push(p);
+      // Priorität: 1) echte PFF-Position  2) mehrjährig aufgelöster nflverse-
+      // Fallback (identisch zum "via nflverse"-Badge im Profil)  3) einzelne
+      // Jahres-Zeile als letzte Notlösung, falls auch das fehlt (siehe Chat).
+      const resolvedFallbackGroup = (currentYearPffIdMap.get(p.sleeper_id)||{}).fallbackGroup;
+      const finalGroup = (pffPos && ['DI','ED','LB','CB','S'].includes(pffPos))
+        ? pffPos
+        : (resolvedFallbackGroup || classifyIdpGroup(null, p.depth_chart_position, p.position));
+      if(finalGroup) grouped[finalGroup].push(p);
     });
     if(freshIdUsed) console.log(`[Roster] ${freshIdUsed} Spieler mit pff_id aus aktueller Saison statt Jahres-Snapshot aufgelöst`);
 
@@ -2911,5 +2962,8 @@ if(team){
 }
 </script>
 
+<footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
+  <div style="margin-top:0;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
+</footer>
 </body>
 </html>
