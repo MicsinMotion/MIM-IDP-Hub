@@ -430,6 +430,10 @@ document.getElementById('login-submit').addEventListener('click', async () => {
 watchAuth(user => {
   const link = document.getElementById('nav-scouting-link');
   if(link) link.style.display = user ? '' : 'none';
+  const footerText = document.getElementById('footer-text');
+  if(footerText) footerText.textContent = user
+    ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'
+    : 'MICS IN MOTION · IDP HUB · Community-Modus';
   if(user){
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
     authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
@@ -2026,7 +2030,7 @@ function renderRosterPlayerRow(p, snapInfo, summary){
       <span class="roster-chevron">▾</span>
     </div>
     <div class="roster-detail">
-      <div class="roster-total-snaps">Total Snaps: <b>${snapInfo.seasonSnaps!=null?snapInfo.seasonSnaps:'–'}</b></div>
+      <div class="roster-total-snaps">Total Snaps: <b>${snapInfo.seasonSnaps!=null?snapInfo.seasonSnaps:'–'}</b> &nbsp;·&nbsp; Avg. Points: <b>${(summary.gp && summary.pts!=null)?(summary.pts/summary.gp).toFixed(1):'–'}</b></div>
       ${renderSnapChart(snapInfo.byWeek)}
       <div class="roster-season-grid">${seasonStats}</div>
       <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}">Spielerprofil öffnen →</a>
@@ -2295,6 +2299,12 @@ async function renderRoster(abbr, year){
       const finalGroup = (pffPos && ['DI','ED','LB','CB','S'].includes(pffPos))
         ? pffPos
         : (resolvedFallbackGroup || classifyIdpGroup(null, p.depth_chart_position, p.position));
+      if(!pffPos){
+        // DIAGNOSE: zeigt exakt, welcher Wert für die Fallback-Entscheidung
+        // herangezogen wurde — zum direkten Abgleich mit dem "via nflverse"-Log
+        // im Spielerprofil (siehe Chat).
+        console.info(`[Roster] Fallback für ${p.full_name}: mehrjährig aufgelöste Gruppe = ${resolvedFallbackGroup||'(keine)'}, einzelne Jahres-Zeile (depth_chart_position="${p.depth_chart_position}", position="${p.position}") → finale Gruppe = ${finalGroup}`);
+      }
       if(finalGroup) grouped[finalGroup].push(p);
     });
     if(freshIdUsed) console.log(`[Roster] ${freshIdUsed} Spieler mit pff_id aus aktueller Saison statt Jahres-Snapshot aufgelöst`);
@@ -2639,6 +2649,26 @@ function parseOurladsCoachingStaff(html){
   return out;
 }
 
+// Eigene Datums-Auswahl NUR für Coaching Staff — anders als die Depth Chart
+// (Saison-Abschluss-Stand, 1. März Folgejahr) brauchen wir hier den Stand zu
+// SAISONBEGINN (1. September derselben Saison), sonst zeigt's ggf. schon den
+// NEUEN Coach der nächsten Saison, falls zwischen Saisonende und März ein
+// Wechsel stattfand (siehe Chat).
+function pickOurladsEntryForCoachingStaff(entries, seasonYear){
+  if(!entries.length) return null;
+  const target = new Date(seasonYear, 8, 1); // 1. September
+  const MAX_DIFF_MS = 45 * 24 * 60 * 60 * 1000;
+  let best = null, bestDiff = Infinity;
+  for(const e of entries){
+    const diff = Math.abs(e.parsed - target);
+    if(diff < bestDiff || (diff === bestDiff && e.parsed <= target && (!best || best.parsed > target))){
+      best = e; bestDiff = diff;
+    }
+  }
+  if(!best || bestDiff > MAX_DIFF_MS) return null;
+  return best;
+}
+
 async function fetchOurladsCoachingStaff(abbr, year){
   const oAbbr = ourladsAbbr(abbr);
   let html;
@@ -2646,8 +2676,9 @@ async function fetchOurladsCoachingStaff(abbr, year){
     html = await fetchViaWorker(`https://www.ourlads.com/nfldepthcharts/depthchart/${oAbbr}`);
   } else {
     const entries = await getOurladsArchiveEntries(oAbbr);
-    const pick = entries.length ? pickOurladsEntry(entries, year) : null;
+    const pick = entries.length ? pickOurladsEntryForCoachingStaff(entries, year) : null;
     if(!pick) return null;
+    console.info(`[Ourlads] Coaching-Staff-Snapshot für ${year} gewählt:`, pick.date, '(ID', pick.id + ')');
     html = await fetchViaWorker(`https://www.ourlads.com/nfldepthcharts/archive/${pick.id}/${oAbbr}`);
   }
   if(!html) return null;
@@ -2963,7 +2994,8 @@ if(team){
 </script>
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
-  <div style="margin-top:0;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
+  <div id="footer-text">MICS IN MOTION · IDP HUB</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für den fairen, internen Community-Gebrauch gedacht — bitte nicht automatisiert im großen Stil abgreifen oder außerhalb der Community weiterverbreiten.</div>
 </footer>
 </body>
 </html>
