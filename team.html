@@ -2113,7 +2113,7 @@ function renderRosterPlayerRow(p, snapInfo, summary, prevSummary){
 // laden muss. 6h TTL — unterjährig aktualisieren sich Stats/Snaps laufend, ein
 // 23h-Cache wie sonst im Projekt üblich wäre hier zu träge.
 const ROSTER_CACHE_TTL = 6*60*60*1000;
-function rosterCacheKey(abbr, year){ return `mim_roster_v13_${abbr}_${year}`; }
+function rosterCacheKey(abbr, year){ return `mim_roster_v14_${abbr}_${year}`; }
 // Trimmt snapData vor dem Cachen auf das WIRKLICH Nötige: nur die pfr_ids der
 // Spieler auf diesem Roster, nur die Team-Wochen-Nenner für DIESES Team. Ohne das
 // würde jeder Team-Cache-Eintrag versuchen, die komplette Liga-Snap-Counts-Datei
@@ -2154,7 +2154,7 @@ function loadRosterCache(abbr, year){
 // irgendwann die komplette localStorage-Quota — genau das, was das "quota
 // exceeded" im Chat verursacht hat.
 function cleanupExpiredRosterCaches(){
-  const prefix = 'mim_roster_v13_';
+  const prefix = 'mim_roster_v14_';
   const toRemove = [];
   for(let i=0; i<localStorage.length; i++){
     const key = localStorage.key(i);
@@ -2185,7 +2185,7 @@ function saveRosterCacheLocal(abbr, year, grouped, statsById, snapData, prevStat
     console.warn('[Roster] Speicher voll trotz Aufräumen — entferne ALLE Roster-Caches und versuche erneut:', e.message);
     for(let i=localStorage.length-1; i>=0; i--){
       const key = localStorage.key(i);
-      if(key && key.startsWith('mim_roster_v13_')) localStorage.removeItem(key);
+      if(key && key.startsWith('mim_roster_v14_')) localStorage.removeItem(key);
     }
     try{ localStorage.setItem(rosterCacheKey(abbr, year), payload); }
     catch(e2){ console.warn('[Roster] Cache konnte auch nach Aufräumen nicht gespeichert werden:', e2.message); }
@@ -2197,7 +2197,7 @@ function saveRosterCache(abbr, year, grouped, statsById, snapData, prevStatsById
   const serializedSnapData = saveRosterCacheLocal(abbr, year, grouped, statsById, snapData, prevStatsById);
   // GETEILT (Firestore): der nächste Besucher — egal welcher Browser — bekommt
   // dieses Team+Jahr dann sofort, ohne selbst neu zu rechnen (siehe Chat).
-  saveSharedCache(`roster_${abbr}_${year}`, { grouped, statsById, snapData: serializedSnapData, prevStatsById: prevStatsById || {} })
+  saveSharedCache(`roster_v2_${abbr}_${year}`, { grouped, statsById, snapData: serializedSnapData, prevStatsById: prevStatsById || {} })
     .then(ok => { if(ok) console.log(`[Roster] Geteilter Cache (Firestore) für ${abbr} ${year} geschrieben.`); });
 }
 
@@ -2279,7 +2279,7 @@ async function renderRoster(abbr, year){
   // zusammenrechnen, schauen wir, ob ein ANDERER Besucher das für dieses
   // Team+Jahr schon berechnet hat — spart bei jedem außer dem allerersten
   // Besucher die komplette Ladezeit (siehe Chat).
-  const sharedKey = `roster_${abbr}_${year}`;
+  const sharedKey = `roster_v2_${abbr}_${year}`;
   const shared = await loadSharedCache(sharedKey);
   const sharedIsFresh = shared && shared.grouped &&
     (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < ROSTER_CACHE_TTL));
