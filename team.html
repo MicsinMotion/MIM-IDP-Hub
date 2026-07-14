@@ -408,7 +408,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 
 <script type="module">
-import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -1212,7 +1212,7 @@ function cleanupUnrelatedCachesForSpace(keepAbbr, keepYear){
   }catch(e){ return 0; }
 }
 
-function saveLineupCache(year, teamsObj, abbr){
+function saveLineupCacheLocal(year, teamsObj, abbr){
   const payload = JSON.stringify({ ts: Date.now(), teams: teamsObj });
   console.log(`[Lineup] Cache-Payload für ${year}: ${(payload.length/1024).toFixed(1)} KB`);
   try{
@@ -1228,12 +1228,20 @@ function saveLineupCache(year, teamsObj, abbr){
   }catch(e2){
     console.warn('[Lineup] Immer noch voll — Payload selbst ist klein (siehe KB oben), also liegt es am GESAMTEN Speicher. Räume jetzt auch fremde Caches (Roster/Team-Stats anderer Teams/Jahre) auf:', e2.message);
   }
-  cleanupUnrelatedCachesForSpace(abbr, year);
+  cleanupUnrelatedCachesForSpace(abbr||'', year);
   try{
     localStorage.setItem(luCacheKey(year), payload);
   }catch(e3){
     console.warn('[Lineup] Auch nach vollständigem Aufräumen konnte der Cache nicht gespeichert werden — Lineup-Daten werden bei jedem Laden neu berechnet:', e3.message);
   }
+}
+
+function saveLineupCache(year, teamsObj, abbr){
+  saveLineupCacheLocal(year, teamsObj, abbr);
+  // GETEILT (Firestore): deckt alle 32 Teams auf einmal ab — der nächste Besucher,
+  // der IRGENDEIN Team für diese Saison ansieht, bekommt es sofort (siehe Chat).
+  saveSharedCache(`lineup_${year}`, { teams: teamsObj })
+    .then(ok => { if(ok) console.log(`[Lineup] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
 }
 
 function normalizeGameKey(season, week, away, home){
@@ -1528,6 +1536,21 @@ async function renderLineupSection(abbr, year, includeDetails){
 
   let teams = loadLineupCache(year);
   if(!teams){
+    // GETEILT (Firestore): das ist die mit Abstand teuerste Berechnung im ganzen
+    // Hub (PBP + participation + PFF für alle 32 Teams) — lohnt sich besonders,
+    // hier zu prüfen, ob schon irgendjemand anders das für diese Saison berechnet
+    // hat, bevor wir selbst von vorne anfangen (siehe Chat).
+    const sharedKey = `lineup_${year}`;
+    const shared = await loadSharedCache(sharedKey);
+    const sharedIsFresh = shared && shared.teams &&
+      (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < 6*60*60*1000));
+    if(sharedIsFresh){
+      teams = shared.teams;
+      saveLineupCacheLocal(year, teams, abbr); // nur lokal ablegen, nicht wieder zu Firestore zurückschreiben
+      console.log(`[Lineup] GETEILTER CACHE-TREFFER (Firestore) für ${year} — kein Fetch nötig.`);
+    }
+  }
+  if(!teams){
     if(myRequestId === lineupRequestId){
       if(includeDetails) lineupContainer.innerHTML = lineupLoadingHtml();
       schemesContainer.innerHTML = '';
@@ -1787,11 +1810,26 @@ let sleeperAllPlayersPromise = null;
 function fetchSleeperAllPlayers(){
   if(sleeperAllPlayersPromise) return sleeperAllPlayersPromise;
   sleeperAllPlayersPromise = (async () => {
-    try{
-      const r = await fetch('https://api.sleeper.app/v1/players/nfl');
-      if(!r.ok) return {};
-      return await r.json() || {};
-    }catch(e){ console.warn('[Roster] Sleeper Player-Feed konnte nicht geladen werden:', e.message); return {}; }
+    const url = 'https://api.sleeper.app/v1/players/nfl';
+    const attempts = [
+      url,
+      `${MIM_WORKER}${encodeURIComponent(url)}`,
+      `https://proxy.corsfix.com/?${url}`,
+      `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    ];
+    for(const a of attempts){
+      try{
+        const r = await fetch(a);
+        if(!r.ok) continue;
+        const data = await r.json();
+        if(data && Object.keys(data).length > 100){
+          console.log(`[Roster] Sleeper Player-Feed geladen (${Object.keys(data).length} Spieler) via`, a.slice(0,50));
+          return data;
+        }
+      }catch(e){ console.warn('[Roster] Sleeper Player-Feed Versuch fehlgeschlagen:', a.slice(0,50), e.message); }
+    }
+    console.warn('[Roster] Sleeper Player-Feed konnte über KEINEN Weg geladen werden — Rookie-Ergänzung fällt komplett aus.');
+    return {};
   })();
   return sleeperAllPlayersPromise;
 }
@@ -2101,12 +2139,13 @@ function cleanupExpiredRosterCaches(){
   if(toRemove.length) console.log(`[Roster] ${toRemove.length} abgelaufene Cache-Einträge aufgeräumt.`);
 }
 
-function saveRosterCache(abbr, year, grouped, statsById, snapData){
+function saveRosterCacheLocal(abbr, year, grouped, statsById, snapData){
   cleanupExpiredRosterCaches();
   const pfrIds = Object.values(grouped).flat().map(p => p.pfr_id).filter(Boolean);
   const trimmed = trimSnapDataForCache(snapData, abbr, pfrIds);
+  const serializedSnapData = serializeSnapData(trimmed);
   const payload = JSON.stringify({
-    ts: Date.now(), grouped, statsById, snapData: serializeSnapData(trimmed),
+    ts: Date.now(), grouped, statsById, snapData: serializedSnapData,
   });
   try{
     localStorage.setItem(rosterCacheKey(abbr, year), payload);
@@ -2122,6 +2161,15 @@ function saveRosterCache(abbr, year, grouped, statsById, snapData){
     try{ localStorage.setItem(rosterCacheKey(abbr, year), payload); }
     catch(e2){ console.warn('[Roster] Cache konnte auch nach Aufräumen nicht gespeichert werden:', e2.message); }
   }
+  return serializedSnapData;
+}
+
+function saveRosterCache(abbr, year, grouped, statsById, snapData){
+  const serializedSnapData = saveRosterCacheLocal(abbr, year, grouped, statsById, snapData);
+  // GETEILT (Firestore): der nächste Besucher — egal welcher Browser — bekommt
+  // dieses Team+Jahr dann sofort, ohne selbst neu zu rechnen (siehe Chat).
+  saveSharedCache(`roster_${abbr}_${year}`, { grouped, statsById, snapData: serializedSnapData })
+    .then(ok => { if(ok) console.log(`[Roster] Geteilter Cache (Firestore) für ${abbr} ${year} geschrieben.`); });
 }
 
 // Baut die eigentliche HTML-Ausgabe (5 Positions-Spalten + Toggle-Logik) — von
@@ -2190,10 +2238,30 @@ async function renderRoster(abbr, year){
   if(cached){
     if(myRequestId !== rosterRequestId) return; // zwischenzeitlich kam eine neuere Anfrage
     console.timeEnd(`[Roster] Gesamtdauer ${abbr} ${year}`);
-    console.log('[Roster] CACHE-TREFFER — kein Fetch nötig.');
+    console.log('[Roster] CACHE-TREFFER (lokal) — kein Fetch nötig.');
     statusEl.style.display = 'none';
     subline.textContent = `Kader ${year} · sortiert nach Snap% (dann A–Z)`;
     renderRosterSections(container, cached.grouped, cached.statsById, cached.snapData, abbr);
+    return;
+  }
+
+  // GETEILT (Firestore): bevor wir selbst alles neu von nflverse/PFF/Sleeper
+  // zusammenrechnen, schauen wir, ob ein ANDERER Besucher das für dieses
+  // Team+Jahr schon berechnet hat — spart bei jedem außer dem allerersten
+  // Besucher die komplette Ladezeit (siehe Chat).
+  const sharedKey = `roster_${abbr}_${year}`;
+  const shared = await loadSharedCache(sharedKey);
+  const sharedIsFresh = shared && shared.grouped &&
+    (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < ROSTER_CACHE_TTL));
+  if(sharedIsFresh){
+    if(myRequestId !== rosterRequestId) return;
+    console.timeEnd(`[Roster] Gesamtdauer ${abbr} ${year}`);
+    console.log('[Roster] GETEILTER CACHE-TREFFER (Firestore) — kein Fetch nötig.');
+    const snapData = deserializeSnapData(shared.snapData);
+    saveRosterCacheLocal(abbr, year, shared.grouped, shared.statsById, snapData); // nur lokal, nicht wieder zu Firestore zurückschreiben
+    statusEl.style.display = 'none';
+    subline.textContent = `Kader ${year} · sortiert nach Snap% (dann A–Z)`;
+    renderRosterSections(container, shared.grouped, shared.statsById, snapData, abbr);
     return;
   }
 
@@ -2261,6 +2329,9 @@ async function renderRoster(abbr, year){
     // TEAM bereits über Sleeper direkt kennen, ergänzen wir sie hier manuell aus dem
     // vollen Sleeper-Feed und gleichen ihre Position NUR NAMENTLICH (nicht per ID) gegen
     // PFFs Team-Roster ab — eine Übergangslösung, bis nflverse die echte ID nachliefert.
+    // WICHTIG: Sleepers "team"-Feld zeigt IMMER nur den AKTUELLEN Stand, nie einen
+    // historischen — deshalb nur für die aktuelle Saison anwenden, sonst tauchen
+    // 2026er-Rookies fälschlich auch bei 2025 & älter auf (siehe Chat, echter Bug).
     const DL_SET = new Set(['DE','DT','NT','EDGE','IDL','DL']);
     const LB_SET = new Set(['LB','ILB','MLB','OLB']);
     const DB_SET = new Set(['CB','FS','SS','S','DB','SAF']);
@@ -2280,22 +2351,25 @@ async function renderRoster(abbr, year){
 
     const existingSleeperIds = new Set(rosterRows.map(p => p.sleeper_id));
     const rookieFallbacks = [];
-    Object.entries(sleeperAll).forEach(([sid, sr]) => {
-      if(!sr || sr.team !== abbr) return;
-      if(existingSleeperIds.has(sid)) return;
-      const tags = (sr.fantasy_positions && sr.fantasy_positions.length) ? sr.fantasy_positions : [sr.position];
-      if(!tags.some(isIdpPosition)) return;
-      const p = {
-        sleeper_id: sid, full_name: sr.full_name || `${sr.first_name||''} ${sr.last_name||''}`.trim(),
-        gsis_id: '', pff_id: '', espn_id: sr.espn_id || '', pfr_id: '',
-        depth_chart_position: sr.depth_chart_position || '', position: sr.position || '',
-        jersey_number: sr.number || '', status: sr.status || '',
-        injury: (year === CURRENT_SEASON_YEAR) ? (sr.injury_status || '') : '', // gsis_id fehlt hier, daher kein nflverse-Override möglich
-        isRookieFallback: true,
-      };
-      rosterRows.push(p);
-      rookieFallbacks.push(p);
-    });
+    if(year === CURRENT_SEASON_YEAR){
+      console.log(`[Roster] Sleeper-Feed für Rookie-Ergänzung: ${Object.keys(sleeperAll).length} Spieler insgesamt geladen.`);
+      Object.entries(sleeperAll).forEach(([sid, sr]) => {
+        if(!sr || sr.team !== abbr) return;
+        if(existingSleeperIds.has(sid)) return;
+        const tags = (sr.fantasy_positions && sr.fantasy_positions.length) ? sr.fantasy_positions : [sr.position];
+        if(!tags.some(isIdpPosition)) return;
+        const p = {
+          sleeper_id: sid, full_name: sr.full_name || `${sr.first_name||''} ${sr.last_name||''}`.trim(),
+          gsis_id: '', pff_id: '', espn_id: sr.espn_id || '', pfr_id: '',
+          depth_chart_position: sr.depth_chart_position || '', position: sr.position || '',
+          jersey_number: sr.number || '', status: sr.status || '',
+          injury: sr.injury_status || '', // gsis_id fehlt hier, daher kein nflverse-Override möglich
+          isRookieFallback: true,
+        };
+        rosterRows.push(p);
+        rookieFallbacks.push(p);
+      });
+    }
     if(rookieFallbacks.length){
       console.log(`[Roster] ${rookieFallbacks.length} Rookies/Neuzugänge ohne nflverse-sleeper_id über Sleeper direkt ergänzt (Position wird gleich per PFF-Namensabgleich versucht):`,
         rookieFallbacks.map(p => p.full_name));

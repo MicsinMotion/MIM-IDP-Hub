@@ -771,6 +771,18 @@ const NV_POS_MAP={NT:'DT',DT:'DT',DE:'ED',OLB:'ED',ILB:'LB',MLB:'LB',CB:'CB',SS:
 const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
 const PFF_POS_MAP={DI:'DT',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
 const pffRosterCache={};
+// Übergangslösung für Rookies/Neuzugänge ohne pff_id (siehe Chat, konsistent mit
+// derselben Lösung in team.html): normalisiert Namen für einen robusten 1:1-Abgleich.
+function normalizeNameForMatch(name){
+  return (name||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z\s]/g, '')
+    .replace(/\b(jr|sr|ii|iii|iv|v)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function fetchPffGradePosition(teamAbbr, pffId, fullName){
   const teamId = PFF_TEAM_ID[teamAbbr];
   if(!teamId) return null;
@@ -789,6 +801,22 @@ async function fetchPffGradePosition(teamAbbr, pffId, fullName){
       pffRosterCache[teamId] = json.team_players || [];
       console.info(`[PFF] Roster für Team ${teamId} geladen:`, pffRosterCache[teamId].length, 'Spieler');
     }
+
+    // ÜBERGANGSLÖSUNG (siehe Chat): kein pff_id vorhanden — typischerweise ganz
+    // frische Rookies/Neuzugänge, bei denen nflverses Crosswalk noch nicht
+    // nachgezogen hat. Statt "keine Position", ein 1:1-Namensabgleich (kein Fuzzy-
+    // Match, um Fehlzuordnungen zu vermeiden), bis eine echte pff_id existiert.
+    if(!pffId){
+      const target = normalizeNameForMatch(fullName);
+      const nameMatch = pffRosterCache[teamId].find(pl => normalizeNameForMatch(pl.name) === target);
+      if(nameMatch && nameMatch.position){
+        console.info('[PFF] Kein pff_id vorhanden für', fullName, '— per 1:1-Namensabgleich zugeordnet:', nameMatch.position);
+        return PFF_POS_MAP[nameMatch.position.toUpperCase()] || nameMatch.position;
+      }
+      console.info('[PFF] Kein pff_id UND kein 1:1-Namenstreffer für', fullName, 'im Team', teamId);
+      return null;
+    }
+
     // Reines ID-Matching: unsere "PFF ID" (aus nflverse-Crosswalk) gegen PFFs "id"-
     // Feld in der Roster-Antwort. Kein Slug/Name-Matching mehr.
     const match = pffId ? pffRosterCache[teamId].find(pl => String(pl.id) === String(pffId)) : null;

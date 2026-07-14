@@ -24,6 +24,10 @@
 //          allow read: if true;
 //          allow write: if request.auth != null;
 //        }
+//        match /shared_cache/{docId} {
+//          allow read: if true;
+//          allow write: if request.auth != null;
+//        }
 //      }
 //    }
 //
@@ -200,4 +204,28 @@ export async function toggleScoutingWatched(year, position, playerSlug, uid, new
   await setDoc(doc(db, "scouting_status", scoutingDocId(year, position)), {
     players: { [playerSlug]: { watchedBy: { [uid]: newVal } } }
   }, { merge: true });
+}
+
+// ─── GETEILTER CACHE (site-weit) ────────────────────────────────────────────
+// Für teure, aufwändig berechnete Daten (z.B. Team Roster, Lineup Details), die
+// bei JEDEM Besucher einzeln aus mehreren externen Quellen (nflverse/PFF/Sleeper)
+// neu zusammengerechnet würden. Statt pro Browser (localStorage), landet das
+// Ergebnis EINMAL in Firestore — der nächste Besucher (jeder, nicht nur derselbe
+// Browser) bekommt es sofort, ohne die Berechnung zu wiederholen.
+// WICHTIG: Firestore-Regeln müssen dafür freigeschaltet sein (siehe Kommentar
+// oben am Dateianfang) — sonst schlägt das Schreiben/Lesen still fehl und der
+// Code fällt automatisch auf die normale (langsamere) Neuberechnung zurück.
+export async function loadSharedCache(key){
+  try{
+    const snap = await getDoc(doc(db, "shared_cache", key));
+    if(!snap.exists()) return null;
+    return snap.data();
+  }catch(e){ console.warn('[SharedCache] Lesen fehlgeschlagen für', key, '—', e.message); return null; }
+}
+
+export async function saveSharedCache(key, data){
+  try{
+    await setDoc(doc(db, "shared_cache", key), { ...data, updatedAt: Date.now() });
+    return true;
+  }catch(e){ console.warn('[SharedCache] Schreiben fehlgeschlagen für', key, '— evtl. fehlen die Firestore-Regeln dafür:', e.message); return false; }
 }
