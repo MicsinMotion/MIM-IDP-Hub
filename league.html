@@ -267,14 +267,23 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .ts-glossary-item b{color:var(--text);}
 
 /* NFL-LIGA-ÜBERSICHT: Team-Stats-Grid (32 Teams × alle Kategorien) */
-.tsg-table{border-collapse:collapse;font-size:11px;white-space:nowrap;}
+.tsg-table{border-collapse:collapse;font-size:11px;white-space:nowrap;width:100%;table-layout:auto;}
 .tsg-table th, .tsg-table td{border:1px solid var(--border);padding:6px 8px;text-align:right;}
-.tsg-team-cell{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:2;font-weight:700;}
+.tsg-team-cell{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:2;font-weight:700;min-width:190px;display:flex;align-items:center;gap:8px;}
+.tsg-team-logo{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .tsg-group-hdr{background:var(--bg3);color:var(--muted2);font-size:10px;letter-spacing:.5px;text-transform:uppercase;text-align:center;}
 .tsg-metric-hdr{background:var(--bg2);cursor:pointer;user-select:none;padding:6px 4px;}
 .tsg-metric-hdr:hover{background:var(--orange-glow);}
 .tsg-metric-label{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10px;color:var(--muted2);max-height:140px;}
 .tsg-table tbody tr:hover td{background:var(--bg3);}
+#tsg-container{width:100%;}
+#tsg-container table{min-width:100%;}
+
+/* Lineup-Entwicklung: kompaktere Zeilen (wie team.html), Jahres-Spalten füllen die volle Breite */
+#lgd-container .tsg-table{table-layout:fixed;}
+#lgd-container .tsg-team-cell{min-width:220px;position:static;display:table-cell;}
+#lgd-container th:not(.tsg-team-cell), #lgd-container td:not(.tsg-team-cell){width:auto;}
+#lgd-container .tsg-table td, #lgd-container .tsg-table th{padding:4px 8px;font-size:10px;}
 </style>
 </head>
 <body>
@@ -396,6 +405,8 @@ watchAuth(user => {
   if(onAccessResolved) onAccessResolved();
 });
 
+const ESPN_A = {ARI:'ari',ATL:'atl',BAL:'bal',BUF:'buf',CAR:'car',CHI:'chi',CIN:'cin',CLE:'cle',DAL:'dal',DEN:'den',DET:'det',GB:'gb',HOU:'hou',IND:'ind',JAX:'jax',KC:'kc',LAC:'lac',LAR:'lar',LV:'lv',MIA:'mia',MIN:'min',NE:'ne',NO:'no',NYG:'nyg',NYJ:'nyj',PHI:'phi',PIT:'pit',SF:'sf',SEA:'sea',TB:'tb',TEN:'ten',WAS:'wsh'};
+function logoUrl(abbr){ return `https://a.espncdn.com/i/teamlogos/nfl/500/${ESPN_A[abbr]}.png`; }
 const TEAMS = {
   BUF:{city:'Buffalo',name:'Bills',conf:'AFC',div:'East',color:'#00338D'},
   MIA:{city:'Miami',name:'Dolphins',conf:'AFC',div:'East',color:'#008E97'},
@@ -1299,7 +1310,8 @@ function renderTsgTable(){
   });
 
   const bodyHtml = sortedRows.map(({abbr,t}) => {
-    let cells = `<td class="tsg-team-cell">${abbr}</td>`;
+    const team = TEAMS[abbr];
+    let cells = `<td class="tsg-team-cell"><img class="tsg-team-logo" src="${logoUrl(abbr)}" alt=""><span>${team.city} ${team.name}</span></td>`;
     ALL_METRICS.forEach(m => {
       const v = m.get(t);
       cells += `<td>${v == null ? '–' : m.fmt(v)}</td>`;
