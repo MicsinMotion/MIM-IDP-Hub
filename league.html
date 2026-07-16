@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Liga-Übersicht · Mics in Motion</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;
+  --border:#21262d;--border2:#30363d;
+  --text:#e6edf3;--muted:#7d8590;--muted2:#9198a1;
+  --orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
+  --red:#da3633;--radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.brand-logo{width:32px;height:32px;display:block;}
+.brand em{color:var(--orange);font-style:normal;}
+.nav-mid{display:flex;gap:4px;min-width:0;}
+.nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
+.nav-link:hover{color:var(--text);background:var(--bg3);}
+.nav-link.active{color:var(--orange);background:var(--orange-glow);}
+.auth-wrap{display:flex;align-items:center;gap:10px;}
+.auth-btn{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.auth-btn:hover{border-color:var(--orange);}
+.auth-user{display:flex;align-items:center;gap:10px;}
+.auth-avatar{width:30px;height:30px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
+.auth-name{font-size:13px;font-weight:500;color:var(--text);}
+.auth-logout{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
+.auth-logout:hover{color:var(--text);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:360px;position:relative;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.modal-field{margin-bottom:14px;}
+.modal-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;}
+.modal-field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+.modal-field input:focus{border-color:var(--orange);}
+.modal-submit{width:100%;background:var(--orange);color:#fff;border:none;padding:11px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif;}
+.modal-submit:hover{opacity:.9;}
+.modal-error{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+.modal-error.show{display:block;}
+
+/* TEAM HEADER */
+.team-header{
+  position:relative;
+  border-bottom:1px solid var(--border);
+  padding:32px 40px;
+  display:flex;
+  align-items:center;
+  gap:36px;
+  overflow:hidden;
+}
+.team-header-tint{position:absolute;inset:0;background:var(--tc-color, var(--orange));opacity:.08;pointer-events:none;}
+.team-header-logo-bg{position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:340px;height:340px;object-fit:contain;opacity:.08;pointer-events:none;}
+.team-header-inner{position:relative;z-index:1;display:flex;align-items:center;gap:36px;width:100%;flex-wrap:wrap;}
+
+.team-hdr-logo{width:96px;height:96px;object-fit:contain;flex-shrink:0;}
+.team-hdr-id{display:flex;flex-direction:column;gap:4px;}
+.team-hdr-name{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;color:#fff;line-height:1;}
+.team-hdr-div{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tc-color, var(--orange));font-weight:700;}
+.team-hdr-record{font-size:13px;color:var(--muted2);}
+.team-hdr-record b{color:var(--text);font-weight:700;}
+
+.team-hdr-staff{display:flex;flex-direction:column;gap:8px;margin-left:auto;padding:0 24px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.staff-row{display:flex;gap:8px;align-items:baseline;font-size:12px;}
+.staff-role{color:var(--muted);min-width:90px;letter-spacing:.3px;}
+.staff-name{color:var(--text);font-weight:600;}
+
+.team-hdr-divrank{display:flex;flex-direction:column;gap:6px;padding:0 24px;border-right:1px solid var(--border);min-width:170px;}
+.divrank-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.divrank-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted2);}
+.divrank-row.me{color:#fff;font-weight:700;}
+.divrank-row .dr-rec{color:var(--muted);}
+.divrank-row.me .dr-rec{color:var(--orange);}
+
+.team-hdr-season{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.team-hdr-season label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.season-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;padding:9px 14px;outline:none;min-width:110px;}
+.season-select:focus{border-color:var(--orange);}
+
+.team-body{padding:32px 40px;}
+.team-body h3{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:1px;margin-bottom:10px;}
+.dc-loading, .dc-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 0;}
+#dc-container{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;align-items:start;}
+@media(max-width:1100px){ #dc-container{grid-template-columns:1fr;} }
+
+/* SCHEDULE & STANDINGS */
+.sched-half-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+@media(max-width:1100px){ .sched-half-wrap{grid-template-columns:1fr;} }
+#sched-container{display:grid;grid-template-columns:1.2fr 2fr;gap:12px;align-items:start;}
+.sched-standings-col{display:flex;flex-direction:column;gap:12px;}
+.sched-standings-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:900px){ .sched-standings-row{grid-template-columns:1fr;} }
+@media(max-width:700px){ #sched-container{grid-template-columns:1fr;} }
+.sched-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sched-table th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.sched-table td{padding:8px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.sched-table tr:last-child td{border-bottom:none;}
+.sched-table tr.win td.sched-result{color:#2ea043;font-weight:700;}
+.sched-table tr.loss td.sched-result{color:var(--red);font-weight:700;}
+.sched-table tr.tie td.sched-result{color:var(--muted2);font-weight:700;}
+.sched-table tr.upcoming td.sched-result{color:var(--muted);}
+.sched-opp{display:flex;align-items:center;gap:8px;}
+.sched-team-logo{width:20px;height:20px;object-fit:contain;flex-shrink:0;}
+.standings-table{width:100%;border-collapse:collapse;font-size:12px;}
+.standings-table th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.standings-table td{padding:7px 12px;border-bottom:1px solid var(--border);}
+.standings-table tr:last-child td{border-bottom:none;}
+.standings-table tr.me-row td{background:var(--orange-glow);font-weight:700;color:#fff;}
+.standings-div-hdr td{background:var(--bg4);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 12px;}
+.dc-glossary{margin-top:24px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);padding:18px 20px;}
+.dc-glossary-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:#fff;margin-bottom:12px;}
+.dc-glossary-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:6px 20px;}
+.dc-glossary-item{font-size:12px;color:var(--muted);display:flex;gap:8px;}
+.dc-glossary-item b{color:var(--orange);min-width:38px;flex-shrink:0;}
+
+/* DEFENSIVE LINEUP BREAKDOWN (FRONT / LB / SECONDARY / Most used Schemes) */
+.team-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+@media(max-width:1100px){ .team-two-col{grid-template-columns:1fr;} }
+#lineup-container{display:flex;flex-direction:column;gap:12px;}
+.lu-subbox{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg2);}
+.lu-subhdr{background:var(--bg3);padding:9px 16px;display:flex;align-items:center;gap:10px;}
+.lu-subhdr-title{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:#fff;}
+.lu-col-hdr-group{width:220px;flex-shrink:0;text-align:center;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
+.lu-col-hdr-avg{width:180px;color:#5b8dd6;}
+.lu-cat-body{padding:6px 16px 10px;}
+.lu-row{display:flex;align-items:center;gap:10px;padding:3px 0;font-size:10px;}
+.lu-row:not(:last-child){border-bottom:1px dashed var(--border);}
+.lu-label{flex:1;min-width:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lu-code{font-weight:700;color:#fff;margin-left:5px;}
+.lu-count{width:28px;flex-shrink:0;text-align:right;font-weight:700;color:var(--text);}
+.lu-count-avg{color:#5b8dd6;}
+.lu-bar-track{width:130px;flex-shrink:0;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.lu-bar-fill{height:100%;background:var(--orange);border-radius:3px;}
+.lu-bar-track-avg{width:90px;}
+.lu-bar-fill-avg{height:100%;background:#5b8dd6;border-radius:3px;}
+.lu-pct{width:42px;flex-shrink:0;text-align:right;color:var(--muted);font-size:10px;}
+.mus-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:18px 16px;}
+@media(max-width:700px){ .mus-cards{grid-template-columns:1fr;} }
+.mus-card{background:var(--bg3);border-radius:8px;padding:18px 14px;text-align:center;}
+.mus-card-code{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#fff;}
+.mus-card-count{font-size:16px;font-weight:700;color:var(--orange);margin:6px 0 10px;}
+.mus-card-count-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;}
+.mus-card-bar{width:100%;height:8px;margin-bottom:8px;}
+.mus-card-pct{font-size:13px;color:var(--muted);font-weight:600;}
+.lu-pct-avg{color:#5b8dd6;}
+.lu-unavailable{padding:32px 20px;text-align:center;color:var(--muted);font-size:12px;}
+.lu-loading-wrap{padding:32px 24px;}
+.lu-loading-label{font-size:12px;color:var(--muted);margin-bottom:10px;text-align:center;}
+.lu-progress-track{width:100%;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;}
+.lu-progress-fill{height:100%;background:var(--orange);border-radius:4px;transition:width .3s ease;}
+
+/* DEPTH CHART */
+.dc-heading{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:12px;}
+.dc-source-badge{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:3px 9px;text-transform:none;}
+.dc-subline{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.dc-section{margin-bottom:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg2);}
+.dc-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;background:var(--bg3);user-select:none;}
+.dc-section-hdr:hover{background:var(--bg4);}
+.dc-section-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1.5px;color:#fff;display:flex;align-items:center;gap:10px;}
+.dc-section-title .dc-badge{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted);background:var(--bg4);border:1px solid var(--border2);border-radius:4px;padding:2px 8px;text-transform:none;}
+.dc-chevron{color:var(--muted);font-size:13px;transition:transform .2s;}
+.dc-section.open .dc-chevron{transform:rotate(180deg);}
+.dc-section-body{display:none;padding:0;overflow-x:auto;}
+.dc-section.open .dc-section-body{display:block;}
+.dc-table{width:100%;border-collapse:collapse;font-size:13px;}
+.dc-table th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;}
+.dc-table td{padding:9px 16px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.dc-table tr:last-child td{border-bottom:none;}
+.dc-table tr:hover td{background:var(--bg3);}
+.dc-pos-cell{font-weight:700;color:var(--orange);font-size:12px;letter-spacing:.5px;}
+.dc-player-cell a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border2);text-underline-offset:3px;}
+.dc-player-cell a:hover{color:var(--orange);text-decoration-color:var(--orange);}
+.dc-player-cell.empty{color:var(--muted);}
+
+@media(max-width:900px){
+  .team-header{padding:24px 20px;}
+  .team-header-inner{gap:20px;}
+  .team-hdr-staff{margin-left:0;border-left:none;padding-left:0;}
+  .team-body{padding:24px 20px;}
+}
+@media(max-width:700px){
+  nav{padding:0 16px;}
+  .brand{font-size:18px;gap:8px;}
+  .brand-logo{width:26px;height:26px;}
+  .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+  .nav-mid::-webkit-scrollbar{display:none;}
+  .nav-link{padding:6px 9px;font-size:12px;white-space:nowrap;flex-shrink:0;}
+  .team-body{padding:18px 14px;}
+}
+
+/* ROSTER */
+#roster-container{display:grid;grid-template-columns:repeat(5, 1fr);gap:16px;align-items:start;}
+@media(max-width:1300px){ #roster-container{grid-template-columns:repeat(3, 1fr);} }
+@media(max-width:800px){ #roster-container{grid-template-columns:1fr;} }
+.roster-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.roster-row:hover{background:var(--bg3);}
+.roster-hs-wrap{position:relative;flex-shrink:0;width:32px;height:32px;}
+/* Injury-Badge — identisch zu rankings.html, damit Verletzungen einheitlich überall
+   im Projekt gleich aussehen (kleines Kreuz-Symbol unten rechts am Headshot). */
+.roster-injury-badge{position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg2);box-sizing:content-box;}
+.roster-injury-badge svg{width:8px;height:8px;}
+.roster-injury-q{background:var(--orange);}
+.roster-injury-q svg{stroke:#fff;}
+.roster-injury-out{background:transparent;border-color:var(--red);box-shadow:inset 0 0 0 1.5px var(--red);}
+.roster-injury-out svg{stroke:var(--red);}
+.roster-injury-ir{background:var(--red);}
+.roster-injury-ir svg{stroke:#fff;}
+.roster-hs,.roster-hs-fb{width:32px;height:32px;border-radius:5px;object-fit:cover;object-position:top;background:var(--bg4);}
+.roster-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--muted);}
+.roster-row-info{flex:1;min-width:0;}
+.roster-row-name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.roster-row-sub{font-size:10px;color:var(--muted);}
+.roster-mid-season-tag{color:var(--orange);font-weight:600;}
+.roster-row-stats{display:flex;gap:12px;flex-shrink:0;}
+.roster-stat{display:flex;flex-direction:column;align-items:flex-end;min-width:32px;}
+.roster-stat-val{font-size:13px;font-weight:700;color:var(--orange);}
+.trend-arrow{font-size:10px;margin-right:3px;display:inline-block;}
+.trend-up{color:#3fb950;}
+.trend-down{color:#da3633;}
+.trend-flat{color:#fff;}
+.roster-stat-lbl{font-size:8px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+.roster-chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;}
+.roster-row.open .roster-chevron{transform:rotate(180deg);}
+.roster-detail{display:none;padding:16px 14px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.roster-row.open + .roster-detail{display:block;}
+.roster-total-snaps{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.roster-total-snaps b{color:var(--text);}
+.roster-snap-chart-title{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.roster-snap-chart{display:flex;align-items:flex-end;gap:2px;height:56px;margin-bottom:2px;}
+.roster-snap-wk-row{display:flex;gap:2px;margin-bottom:16px;}
+.roster-snap-wk-lbl{flex:1;text-align:center;font-size:8px;color:var(--muted);}
+.roster-snap-bar-wrap{flex:1;height:100%;display:flex;align-items:flex-end;position:relative;}
+.roster-snap-bar-wrap:hover .roster-snap-tip{display:block;}
+.roster-snap-bar{width:100%;background:var(--orange);border-radius:2px 2px 0 0;min-height:2px;}
+.roster-snap-bar.zero{background:var(--bg4);min-height:2px;}
+.roster-snap-num{position:absolute;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;color:#fff;white-space:nowrap;margin-bottom:1px;}
+.roster-snap-tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border2);border-radius:4px;padding:2px 6px;font-size:9px;white-space:nowrap;margin-bottom:3px;z-index:5;}
+.roster-season-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(46px, 1fr));gap:8px;margin-bottom:16px;}
+.roster-season-stat{text-align:center;}
+.roster-season-val{font-size:15px;font-weight:700;color:#fff;}
+.roster-season-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.roster-profile-link{display:block;text-align:center;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:9px;font-size:12px;color:var(--text);text-decoration:none;font-weight:600;}
+.roster-profile-link:hover{border-color:var(--orange);color:var(--orange);}
+/* TEAM STATS — 7 Kategorien als Spalten nebeneinander, Stats darin vertikal gestapelt */
+#ts-container{display:grid;grid-template-columns:repeat(8, 1fr);gap:12px;align-items:start;}
+@media(max-width:1600px){ #ts-container{grid-template-columns:repeat(4, 1fr);} }
+@media(max-width:900px){ #ts-container{grid-template-columns:repeat(2, 1fr);} }
+#community-stats-container{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;align-items:start;}
+.ts-group{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;}
+.ts-group-title{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;font-weight:700;}
+.ts-group-grid{display:flex;flex-direction:column;gap:8px;}
+.ts-stat{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;}
+.ts-stat-lbl{font-size:9px;color:var(--muted);}
+.ts-stat-val{font-size:15px;font-weight:700;color:#fff;margin-top:2px;}
+.ts-rank{font-size:10px;font-weight:700;color:var(--orange);}
+.ts-glossary{margin-top:16px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px 20px;}
+@media(max-width:900px){ .ts-glossary{grid-template-columns:1fr;} }
+.ts-glossary-item{font-size:11px;color:var(--muted);line-height:1.5;}
+.ts-glossary-item b{color:var(--text);}
+
+/* NFL-LIGA-ÜBERSICHT: Team-Stats-Grid (32 Teams × alle Kategorien) */
+.tsg-table{border-collapse:collapse;font-size:11px;white-space:nowrap;}
+.tsg-table th, .tsg-table td{border:1px solid var(--border);padding:6px 8px;text-align:right;}
+.tsg-team-cell{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:2;font-weight:700;}
+.tsg-group-hdr{background:var(--bg3);color:var(--muted2);font-size:10px;letter-spacing:.5px;text-transform:uppercase;text-align:center;}
+.tsg-metric-hdr{background:var(--bg2);cursor:pointer;user-select:none;padding:6px 4px;}
+.tsg-metric-hdr:hover{background:var(--orange-glow);}
+.tsg-metric-label{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10px;color:var(--muted2);max-height:140px;}
+.tsg-table tbody tr:hover td{background:var(--bg3);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="Mics in Motion Logo">MICS IN <em>MOTION</em></a>
+  <div class="nav-mid">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="players.html" class="nav-link">Player DB</a>
+    <a href="team-hub.html" class="nav-link active">Team Hub</a>
+    <a href="rankings.html" class="nav-link">IDP Rankings</a>
+    <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+  </div>
+  <div class="auth-wrap" id="auth-wrap">
+    <button class="auth-btn" id="auth-open-btn">Login</button>
+  </div>
+</nav>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close-btn">&times;</button>
+    <div class="modal-title">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-error" id="modal-error"></div>
+  </div>
+</div>
+
+<div class="team-body" id="team-body" style="padding-top:32px;">
+  <div class="dc-heading" style="font-size:28px;">NFL <span style="color:var(--orange);">LIGA-ÜBERSICHT</span></div>
+  <div class="dc-subline">Alle 32 Teams im Vergleich — nur für internen Gebrauch</div>
+
+  <div id="community-locked">
+    <div style="text-align:center;padding:100px 20px;color:var(--muted);">
+      <div style="font-size:44px;margin-bottom:16px;">🔒</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:1px;margin-bottom:10px;">Nur für internen Gebrauch</div>
+      <div style="font-size:13px;max-width:420px;margin:0 auto;">Dieser Bereich (Liga-weite Team Stats &amp; Lineup-Entwicklung) ist ausschließlich eingeloggten Mitgliedern vorbehalten.</div>
+    </div>
+  </div>
+
+  <div id="internal-content" style="display:none;">
+
+    <div class="dc-heading section-toggle-hdr" id="tsg-toggle-hdr" style="margin-top:24px;cursor:pointer;user-select:none;">
+      Team Stats — alle 32 Teams
+      <span class="ts-toggle-chevron" id="tsg-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
+    </div>
+    <div id="tsg-body">
+      <div style="display:flex;align-items:center;gap:12px;margin:14px 0;">
+        <label style="font-size:12px;color:var(--muted);">Saison</label>
+        <select class="season-select" id="tsg-year-select" style="width:auto;"></select>
+      </div>
+      <div class="dc-loading" id="tsg-status">Lade Team Stats für alle 32 Teams…</div>
+      <div id="tsg-container" style="overflow-x:auto;"></div>
+    </div>
+
+    <div class="dc-heading section-toggle-hdr" id="lgd-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
+      Lineup-Entwicklung — NFL-Durchschnitt nach Jahr
+      <span class="ts-toggle-chevron" id="lgd-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
+    </div>
+    <div id="lgd-body">
+      <div class="dc-subline">Vergleich der Liga-weiten Ø-Werte je Saison (Front/LB/Secondary) — kein Jahr-Dropdown, alle Jahre nebeneinander</div>
+      <div class="dc-loading" id="lgd-status">Lade Lineup-Entwicklung (kann bei erstmaligem Aufruf pro Jahr dauern)…</div>
+      <div id="lgd-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
+  <div id="footer-text">MICS IN MOTION · IDP HUB</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+</footer>
+<script type="module">
+import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
+
+const authWrap = document.getElementById('auth-wrap');
+const overlay = document.getElementById('modal-overlay');
+const errEl = document.getElementById('modal-error');
+document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
+document.getElementById('modal-close-btn').addEventListener('click', () => overlay.classList.remove('open'));
+overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
+function mapAuthError(e){
+  const c = e.code || '';
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
+  return 'Fehler: ' + (e.message || 'unbekannt');
+}
+document.getElementById('login-submit').addEventListener('click', async () => {
+  errEl.classList.remove('show');
+  try{ await loginUser(document.getElementById('login-email').value, document.getElementById('login-pw').value); overlay.classList.remove('open'); }
+  catch(e){ showErr(mapAuthError(e)); }
+});
+
+let isInternalUser = false;
+function applyAccessLevelVisibility(isInternal){
+  document.getElementById('community-locked').style.display = isInternal ? 'none' : '';
+  document.getElementById('internal-content').style.display = isInternal ? '' : 'none';
+}
+let onAccessResolved = null;
+watchAuth(user => {
+  const link = document.getElementById('nav-scouting-link');
+  if(link) link.style.display = user ? '' : 'none';
+  const footerText = document.getElementById('footer-text');
+  if(footerText) footerText.textContent = user
+    ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'
+    : 'MICS IN MOTION · IDP HUB · Community-Modus';
+  if(user){
+    const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
+  } else {
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
+  }
+  isInternalUser = !!user;
+  applyAccessLevelVisibility(isInternalUser);
+  if(onAccessResolved) onAccessResolved();
+});
+
+const TEAMS = {
+  BUF:{city:'Buffalo',name:'Bills',conf:'AFC',div:'East',color:'#00338D'},
+  MIA:{city:'Miami',name:'Dolphins',conf:'AFC',div:'East',color:'#008E97'},
+  NE:{city:'New England',name:'Patriots',conf:'AFC',div:'East',color:'#C60C30'},
+  NYJ:{city:'New York',name:'Jets',conf:'AFC',div:'East',color:'#125740'},
+  BAL:{city:'Baltimore',name:'Ravens',conf:'AFC',div:'North',color:'#241773'},
+  CIN:{city:'Cincinnati',name:'Bengals',conf:'AFC',div:'North',color:'#FB4F14'},
+  CLE:{city:'Cleveland',name:'Browns',conf:'AFC',div:'North',color:'#FF3C00'},
+  PIT:{city:'Pittsburgh',name:'Steelers',conf:'AFC',div:'North',color:'#FFB612'},
+  HOU:{city:'Houston',name:'Texans',conf:'AFC',div:'South',color:'#A71930'},
+  IND:{city:'Indianapolis',name:'Colts',conf:'AFC',div:'South',color:'#002C5F'},
+  JAX:{city:'Jacksonville',name:'Jaguars',conf:'AFC',div:'South',color:'#D7A22A'},
+  TEN:{city:'Tennessee',name:'Titans',conf:'AFC',div:'South',color:'#4B92DB'},
+  DEN:{city:'Denver',name:'Broncos',conf:'AFC',div:'West',color:'#FB4F14'},
+  KC:{city:'Kansas City',name:'Chiefs',conf:'AFC',div:'West',color:'#E31837'},
+  LV:{city:'Las Vegas',name:'Raiders',conf:'AFC',div:'West',color:'#A5ACAF'},
+  LAC:{city:'Los Angeles',name:'Chargers',conf:'AFC',div:'West',color:'#0080C6'},
+  DAL:{city:'Dallas',name:'Cowboys',conf:'NFC',div:'East',color:'#869397'},
+  NYG:{city:'New York',name:'Giants',conf:'NFC',div:'East',color:'#0B2265'},
+  PHI:{city:'Philadelphia',name:'Eagles',conf:'NFC',div:'East',color:'#004C54'},
+  WAS:{city:'Washington',name:'Commanders',conf:'NFC',div:'East',color:'#FFB612'},
+  CHI:{city:'Chicago',name:'Bears',conf:'NFC',div:'North',color:'#C83803'},
+  DET:{city:'Detroit',name:'Lions',conf:'NFC',div:'North',color:'#0076B6'},
+  GB:{city:'Green Bay',name:'Packers',conf:'NFC',div:'North',color:'#FFB612'},
+  MIN:{city:'Minnesota',name:'Vikings',conf:'NFC',div:'North',color:'#4F2683'},
+  ATL:{city:'Atlanta',name:'Falcons',conf:'NFC',div:'South',color:'#A71930'},
+  CAR:{city:'Carolina',name:'Panthers',conf:'NFC',div:'South',color:'#0085CA'},
+  NO:{city:'New Orleans',name:'Saints',conf:'NFC',div:'South',color:'#D3BC8D'},
+  TB:{city:'Tampa Bay',name:'Buccaneers',conf:'NFC',div:'South',color:'#D50A0A'},
+  ARI:{city:'Arizona',name:'Cardinals',conf:'NFC',div:'West',color:'#97233F'},
+  LAR:{city:'Los Angeles',name:'Rams',conf:'NFC',div:'West',color:'#003594'},
+  SF:{city:'San Francisco',name:'49ers',conf:'NFC',div:'West',color:'#AA0000'},
+  SEA:{city:'Seattle',name:'Seahawks',conf:'NFC',div:'West',color:'#69BE28'},
+};
+
+function splitCSV(l){const c=[];let cur='',q=false;for(const ch of l){if(ch==='"'){q=!q;}else if(ch===','&&!q){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c;}
+
+function isPastMarch1(d){ return d >= new Date(d.getFullYear(), 2, 1); }
+const CURRENT_SEASON_YEAR = isPastMarch1(new Date()) ? new Date().getFullYear() : new Date().getFullYear() - 1;
+
+async function fetchViaWorker(url){
+  try{
+    const r = await fetch(`${MIM_WORKER}${encodeURIComponent(url)}`);
+    if(!r.ok) return null;
+    return await r.text();
+  }catch(e){ return null; }
+}
+
+const MIN_YEAR = 2022;
+
+function parseCsvLine(line){
+  // einfacher CSV-Parser, der auch Felder mit Kommas in Anführungszeichen korrekt behandelt
+  const out = []; let cur = ''; let inQ = false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(c === '"'){ inQ = !inQ; continue; }
+    if(c === ',' && !inQ){ out.push(cur); cur=''; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+// Eigener Cloudflare Worker — dauerhaft zuverlässig, da er uns gehört (siehe Chat).
+// Wird von mehreren Funktionen geteilt (nflverse-CSV, ourlads).
+const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+
+async function fetchNflverseCSV(url){
+  const attempts = [
+    `${MIM_WORKER}${encodeURIComponent(url)}`,
+    `https://proxy.corsfix.com/?${url}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://cors.sh/${url}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+  ];
+  for(const a of attempts){
+    try{
+      const r = await fetch(a);
+      if(!r.ok) continue;
+      const text = a.includes('allorigins') ? (await r.json()).contents : await r.text();
+      if(text && text.length > 100) return text;
+    }catch(e){}
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// TEAM ROSTER — nflverse Rosters (Kader/Bio je Saison) + PFF (genaue Position,
+// 5-Wege-Split DI/ED/LB/CB/S) + nflverse/PFR Snap Counts (Snap%, wie in
+// player.html) + Sleeper (Weekly Stats → Season Stats & Fantasy Points).
+// ══════════════════════════════════════════════════════════════════════════
+
+const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
+const NV_SNAP_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_${yr}.csv`;
+
+// PFF Team-Rosters — liefert die genaue Position (DI/ED statt fälschlich DT/OLB).
+const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
+const PFF_POS_MAP={DI:'DI',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
+
+// Fallback-Zuordnung (nflverse depth_chart_position/position → 5-Wege-Split), falls
+// PFF für einen Spieler nichts liefert (z.B. gerade verpflichtet, Practice Squad).
+function classifyIdpGroup(pffPos, dcp, pos){
+  if(pffPos && ['DI','ED','LB','CB','S'].includes(pffPos)) return pffPos;
+  const t = (dcp || pos || '').toUpperCase();
+  if(['DT','NT','DL'].includes(t)) return 'DI';
+  if(['DE','EDGE','OLB'].includes(t)) return 'ED'; // OLB zählt zu ED (siehe Chat, konsistent mit Lineup Details)
+  if(['LB','ILB','MLB'].includes(t)) return 'LB';
+  if(t === 'CB') return 'CB';
+  if(['S','FS','SS','DB'].includes(t)) return 'S';
+  return null; // Offense/Special Teams — für die IDP-Roster-Ansicht nicht relevant
+}
+
+// NEUE Priorität (siehe Chat): PFF zuerst. Liefert PFF nichts, nutzen wir Sleepers
+// eigenen fantasy_positions-Tag als Indikator, BEVOR wir überhaupt nflverse
+// anfassen — kein "OLB"-Rätselraten mehr nötig:
+//   - Sleeper führt SOWOHL "DL" ALS AUCH "LB" → Tweener-Edge-Rusher (z.B. Kyle Van
+//     Noy) → ED. Genau dieser Doppel-Tag ist der verlässliche Indikator, den
+//     nflverses einzelnes "OLB"-Label nicht liefern kann.
+//   - Sleeper führt NUR "LB" (kein DL) → klassischer Off-Ball-Backer (z.B. Devin
+//     White) → LB, fertig, kein nflverse nötig.
+//   - Sleeper führt NUR "DL" (kein LB) → generischer Lineman-Tag, nflverse für die
+//     genaue Sorte (DT/NT → DI, DE → ED) konsultieren.
+//   - Sleeper führt "DB" → nflverse für CB vs. S konsultieren.
+//   - Nichts davon eindeutig → alter dcp/pos-Fallback als letzte Rettung.
+function classifyViaSleeperTag(pffPos, fantasyPositions, dcp, pos){
+  if(pffPos && ['DI','ED','LB','CB','S'].includes(pffPos)) return pffPos;
+
+  const tags = new Set((fantasyPositions||[]).map(t => (t||'').toUpperCase()));
+  const hasDL = tags.has('DL'), hasLB = tags.has('LB'), hasDB = tags.has('DB');
+
+  if(hasDL && hasLB) return 'ED';
+  if(hasLB) return 'LB';
+  if(hasDL){
+    const t = (dcp || pos || '').toUpperCase();
+    if(['DT','NT'].includes(t)) return 'DI';
+    if(['DE','EDGE','OLB'].includes(t)) return 'ED';
+    return 'DI'; // generischer DL-Tag ohne genauere nflverse-Angabe — DI als Standardannahme
+  }
+  if(hasDB){
+    const t = (dcp || pos || '').toUpperCase();
+    if(t === 'CB') return 'CB';
+    if(['S','FS','SS'].includes(t)) return 'S';
+    return null; // unklar — lieber nichts zuordnen als raten
+  }
+  return classifyIdpGroup(null, dcp, pos); // kein/unklarer Sleeper-Tag — alter Fallback als letzte Rettung
+}
+
+async function fetchPffRosterMap(abbr){
+  const pffMap = new Map(); // pff_id -> genaue Position
+  let rawPlayers = [];
+  const teamId = PFF_TEAM_ID[abbr];
+  if(!teamId) return { pffMap, rawPlayers };
+  try{
+    const url = `https://www.pff.com/api/teams/${teamId}/roster`;
+    const res = await fetchViaWorker(url);
+    if(!res) return { pffMap, rawPlayers };
+    const json = JSON.parse(res);
+    rawPlayers = json.team_players || [];
+    rawPlayers.forEach(pl => {
+      if(pl.id && pl.position) pffMap.set(String(pl.id), PFF_POS_MAP[pl.position.toUpperCase()] || null);
+    });
+  }catch(e){ console.warn('[Roster] PFF-Positionen konnten nicht geladen werden:', e); }
+  return { pffMap, rawPlayers };
+}
+
+// pff_id bevorzugt aus der AKTUELLEN Saison-Rosters-CSV auflösen (sleeper_id ->
+// pff_id), nicht nur aus der CSV des gerade ausgewählten Jahres — exakt dasselbe
+// Prinzip wie player.html's enrichIds() (dort wird ebenfalls über mehrere Jahre
+// gesucht). Grund für den Bug (Jermaine Johnson landete bei LB statt ED): die
+// pff_id in älteren Rosters-Snapshots kann veraltet/falsch sein, während die
+// aktuelle Saison-CSV die richtige, zu PFFs eigener ID passende pff_id führt.
+// WICHTIG (siehe Chat, Devin-White-Fall): das gilt NUR für pff_id/gsis_id, die
+// sich über die Jahre nie ändern. Die depth_chart_position/position dagegen
+// wird bewusst NICHT mehr hier mehrjährig aufgelöst — die muss exakt aus dem
+// gerade angezeigten Jahr kommen (siehe classifyIdpGroup-Aufruf weiter unten),
+// sonst rutscht z.B. ein 2026er-Platzhalter-Wert in die 2025er-Anzeige.
+let currentYearPffIdMapPromise = null;
+
+function fetchCurrentYearPffIdMap(){
+  if(currentYearPffIdMapPromise) return currentYearPffIdMapPromise;
+  currentYearPffIdMapPromise = (async () => {
+    const map = new Map(); // sleeper_id -> { pff_id, gsis_id }
+    const MIN_NV_YEAR = 2022;
+    for(let yr = CURRENT_SEASON_YEAR; yr >= MIN_NV_YEAR; yr--){
+      const text = await fetchNflverseCSV(NV_ROSTER_URL(yr));
+      if(!text) continue;
+      const lines = text.split('\n').filter(l => l.trim());
+      const H = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+      const iSl = H.indexOf('sleeper_id'), iPf = H.indexOf('pff_id'), iGs = H.indexOf('gsis_id');
+      if(iSl < 0) continue;
+      for(let i=1;i<lines.length;i++){
+        const row = parseCsvLine(lines[i]);
+        const sid = (row[iSl]||'').trim();
+        if(!sid) continue;
+        const pid = iPf>=0 ? (row[iPf]||'').trim() : '';
+        const gid = iGs>=0 ? (row[iGs]||'').trim() : '';
+        const existing = map.get(sid) || { pff_id: '', gsis_id: '' };
+        // Nur befüllen, was noch fehlt — wir gehen absteigend (neuestes Jahr
+        // zuerst), ein schon gefundener Wert aus einem neueren Jahr hat also
+        // automatisch Vorrang und wird nicht mehr überschrieben.
+        if(!existing.pff_id && pid && pid !== 'NA') existing.pff_id = pid;
+        if(!existing.gsis_id && gid && gid !== 'NA') existing.gsis_id = gid;
+        map.set(sid, existing);
+      }
+    }
+    return map;
+  })();
+  return currentYearPffIdMapPromise;
+}
+
+// ── INJURY-BADGE — identisch zu rankings.html (selbe Klassifizierung, selbe
+// Farbgebung), damit Verletzungen im ganzen Projekt einheitlich aussehen. ──
+const NV_INJURIES_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_${yr}.csv`;
+
+// ── TEAM STATS — PBP-basiert (Tag "pbp", Datei play_by_play_{jahr}.csv), erstmal
+// nur 2025. EIN Fetch deckt automatisch ALLE 32 Teams ab (posteam/defteam-Spalten),
+// daraus lassen sich sowohl unsere eigenen Werte als auch die Liga-Ränge berechnen.
+// WICHTIG: Größte Datei im ganzen Projekt (372 Spalten, ~48.000 Zeilen/Saison) —
+// falls das am Worker/Proxy scheitert, ist das ein Infrastruktur-, kein Logikfehler
+// (siehe Chat-Historie zur Contracts-Datei).
+const NV_PBP_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_${yr}.csv`;
+
+const pbpCsvPromiseByYear = {};
+async function fetchPbpCsv(yr){
+  if(pbpCsvPromiseByYear[yr]) return pbpCsvPromiseByYear[yr];
+  pbpCsvPromiseByYear[yr] = (async () => {
+    const rawUrl = NV_PBP_URL(yr);
+    for(const url of [
+      `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
+      `https://proxy.corsfix.com/?${rawUrl}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
+      `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`,
+    ]){
+      try{
+        const ctrl = new AbortController();
+        const timer = setTimeout(()=>ctrl.abort(), 25000); // deutlich mehr Zeit als bei kleineren Dateien
+        const r = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if(!r.ok){ console.warn(`[TeamStats] PBP HTTP ${r.status} @ ${url.slice(0,60)}`); continue; }
+        let t = url.includes('allorigins') ? (await r.json()).contents : await r.text();
+        if(t && t.length > 10000 && t.includes('defteam')){
+          console.log(`[TeamStats] PBP ${yr} geladen (${(t.length/1e6).toFixed(1)} MB) via ${url.slice(0,60)}`);
+          return t;
+        }
+      }catch(e){ console.warn(`[TeamStats] PBP Fehler @ ${url.slice(0,60)}:`, e.message); }
+    }
+    return null;
+  })();
+  return pbpCsvPromiseByYear[yr];
+}
+
+// Baut Team-Defense-Aggregate für ALLE Teams aus einem einzigen Durchlauf der PBP.
+// ANNAHMEN zu Spaltennamen (Standard-nflfastR-Schema, nicht live verifiziert —
+// siehe Konsolen-Log für den tatsächlichen Header, falls was nicht passt):
+// posteam, defteam, play_type, yards_gained, epa, success, touchdown, sack,
+// interception, fumble_forced, penalty, penalty_team, penalty_yards,
+// third_down_converted, third_down_failed, game_id, home_team, away_team,
+// total_home_score, total_away_score.
+function aggregateTeamDefense(pbpText){
+  const lines = pbpText.split('\n');
+  const H = parseCsvLine(lines[0]).map(h => h.trim());
+  console.log(`[TeamStats] PBP Header (${H.length} Spalten):`, H);
+  const idx = {};
+  ['game_id','home_team','away_team','posteam','defteam','play_type','yards_gained','epa','success',
+   'touchdown','sack','interception','fumble_forced','penalty','penalty_team','penalty_yards',
+   'third_down_converted','third_down_failed','fourth_down_converted','fourth_down_failed',
+   'qb_hit','pass_defense_1_player_id','total_home_score','total_away_score'
+  ].forEach(k => idx[k] = H.indexOf(k));
+
+  const teams = {};
+  function T(team){
+    if(!teams[team]) teams[team] = {
+      snaps:0, snapsRun:0, snapsPass:0, yards:0, rushYards:0, rushPlays:0, passYards:0, passPlays:0,
+      tds:0, rushTds:0, passTds:0, thirdAtt:0, thirdConv:0, fourthAtt:0, fourthConv:0,
+      explosive:0, stuffs:0, epaSum:0, epaPlays:0, successSum:0, successPlays:0,
+      sacks:0, ints:0, ff:0, qbHits:0, pbu:0, penalties:0, penaltyYards:0, pointsAllowed:0, games:0,
+    };
+    return teams[team];
+  }
+  const gameFinal = {};
+
+  for(let i=1;i<lines.length;i++){
+    const line = lines[i];
+    if(!line.trim()) continue;
+    const c = parseCsvLine(line);
+    const gid = idx.game_id>=0 ? c[idx.game_id] : null;
+    if(gid){
+      const hs = parseFloat(c[idx.total_home_score]), as = parseFloat(c[idx.total_away_score]);
+      if(!isNaN(hs) && !isNaN(as)) gameFinal[gid] = { home:c[idx.home_team], away:c[idx.away_team], hs, as };
+    }
+
+    const defteam = idx.defteam>=0 ? c[idx.defteam] : null;
+    if(!defteam) continue;
+    const t = T(defteam);
+    const playType = c[idx.play_type];
+    const isRun = playType === 'run';
+    const isPass = playType === 'pass';
+    const isTd = c[idx.touchdown] === '1';
+    if(isRun || isPass){
+      t.snaps++;
+      const yg = parseFloat(c[idx.yards_gained]) || 0;
+      t.yards += yg;
+      if(isRun){
+        t.snapsRun++; t.rushYards += yg; t.rushPlays++;
+        if(yg>=10) t.explosive++;
+        if(yg<=0) t.stuffs++; // Run Stop Rate: Lauf bei 0 oder weniger Yards gestoppt
+        if(isTd) t.rushTds++;
+      }
+      if(isPass){
+        t.snapsPass++; t.passYards += yg; t.passPlays++;
+        if(yg>=20) t.explosive++;
+        if(isTd) t.passTds++;
+      }
+      const epaVal = parseFloat(c[idx.epa]);
+      if(!isNaN(epaVal)){ t.epaSum += epaVal; t.epaPlays++; }
+      if(c[idx.success] !== undefined && c[idx.success] !== ''){ t.successPlays++; if(c[idx.success]==='1') t.successSum++; }
+    }
+    if(isTd) t.tds++;
+    if(c[idx.sack] === '1') t.sacks++;
+    if(c[idx.interception] === '1') t.ints++;
+    if(c[idx.fumble_forced] === '1') t.ff++;
+    if(idx.qb_hit>=0 && c[idx.qb_hit] === '1') t.qbHits++;
+    if(idx.pass_defense_1_player_id>=0 && c[idx.pass_defense_1_player_id]) t.pbu++;
+    if(c[idx.third_down_converted] === '1'){ t.thirdAtt++; t.thirdConv++; }
+    if(c[idx.third_down_failed] === '1'){ t.thirdAtt++; }
+    if(idx.fourth_down_converted>=0 && c[idx.fourth_down_converted] === '1'){ t.fourthAtt++; t.fourthConv++; }
+    if(idx.fourth_down_failed>=0 && c[idx.fourth_down_failed] === '1'){ t.fourthAtt++; }
+    if(idx.penalty>=0 && c[idx.penalty] === '1' && c[idx.penalty_team]){
+      const pt = T(c[idx.penalty_team]);
+      pt.penalties++;
+      if(idx.penalty_yards>=0) pt.penaltyYards += parseFloat(c[idx.penalty_yards]) || 0;
+    }
+  }
+
+  Object.values(gameFinal).forEach(g => {
+    if(!g.home || !g.away) return;
+    T(g.home).pointsAllowed += (g.as||0); T(g.home).games++;
+    T(g.away).pointsAllowed += (g.hs||0); T(g.away).games++;
+  });
+
+  return teams;
+}
+
+function computeRank(teams, getter, lowerIsBetter){
+  const entries = Object.entries(teams)
+    .map(([team,t]) => [team, getter(t)])
+    .filter(([,v]) => v!=null && !isNaN(v));
+  entries.sort((a,b) => lowerIsBetter ? a[1]-b[1] : b[1]-a[1]);
+  const ranks = {};
+  entries.forEach(([team],i) => ranks[team] = i+1);
+  return ranks;
+}
+
+// Metrik-Konfiguration: 7 Blöcke, pro Metrik Getter + Formatierung + Rang-Richtung.
+const TEAM_STATS_GROUPS = [
+  { title:'Snaps / Volumen', items:[
+    { label:'Total Defense Snaps', get:t=>t.snaps, low:false, fmt:v=>Math.round(v) },
+    { label:'Snaps vs. Run', get:t=>t.snapsRun, low:false, fmt:v=>Math.round(v) },
+    { label:'Snaps vs. Pass', get:t=>t.snapsPass, low:false, fmt:v=>Math.round(v) },
+    { label:'Defensive Plays/Game', get:t=>t.games?t.snaps/t.games:null, low:false, fmt:v=>v.toFixed(1) },
+  ]},
+  { title:'Scoring & Yardage Allowed', items:[
+    { label:'Points Allowed/Game', get:t=>t.games?t.pointsAllowed/t.games:null, low:true, fmt:v=>v.toFixed(1) },
+    { label:'Yards Allowed/Game', get:t=>t.games?t.yards/t.games:null, low:true, fmt:v=>v.toFixed(1) },
+    { label:'Yards Allowed/Play', get:t=>t.snaps?t.yards/t.snaps:null, low:true, fmt:v=>v.toFixed(2) },
+    { label:'TDs Allowed', get:t=>t.tds, low:true, fmt:v=>Math.round(v) },
+  ]},
+  { title:'Run Defense', items:[
+    { label:'Rush Yards Allowed/Game', get:t=>t.games?t.rushYards/t.games:null, low:true, fmt:v=>v.toFixed(1) },
+    { label:'Rush Yards Allowed/Play', get:t=>t.rushPlays?t.rushYards/t.rushPlays:null, low:true, fmt:v=>v.toFixed(2) },
+    { label:'Rush TDs Allowed', get:t=>t.rushTds, low:true, fmt:v=>Math.round(v) },
+    { label:'Run Stop Rate', get:t=>t.rushPlays?t.stuffs/t.rushPlays*100:null, low:false, fmt:v=>v.toFixed(1)+'%' },
+  ]},
+  { title:'Pass Defense', items:[
+    { label:'Pass Yards Allowed/Game', get:t=>t.games?t.passYards/t.games:null, low:true, fmt:v=>v.toFixed(1) },
+    { label:'Pass Yards Allowed/Play', get:t=>t.passPlays?t.passYards/t.passPlays:null, low:true, fmt:v=>v.toFixed(2) },
+    { label:'QB Hits', get:t=>t.qbHits, low:false, fmt:v=>Math.round(v) },
+    { label:'Pass TDs Allowed', get:t=>t.passTds, low:true, fmt:v=>Math.round(v) },
+  ]},
+  { title:'Situational', items:[
+    { label:'3rd Down Conv.% Allowed', get:t=>t.thirdAtt?t.thirdConv/t.thirdAtt*100:null, low:true, fmt:v=>v.toFixed(1)+'%' },
+    { label:'4th Down Conv.% Allowed', get:t=>t.fourthAtt?t.fourthConv/t.fourthAtt*100:null, low:true, fmt:v=>v.toFixed(1)+'%' },
+    { label:'Explosive Play Rate Allowed', get:t=>t.snaps?t.explosive/t.snaps*100:null, low:true, fmt:v=>v.toFixed(1)+'%' },
+  ]},
+  { title:'Advanced', items:[
+    { label:'EPA Allowed/Play', get:t=>t.epaPlays?t.epaSum/t.epaPlays:null, low:true, fmt:v=>v.toFixed(3) },
+    { label:'Success Rate Allowed', get:t=>t.successPlays?t.successSum/t.successPlays*100:null, low:true, fmt:v=>v.toFixed(1)+'%' },
+    { label:'Havoc Rate', get:t=>t.snaps?(t.ff+t.ints+t.pbu+t.stuffs)/t.snaps*100:null, low:false, fmt:v=>v.toFixed(1)+'%' },
+  ]},
+  { title:'Takeaways', items:[
+    { label:'Sacks', get:t=>t.sacks, low:false, fmt:v=>Math.round(v) },
+    { label:'INTs', get:t=>t.ints, low:false, fmt:v=>Math.round(v) },
+    { label:'Fumbles Forced', get:t=>t.ff, low:false, fmt:v=>Math.round(v) },
+    { label:'Passes Defended (PBU)', get:t=>t.pbu, low:false, fmt:v=>Math.round(v) },
+  ]},
+  { title:'Discipline', items:[
+    { label:'Penalties', get:t=>t.penalties, low:true, fmt:v=>Math.round(v) },
+    { label:'Penalty Yards', get:t=>t.penaltyYards, low:true, fmt:v=>Math.round(v) },
+  ]},
+];
+
+// Einklappen der KOMPLETTEN Team-Stats-Sektion (ein einzelner Toggle für den ganzen
+// Bereich, nicht pro Kategorie) — einmalig gebunden, nicht bei jedem Render neu.
+// Einklappen einer KOMPLETTEN Sektion (Depth Chart / Team Stats / Schedule &
+// Standings / Team Roster) — ein einzelner Toggle für den ganzen Bereich inkl.
+// aller Zwischenheader darin (z.B. Defense/Offense/Special Teams oder die 5
+// Roster-Positionsspalten verschwinden mit, statt separat einklappbar zu bleiben).
+// Einmalig gebunden (nicht bei jedem Render neu), einheitlich für alle vier Bereiche.
+const sectionToggleBound = new Set();
+function bindSectionToggle(hdrId, bodyId, chevronId){
+  if(sectionToggleBound.has(hdrId)) return;
+  sectionToggleBound.add(hdrId);
+  const hdr = document.getElementById(hdrId);
+  const body = document.getElementById(bodyId);
+  const chevron = document.getElementById(chevronId);
+  hdr.addEventListener('click', () => {
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    chevron.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+  });
+}
+
+// ── CACHE für die BERECHNETEN Aggregate (nicht die Roh-PBP) ──────────────────
+// Sobald einmal berechnet, ändert sich eine ABGESCHLOSSENE Saison nie wieder —
+// dauerhaft cachen. Die LAUFENDE Saison bekommt ein 6h-Fenster (wie beim Roster),
+// da sich die Zahlen im Saisonverlauf noch ändern. Das eigentliche Tempo-Problem
+// war NIE die Berechnung selbst, sondern das ~10-20MB-PBP-File jedes Mal neu zu
+// laden und zu parsen — das entfällt jetzt komplett bei einem Cache-Treffer.
+// ══════════════════════════════════════════════════════════════════════════
+// DEFENSIVE LINEUP BREAKDOWN — nflverse participation-Daten (defense_players
+// pro Snap), klassifiziert nach FRONT (DI/ED-Kombination), LB (Anzahl) und
+// SECONDARY (CB/S-Kombination). Nur reguläre Saison (Woche 1-18), Playoffs
+// bewusst ausgeschlossen, da nicht alle Teams gleich viele Playoff-Spiele
+// haben — würde die Prozentwerte verzerren (siehe Chat).
+// Verfügbar für alle unterstützten Saisons (MIN_YEAR bis heute) — siehe Chat:
+// PFF-Positionszuordnung nutzt zwangsläufig das AKTUELLE PFF-Team-Roster, ältere
+// Jahre sind dadurch tendenziell unvollständiger (nicht falscher) als aktuelle.
+// Participation-Daten selbst kommen erst NACH Saisonende (inkl. Playoffs) von
+// FTN Data — sind also für die laufende Saison nie aktuell, nur rückwirkend.
+// ══════════════════════════════════════════════════════════════════════════
+
+const LINEUP_MIN_YEAR = 2022; // deckt sich jetzt mit MIN_YEAR (Season-Dropdown) — siehe Chat zur PFF-Genauigkeits-Einschränkung bei älteren Jahren
+
+// ── Exakte Zuordnungs-Tabellen (siehe Chat) — Lookup zuerst, generische Regeln
+// (GOAL LINE / DB HEAVEN / LIGHT) erst danach als Auffangnetz.
+const FRONT_LOOKUP = {
+  '00':'SKINNY','01':'SKINNY','10':'SKINNY','11':'SKINNY','20':'SKINNY',
+  '33':'X-TRA BIG',
+  '30':'BIG',
+  '03':'NASCAR','04':'NASCAR','05':'NASCAR', // "04" bewusst NASCAR, nicht GOAL LINE (siehe Chat-Klärung)
+  '22':'4',
+  '31':'31',
+  '23':'43 UNDER/OVER',
+  '13':'EDGE IN','02':'EDGE IN',
+  '12':'3','32':'3','21':'3'
+};
+function classifyFront(di, ed){
+  const key = `${di}${ed}`;
+  if(FRONT_LOOKUP[key]) return FRONT_LOOKUP[key];
+  if(di >= 4 || ed >= 4) return 'GOAL LINE';
+  return 'SONSTIGE';
+}
+function classifyLB(lb){
+  if(lb >= 5) return '5+'; // im Chat nicht explizit vergeben, Sammelkategorie
+  return String(lb);
+}
+const SEC_LOOKUP = {
+  '22':'BASE','32':'NICKEL','42':'DIME',
+  '23':'BIG NICKEL','33':'BIG DIME','43':'DIME PLUS',
+  '41':'SKINNY NICKEL','13':'SAFETY PLUS','31':'CB PLUS','24':'HUGE DIME'
+};
+function classifySecondary(cb, s){
+  const key = `${cb}${s}`;
+  if(SEC_LOOKUP[key]) return SEC_LOOKUP[key];
+  const total = cb + s;
+  if(total > 7) return 'DB HEAVEN';
+  if(total < 4) return 'LIGHT';
+  return 'XXX';
+}
+
+const FRONT_LABELS = [["max. 2 DL","SKINNY"],["3DI & 3ED","X-TRA BIG"],["3DI & 0ED","BIG"],["0DI / 3,4 or 5 ED","NASCAR"],
+  ["2DI & 2ED","4"],["3 DI & 1 ED","31"],["2DI & 3ED (1 as SAM)","43 UNDER/OVER"],["1DI&3ED / 0DI&2ED","EDGE IN"],
+  ["1DI&2ED / 3DI&2ED / 2DI&1ED","3"],["ab 4 DI / ab 4 ED","GOAL LINE"]];
+const LB_LABELS = [["0 LB","0"],["1 LB","1"],["2 LB","2"],["3 LB","3"],["4 LB","4"],["5+ LB","5+"]];
+const SEC_LABELS = [["2 CB / 2 S","BASE"],["3 CB / 2 S","NICKEL"],["4 CB / 2 S","DIME"],["2 CB / 3 S","BIG NICKEL"],
+  ["3 CB / 3 S","BIG DIME"],["4 CB / 3 S","DIME PLUS"],["> 7 DBs","DB HEAVEN"],["< 4 DBs","LIGHT"],
+  ["4 CB / 1 S","SKINNY NICKEL"],["1 CB / 3 S","SAFETY PLUS"],["3 CB / 1 S","CB PLUS"],["2 CB / 4 S","HUGE DIME"],["Sonstige Formation","XXX"]];
+
+// v6: komplett neue Datenbasis (echte PFF-Positionen statt defense_positions,
+// strikter play_type-Filter statt defenders_in_box-Näherung) — alte Caches
+// enthalten die vorherige, ungenaue Auswertung und müssen verworfen werden.
+function luCacheKey(year){ return `mim_lineup_v7_${year}`; }
+function loadLineupCache(year){
+  try{
+    const raw = localStorage.getItem(luCacheKey(year));
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed.teams;
+  }catch(e){ return null; }
+}
+// Alte, obsolete Lineup-Cache-Versionen (v1-v5) entfernen — verhindert, dass sie
+// unnötig Platz belegen und den v6-Cache am Speichern hindern (siehe Chat: exakt
+// dasselbe localStorage-Voll-Problem wie an anderer Stelle im Projekt bekannt).
+function cleanupOldLineupCaches(){
+  try{
+    const keysToRemove = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && /^mim_lineup_v[1-6]_/.test(k)) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    if(keysToRemove.length) console.log(`[Lineup] ${keysToRemove.length} alte Cache-Version(en) aufgeräumt.`);
+    return keysToRemove.length;
+  }catch(e){ return 0; }
+}
+
+// Der Lineup-Cache selbst ist winzig (siehe Chat: 13,4 KB) — wenn das Speichern
+// trotzdem an "quota exceeded" scheitert, ist der GESAMTE localStorage der Seite
+// voll (bestätigt durch dieselbe Fehlermeldung beim Roster-Cache). Also müssen wir
+// hier auch fremde, aber unkritische Caches opfern — die regenerieren sich bei
+// Bedarf einfach neu. Stufenweise, um nicht mehr wegzuwerfen als nötig.
+function cleanupUnrelatedCachesForSpace(keepAbbr, keepYear){
+  try{
+    const keysToRemove = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(!k) continue;
+      // Roster-Caches ANDERER Teams (aktuelles Team behalten, falls schon geladen)
+      if(/^mim_roster_v\d+_/.test(k) && !k.includes(`_${keepAbbr}_`)) keysToRemove.push(k);
+      // Team-Stats-Caches ANDERER Jahre
+      if(/^mim_teamstats_v\d+_/.test(k) && !k.endsWith(`_${keepYear}`)) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    if(keysToRemove.length) console.log(`[Lineup] ${keysToRemove.length} fremde Cache-Eintr(ä)ge (Roster/Team-Stats anderer Teams/Jahre) aufgeräumt, um Platz zu schaffen.`);
+    return keysToRemove.length;
+  }catch(e){ return 0; }
+}
+
+function saveLineupCacheLocal(year, teamsObj, abbr){
+  const payload = JSON.stringify({ ts: Date.now(), teams: teamsObj });
+  console.log(`[Lineup] Cache-Payload für ${year}: ${(payload.length/1024).toFixed(1)} KB`);
+  try{
+    localStorage.setItem(luCacheKey(year), payload);
+    return;
+  }catch(e){
+    console.warn('[Lineup] Speichern fehlgeschlagen (evtl. Speicher voll), räume alte Lineup-Caches auf und versuche erneut:', e.message);
+  }
+  cleanupOldLineupCaches();
+  try{
+    localStorage.setItem(luCacheKey(year), payload);
+    return;
+  }catch(e2){
+    console.warn('[Lineup] Immer noch voll — Payload selbst ist klein (siehe KB oben), also liegt es am GESAMTEN Speicher. Räume jetzt auch fremde Caches (Roster/Team-Stats anderer Teams/Jahre) auf:', e2.message);
+  }
+  cleanupUnrelatedCachesForSpace(abbr||'', year);
+  try{
+    localStorage.setItem(luCacheKey(year), payload);
+  }catch(e3){
+    console.warn('[Lineup] Auch nach vollständigem Aufräumen konnte der Cache nicht gespeichert werden — Lineup-Daten werden bei jedem Laden neu berechnet:', e3.message);
+  }
+}
+
+function saveLineupCache(year, teamsObj, abbr){
+  saveLineupCacheLocal(year, teamsObj, abbr);
+  // GETEILT (Firestore): deckt alle 32 Teams auf einmal ab — der nächste Besucher,
+  // der IRGENDEIN Team für diese Saison ansieht, bekommt es sofort (siehe Chat).
+  saveSharedCache(`lineup_${year}`, { teams: teamsObj })
+    .then(ok => { if(ok) console.log(`[Lineup] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
+}
+
+function normalizeGameKey(season, week, away, home){
+  return `${season}_${String(week).padStart(2,'0')}_${away}_${home}`;
+}
+
+// Fallback-Zuordnung NUR für Lineup Details — bewusst eigene Version statt der
+// bestehenden classifyIdpGroup, da OLB hier zu ED zählen soll (nicht zu LB wie
+// beim Team Roster), siehe Chat.
+function classifyLineupFallback(dcp, pos){
+  const t = (dcp || pos || '').toUpperCase();
+  if(['DT','NT','DL'].includes(t)) return 'DI';
+  if(['DE','EDGE','OLB'].includes(t)) return 'ED'; // OLB zählt hier bewusst zu ED
+  if(['LB','ILB','MLB'].includes(t)) return 'LB';
+  if(t === 'CB') return 'CB';
+  if(['S','FS','SS','DB'].includes(t)) return 'S';
+  return null;
+}
+
+// gsis_id -> echte PFF-Position (DI/ED/LB/CB/S), über ALLE 32 Teams — nutzt
+// dieselbe PFF_TEAM_ID/PFF_POS_MAP/fetchViaWorker-Infrastruktur wie Team Roster.
+// Kann PFF für einen Spieler nichts liefern (z.B. bei älteren Saisons, wenn der
+// Spieler heute nicht mehr aktiv/beim selben Team ist), fällt es auf die
+// depth_chart_position/position aus der jeweiligen Saison-Rosters-CSV zurück.
+async function buildGsisToBucketMapForSeason(year, onProgress){
+  onProgress && onProgress(2, 'Lade Rosters-CSV…');
+  const gsisToPffId = new Map();
+  const gsisToFallback = new Map();
+  const rosterText = await fetchNflverseCSV(NV_ROSTER_URL(year));
+  if(rosterText){
+    const lines = rosterText.split('\n').filter(l => l.trim());
+    const H = splitCSV(lines[0]).map(h => h.trim().toLowerCase());
+    const iGs = H.indexOf('gsis_id'), iPf = H.indexOf('pff_id'),
+          iDcp = H.indexOf('depth_chart_position'), iPos = H.indexOf('position');
+    if(iGs >= 0){
+      for(let i=1;i<lines.length;i++){
+        const row = splitCSV(lines[i]);
+        const gid = (row[iGs]||'').trim();
+        if(!gid) continue;
+        if(iPf >= 0){
+          const pid = (row[iPf]||'').trim();
+          if(pid && pid !== 'NA') gsisToPffId.set(gid, pid);
+        }
+        const fallbackBucket = classifyLineupFallback(iDcp>=0?row[iDcp]:'', iPos>=0?row[iPos]:'');
+        if(fallbackBucket) gsisToFallback.set(gid, fallbackBucket);
+      }
+    }
+  } else {
+    console.warn(`[Lineup] Rosters-CSV ${year} konnte nicht geladen werden.`);
+  }
+  onProgress && onProgress(8, 'Lade PFF-Team-Rosters (0/32)…');
+
+  const pffIdToBucket = new Map();
+  const uniqueTeamIds = [...new Set(Object.values(PFF_TEAM_ID))];
+  let done = 0;
+  for(const teamId of uniqueTeamIds){
+    try{
+      const res = await fetchViaWorker(`https://www.pff.com/api/teams/${teamId}/roster`);
+      if(res){
+        const json = JSON.parse(res);
+        (json.team_players || []).forEach(pl => {
+          if(pl.id && pl.position){
+            const bucket = PFF_POS_MAP[pl.position.toUpperCase()];
+            if(bucket) pffIdToBucket.set(String(pl.id), bucket);
+          }
+        });
+      }
+    }catch(e){ console.warn('[Lineup] PFF-Roster Fehler für Team', teamId, e); }
+    done++;
+    onProgress && onProgress(8 + Math.round(done/uniqueTeamIds.length*42), `Lade PFF-Team-Rosters (${done}/${uniqueTeamIds.length})…`);
+  }
+
+  const gsisToBucket = new Map();
+  gsisToPffId.forEach((pid, gid) => {
+    const bucket = pffIdToBucket.get(pid);
+    if(bucket) gsisToBucket.set(gid, bucket);
+  });
+  let fallbackUsed = 0;
+  gsisToFallback.forEach((bucket, gid) => {
+    if(!gsisToBucket.has(gid)){ gsisToBucket.set(gid, bucket); fallbackUsed++; }
+  });
+  if(fallbackUsed) console.log(`[Lineup] ${fallbackUsed} Spieler über nflverse depth_chart_position/position statt PFF zugeordnet (Fallback für ${year}).`);
+  return gsisToBucket;
+}
+
+// Menge "echter" Snaps (play_type exakt 'run'/'pass') aus der vollen PBP-Datei —
+// schließt no_play/Pre-Snap-Penalties, qb_kneel, qb_spike aus (siehe Chat).
+async function buildValidSnapKeysForSeason(year, onProgress){
+  onProgress && onProgress(52, 'Lade Play-by-Play-Daten…');
+  const url = `https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_${year}.csv`;
+  const text = await fetchNflverseCSV(url);
+  if(!text){
+    console.warn('[Lineup] PBP-CSV konnte nicht geladen werden — Special-Teams/No-Play-Filter fällt auf Formation-Näherung zurück.');
+    return null;
+  }
+  onProgress && onProgress(65, 'Werte Play-by-Play-Daten aus…');
+  const lines = text.split('\n');
+  const H = splitCSV(lines[0]);
+  const iSeason=H.indexOf('season'), iWeek=H.indexOf('week'), iAway=H.indexOf('away_team'),
+        iHome=H.indexOf('home_team'), iPlayId=H.indexOf('play_id'), iPlayType=H.indexOf('play_type');
+  if(iSeason<0||iWeek<0||iAway<0||iHome<0||iPlayId<0||iPlayType<0){
+    console.warn('[Lineup] Erwartete Spalten in PBP-CSV nicht gefunden.');
+    return null;
+  }
+  const validKeys = new Set();
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const row = splitCSV(lines[i]);
+    const pt = row[iPlayType];
+    if(pt !== 'run' && pt !== 'pass') continue;
+    validKeys.add(normalizeGameKey(row[iSeason], row[iWeek], row[iAway], row[iHome]) + '|' + row[iPlayId]);
+  }
+  return validKeys;
+}
+
+async function computeLineupDataForSeason(year, onProgress){
+  const [gsisToBucket, validSnapKeys] = await Promise.all([
+    buildGsisToBucketMapForSeason(year, onProgress),
+    buildValidSnapKeysForSeason(year, onProgress)
+  ]);
+
+  onProgress && onProgress(75, 'Lade participation-Daten…');
+  const url = `https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_${year}.csv`;
+  const text = await fetchNflverseCSV(url);
+  if(!text) return null; // z.B. laufende Saison, noch keine Daten von FTN
+
+  onProgress && onProgress(85, 'Werte Lineups aus…');
+  const lines = text.split('\n');
+  const H = splitCSV(lines[0]);
+  const iGameId = H.indexOf('nflverse_game_id'), iPlayId = H.indexOf('play_id'),
+        iPoss = H.indexOf('possession_team'), iDefPlayers = H.indexOf('defense_players'),
+        iOffForm = H.indexOf('offense_formation');
+  if(iGameId < 0 || iPoss < 0 || iDefPlayers < 0){
+    console.warn('[Lineup] Erwartete Spalten in participation-CSV nicht gefunden. Header war:', H.join(', '));
+    return null;
+  }
+
+  const teams = {}; // abbr -> {front:{}, lb:{}, secondary:{}, codes:{}, total}
+  const ensureTeam = abbr => teams[abbr] || (teams[abbr] = { front:{}, lb:{}, secondary:{}, codes:{}, total:0 });
+
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const row = splitCSV(lines[i]);
+
+    const gameId = row[iGameId];
+    const parts = gameId.split('_'); // season_week_away_home
+    if(parts.length < 4) continue;
+    const week = parseInt(parts[1], 10);
+    if(!week || week > 18) continue; // Woche 1-18 = reguläre Saison, Playoffs raus
+
+    const away = parts[2], home = parts[3];
+
+    if(validSnapKeys){
+      const key = normalizeGameKey(parts[0], parts[1], away, home) + '|' + row[iPlayId];
+      if(!validSnapKeys.has(key)) continue;
+    } else if(iOffForm >= 0){
+      const fv = row[iOffForm];
+      if(!fv || fv === 'NA') continue;
+    }
+
+    const poss = row[iPoss];
+    const defTeam = (poss === away) ? home : (poss === home ? away : null);
+    if(!defTeam) continue;
+
+    const defRaw = row[iDefPlayers];
+    if(!defRaw) continue;
+    const ids = defRaw.split(';').map(s => s.trim()).filter(Boolean);
+
+    let di=0, ed=0, lb=0, cb=0, s=0;
+    ids.forEach(gid => {
+      const bucket = gsisToBucket.get(gid);
+      if(bucket==='DI') di++; else if(bucket==='ED') ed++; else if(bucket==='LB') lb++;
+      else if(bucket==='CB') cb++; else if(bucket==='S') s++;
+    });
+
+    const t = ensureTeam(defTeam);
+    const frontLabel = classifyFront(di, ed), lbLabel = classifyLB(lb), secLabel = classifySecondary(cb, s);
+    t.front[frontLabel] = (t.front[frontLabel]||0) + 1;
+    t.lb[lbLabel] = (t.lb[lbLabel]||0) + 1;
+    t.secondary[secLabel] = (t.secondary[secLabel]||0) + 1;
+    const fullCode = `${di}${ed}${lb}${cb}${s}`;
+    t.codes[fullCode] = (t.codes[fullCode]||0) + 1;
+    t.total++;
+
+    if(i % 8000 === 0) onProgress && onProgress(85 + Math.round(i/lines.length*13), 'Werte Lineups aus…');
+  }
+  // "codes" auf die Top 15 je Team kürzen — mehr brauchen wir nirgends (Most Used
+  // Schemes zeigt nur Top 3), aber ungekürzt kann das bei 32 Teams mehrere hundert
+  // KB im Cache belegen und so das Speichern selbst verhindern (siehe Chat).
+  Object.keys(teams).forEach(abbr => {
+    const t = teams[abbr];
+    t.codes = Object.fromEntries(
+      Object.entries(t.codes).sort((a,b) => b[1]-a[1]).slice(0, 15)
+    );
+  });
+
+  onProgress && onProgress(100, 'Fertig.');
+  return teams;
+}
+
+// Liga-Durchschnitt je Label: sowohl die durchschnittliche Snap-Zahl (Mittelwert
+// der rohen Counts) als auch der durchschnittliche Prozentwert (Mittelwert der
+// Prozentwerte je Team — bewusst NICHT Summe/32 der Counts, da Teams
+// unterschiedlich viele Gesamt-Snaps haben, siehe Chat).
+function computeLeagueAverages(teams, labels, category){
+  const abbrs = Object.keys(teams);
+  const n = abbrs.length || 1;
+  const avg = {};
+  labels.forEach(([, code]) => {
+    let sumCount = 0, sumPct = 0;
+    abbrs.forEach(abbr => {
+      const t = teams[abbr];
+      const count = (t[category] && t[category][code]) || 0;
+      sumCount += count;
+      sumPct += t.total > 0 ? (count/t.total*100) : 0;
+    });
+    avg[code] = { count: sumCount / n, pct: sumPct / n };
+  });
+  return avg;
+}
+
+const TS_CACHE_TTL_CURRENT = 6*60*60*1000;
+function tsCacheKey(year){ return `mim_teamstats_v1_${year}`; }
+function loadTeamStatsCache(year){
+  try{
+    const raw = localStorage.getItem(tsCacheKey(year));
+    if(!raw){ console.log(`[TeamStats] Kein Cache für ${year} vorhanden — lade PBP neu.`); return null; }
+    const parsed = JSON.parse(raw);
+    const isPastSeason = year < CURRENT_SEASON_YEAR;
+    if(!isPastSeason && (!parsed.ts || Date.now()-parsed.ts > TS_CACHE_TTL_CURRENT)){
+      console.log(`[TeamStats] Cache für ${year} abgelaufen (laufende Saison, 6h-Fenster) — lade PBP neu.`);
+      return null;
+    }
+    console.log(`[TeamStats] CACHE-TREFFER für ${year} — kein PBP-Fetch nötig, sollte sofort da sein.`);
+    return parsed.teams;
+  }catch(e){ console.warn(`[TeamStats] Cache-Lesefehler für ${year}:`, e.message); return null; }
+}
+function saveTeamStatsCache(year, teamsObj){
+  try{
+    localStorage.setItem(tsCacheKey(year), JSON.stringify({ ts: Date.now(), teams: teamsObj }));
+    console.log(`[TeamStats] Cache für ${year} erfolgreich gespeichert (${JSON.stringify(teamsObj).length} Bytes).`);
+  }catch(e){
+    console.warn(`[TeamStats] Cache für ${year} konnte NICHT gespeichert werden — nächster Besuch lädt wieder komplett neu:`, e.message);
+    // Grobe Diagnose: wie voll ist der localStorage insgesamt gerade?
+    try{
+      let total = 0;
+      for(const k in localStorage){ if(localStorage.hasOwnProperty(k)) total += (localStorage[k]||'').length; }
+      console.warn(`[TeamStats] Geschätzte localStorage-Auslastung: ~${(total/1e6).toFixed(2)} MB über ${Object.keys(localStorage).length} Keys.`);
+    }catch(e2){}
+  }
+}
+
+// Leeres Grundgerüst — wird angezeigt, solange für eine Saison (z.B. die gerade
+// erst begonnene 2026) noch keine Play-by-Play-Datei existiert, statt einer
+// Fehlermeldung. Zeigt 0 überall, keine Ränge (da auch die anderen 31 Teams noch
+// keine Daten haben).
+const EMPTY_TEAM_STATS = () => ({
+  snaps:0, snapsRun:0, snapsPass:0, yards:0, rushYards:0, rushPlays:0, passYards:0, passPlays:0,
+  tds:0, rushTds:0, passTds:0, thirdAtt:0, thirdConv:0, fourthAtt:0, fourthConv:0,
+  explosive:0, stuffs:0, epaSum:0, epaPlays:0, successSum:0, successPlays:0,
+  sacks:0, ints:0, ff:0, qbHits:0, pbu:0, penalties:0, penaltyYards:0, pointsAllowed:0, games:0,
+});
+
+let teamStatsRequestId = 0;
+
+// Datenladung von der Darstellung getrennt — so nutzen die volle (intern) und die
+// reduzierte (Community, 4 Kategorien) Ansicht denselben Cache/PBP-Fetch, ohne
+// doppelt zu berechnen (siehe Chat: Community/Internal-Trennung).
+async function loadTeamStatsData(year, statusEl){
+  let teams = loadTeamStatsCache(year);
+  let noDataYet = false;
+  if(!teams){
+    if(statusEl) statusEl.textContent = 'Lade Play-by-Play (größte Datei — kann etwas dauern)…';
+    const pbpText = await fetchPbpCsv(year);
+    if(pbpText){
+      if(statusEl) statusEl.textContent = 'Berechne Team-Defense-Stats für alle 32 Teams…';
+      teams = aggregateTeamDefense(pbpText);
+      saveTeamStatsCache(year, teams);
+    } else {
+      teams = {};
+      noDataYet = true;
+    }
+  } else {
+    console.log(`[TeamStats] Aus Cache für ${year}`);
+  }
+  return { teams, noDataYet };
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEKTION-TOGGLES für diese Seite
+// ═══════════════════════════════════════════════════════════════════════════
+bindSectionToggle('tsg-toggle-hdr', 'tsg-body', 'tsg-toggle-chevron');
+bindSectionToggle('lgd-toggle-hdr', 'lgd-body', 'lgd-toggle-chevron');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEKTION 1: TEAM STATS — alle 32 Teams im Grid, sortierbar, Jahr per Dropdown
+// ═══════════════════════════════════════════════════════════════════════════
+function flattenTeamStatsMetrics(){
+  const out = [];
+  TEAM_STATS_GROUPS.forEach(g => g.items.forEach(item => out.push({ ...item, group: g.title })));
+  return out;
+}
+const ALL_METRICS = flattenTeamStatsMetrics();
+
+let tsgSortState = { col: null, dir: 'desc' };
+let tsgCurrentTeams = null;
+
+function renderTsgTable(){
+  const teams = tsgCurrentTeams || {};
+  const rows = Object.keys(TEAMS).map(abbr => ({ abbr, t: teams[abbr] || EMPTY_TEAM_STATS() }))
+    .sort((a,b) => TEAMS[a.abbr].city.localeCompare(TEAMS[b.abbr].city, 'de'));
+
+  let sortedRows = rows;
+  if(tsgSortState.col != null){
+    const metric = ALL_METRICS[tsgSortState.col];
+    sortedRows = [...rows].sort((a,b) => {
+      const va = metric.get(a.t), vb = metric.get(b.t);
+      if(va == null && vb == null) return 0;
+      if(va == null) return 1;
+      if(vb == null) return -1;
+      return tsgSortState.dir === 'asc' ? va - vb : vb - va;
+    });
+  }
+
+  let groupHeaderHtml = '<th class="tsg-team-cell"></th>';
+  TEAM_STATS_GROUPS.forEach(g => { groupHeaderHtml += `<th colspan="${g.items.length}" class="tsg-group-hdr">${g.title}</th>`; });
+
+  let metricHeaderHtml = '<th class="tsg-team-cell">Team</th>';
+  ALL_METRICS.forEach((m,i) => {
+    const arrow = tsgSortState.col === i ? (tsgSortState.dir === 'asc' ? ' ▲' : ' ▼') : '';
+    metricHeaderHtml += `<th class="tsg-metric-hdr" data-col="${i}" title="${m.label}"><span class="tsg-metric-label">${m.label}${arrow}</span></th>`;
+  });
+
+  const bodyHtml = sortedRows.map(({abbr,t}) => {
+    let cells = `<td class="tsg-team-cell">${abbr}</td>`;
+    ALL_METRICS.forEach(m => {
+      const v = m.get(t);
+      cells += `<td>${v == null ? '–' : m.fmt(v)}</td>`;
+    });
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const container = document.getElementById('tsg-container');
+  container.innerHTML = `<table class="tsg-table"><thead><tr>${groupHeaderHtml}</tr><tr>${metricHeaderHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+
+  container.querySelectorAll('.tsg-metric-hdr').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = parseInt(th.dataset.col, 10);
+      if(tsgSortState.col === col){
+        tsgSortState.dir = tsgSortState.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        tsgSortState.col = col; tsgSortState.dir = 'desc';
+      }
+      renderTsgTable();
+    });
+  });
+}
+
+let tsgRequestId = 0;
+async function loadTeamStatsGrid(year){
+  const myRequestId = ++tsgRequestId;
+  const statusEl = document.getElementById('tsg-status');
+  statusEl.style.display = 'block';
+  statusEl.textContent = `Lade Team Stats für ${year}…`;
+  document.getElementById('tsg-container').innerHTML = '';
+
+  const { teams, noDataYet } = await loadTeamStatsData(year, statusEl);
+  if(myRequestId !== tsgRequestId) return; // zwischenzeitlich anderes Jahr gewählt
+
+  statusEl.style.display = noDataYet ? 'block' : 'none';
+  if(noDataYet){
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = `Noch keine Play-by-Play-Daten für ${year}.`;
+  }
+  tsgCurrentTeams = teams;
+  tsgSortState = { col: null, dir: 'desc' }; // Sortierung bei Jahreswechsel zurücksetzen
+  renderTsgTable();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEKTION 2: LINEUP-ENTWICKLUNG — NFL-Ø je Jahr (2022 bis heute), kein Dropdown
+// ═══════════════════════════════════════════════════════════════════════════
+// Nutzt EXAKT dieselbe Berechnung + denselben Firestore-Cache-Key ("lineup_{jahr}")
+// wie team.html's Lineup Details — wenn dort schon jemand ein Team für ein Jahr
+// angeschaut hat, ist das Ergebnis hier sofort da, ohne erneut zu rechnen.
+function loadLineupCacheLocal(year){
+  try{
+    const raw = localStorage.getItem(`mim_lineup_v7_${year}`);
+    if(!raw) return null;
+    return JSON.parse(raw).teams;
+  }catch(e){ return null; }
+}
+function saveLineupCacheLocalOnly(year, teamsObj){
+  try{ localStorage.setItem(`mim_lineup_v7_${year}`, JSON.stringify({ ts: Date.now(), teams: teamsObj })); }
+  catch(e){ console.warn('[LigaÜbersicht] Lineup-Cache konnte nicht lokal gespeichert werden:', e.message); }
+}
+
+async function getLineupDataForYear(year, onProgress){
+  let teams = loadLineupCacheLocal(year);
+  if(teams) return teams;
+
+  const shared = await loadSharedCache(`lineup_${year}`);
+  const sharedIsFresh = shared && shared.teams && (year < CURRENT_SEASON_YEAR || (Date.now()-(shared.updatedAt||0) < 6*60*60*1000));
+  if(sharedIsFresh){
+    saveLineupCacheLocalOnly(year, shared.teams);
+    return shared.teams;
+  }
+
+  teams = await computeLineupDataForSeason(year, onProgress);
+  if(teams){
+    saveLineupCacheLocalOnly(year, teams);
+    saveSharedCache(`lineup_${year}`, { teams })
+      .then(ok => { if(ok) console.log(`[LigaÜbersicht] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
+  }
+  return teams;
+}
+
+function renderLgdCategoryTable(title, labels, avgByYear, years){
+  const rows = labels.map(([label, code]) => {
+    const cells = years.map(yr => {
+      const avg = avgByYear[yr] && avgByYear[yr][code];
+      const pct = avg ? avg.pct : 0;
+      return `<td><div class="lu-bar-track" style="width:60px;display:inline-block;vertical-align:middle;margin-right:6px;"><div class="lu-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>${pct.toFixed(1)}%</td>`;
+    }).join('');
+    return `<tr><td class="tsg-team-cell" style="text-align:left;">${label} <span class="lu-code">${code}</span></td>${cells}</tr>`;
+  }).join('');
+  const yearHeaders = years.map(yr => `<th>${yr}</th>`).join('');
+  return `<div class="lu-subbox" style="margin-bottom:16px;">
+    <div class="lu-subhdr"><span class="lu-subhdr-title">${title}</span></div>
+    <div style="overflow-x:auto;padding:10px 16px;">
+      <table class="tsg-table"><thead><tr><th class="tsg-team-cell"></th>${yearHeaders}</tr></thead><tbody>${rows}</tbody></table>
+    </div>
+  </div>`;
+}
+
+async function loadLineupEntwicklung(){
+  const statusEl = document.getElementById('lgd-status');
+  const container = document.getElementById('lgd-container');
+  const years = [];
+  for(let y = MIN_YEAR; y <= CURRENT_SEASON_YEAR; y++) years.push(y);
+
+  const avgByYear = {}; // year -> { front: {...}, lb: {...}, secondary: {...} }
+  for(const yr of years){
+    statusEl.textContent = `Lade Lineup-Daten für ${yr}…`;
+    const teams = await getLineupDataForYear(yr, (pct, label) => { statusEl.textContent = `${yr}: ${label}`; });
+    if(!teams){
+      avgByYear[yr] = null;
+      continue;
+    }
+    avgByYear[yr] = {
+      front: computeLeagueAverages(teams, FRONT_LABELS, 'front'),
+      lb: computeLeagueAverages(teams, LB_LABELS, 'lb'),
+      secondary: computeLeagueAverages(teams, SEC_LABELS, 'secondary'),
+    };
+  }
+
+  statusEl.style.display = 'none';
+  const yearsWithData = years.filter(yr => avgByYear[yr]);
+  if(!yearsWithData.length){
+    container.innerHTML = `<div class="lu-unavailable">Für keine Saison sind Lineup-Daten verfügbar.</div>`;
+    return;
+  }
+
+  const frontAvgByYear = {}, lbAvgByYear = {}, secAvgByYear = {};
+  yearsWithData.forEach(yr => {
+    frontAvgByYear[yr] = avgByYear[yr].front;
+    lbAvgByYear[yr] = avgByYear[yr].lb;
+    secAvgByYear[yr] = avgByYear[yr].secondary;
+  });
+
+  container.innerHTML =
+    renderLgdCategoryTable('FRONT', FRONT_LABELS, frontAvgByYear, yearsWithData) +
+    renderLgdCategoryTable('LB', LB_LABELS, lbAvgByYear, yearsWithData) +
+    renderLgdCategoryTable('SECONDARY', SEC_LABELS, secAvgByYear, yearsWithData);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+function initTsgYearSelect(){
+  const sel = document.getElementById('tsg-year-select');
+  const years = [];
+  for(let y = CURRENT_SEASON_YEAR; y >= MIN_YEAR; y--) years.push(y);
+  sel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  sel.addEventListener('change', () => loadTeamStatsGrid(parseInt(sel.value, 10)));
+}
+
+let pageInitialized = false;
+function initInternalPage(){
+  if(pageInitialized) return;
+  pageInitialized = true;
+  initTsgYearSelect();
+  loadTeamStatsGrid(CURRENT_SEASON_YEAR);
+  loadLineupEntwicklung();
+}
+
+onAccessResolved = () => {
+  if(isInternalUser) initInternalPage();
+};
+
+</script>
+</body>
+</html>

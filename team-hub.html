@@ -140,6 +140,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   <div class="team-grid" id="team-grid"></div>
 </div>
 
+<div class="grid-wrap" id="nfl-league-wrap" style="display:none;margin-top:20px;">
+  <a class="division-card" href="league.html" style="display:block;text-decoration:none;text-align:center;padding:24px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div class="division-title" style="border-bottom:none;margin-bottom:4px;font-size:20px;letter-spacing:2px;">🏈 NFL — LIGA-ÜBERSICHT</div>
+    <div style="font-size:12px;color:var(--muted);">Team Stats aller 32 Teams &amp; Lineup-Entwicklung nach Jahr — nur für internen Gebrauch</div>
+  </a>
+</div>
+
 <script type="module">
 import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
 
@@ -163,6 +170,8 @@ document.getElementById('login-submit').addEventListener('click', async () => {
 watchAuth(user => {
   const link = document.getElementById('nav-scouting-link');
   if(link) link.style.display = user ? '' : 'none';
+  const nflWrap = document.getElementById('nfl-league-wrap');
+  if(nflWrap) nflWrap.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
   if(footerText) footerText.textContent = user
     ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'
