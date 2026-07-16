@@ -595,6 +595,14 @@ footer {
         <div class="card-arrow">Scouting öffnen →</div>
       </div>
     </a>
+    <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="hub-card" id="coaching-tree-card" style="--card-accent:#C4722A; display:none;">
+      <div class="card-icon-bg">🌳</div>
+      <div class="card-content">
+        <div class="card-title">Coaching Tree</div>
+        <div class="card-desc">Externe Datenbank — HC/OC/DC-Historie aller NFL-Teams, wer unter wem gearbeitet hat, komplette Karriere-Zeitachsen. Öffnet in neuem Tab.</div>
+        <div class="card-arrow">coaching-tree.app öffnen ↗</div>
+      </div>
+    </a>
   </div>
 </div>
 
@@ -680,6 +688,7 @@ function mapAuthError(e) {
 watchAuth(user => {
   document.getElementById('nav-scouting-link').style.display = user ? '' : 'none';
   document.getElementById('scouting-card').style.display = user ? '' : 'none';
+  document.getElementById('coaching-tree-card').style.display = user ? '' : 'none';
   document.getElementById('footer-text').textContent = user
     ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'
     : 'MICS IN MOTION · IDP HUB · Community-Modus';
