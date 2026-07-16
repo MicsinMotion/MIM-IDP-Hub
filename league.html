@@ -273,9 +273,9 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .tsg-team-logo{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .tsg-group-hdr{background:var(--bg3);color:var(--muted2);font-size:10px;letter-spacing:.5px;text-transform:uppercase;text-align:center;}
 .tsg-group-start{border-left:3px solid var(--orange-dim) !important;}
-.tsg-metric-hdr{background:var(--bg2);cursor:pointer;user-select:none;padding:6px 4px;}
+.tsg-metric-hdr{background:var(--bg2);cursor:pointer;user-select:none;padding:8px 4px;height:160px;vertical-align:bottom;text-align:center;}
 .tsg-metric-hdr:hover{background:var(--orange-glow);}
-.tsg-metric-label{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10px;color:var(--muted2);max-height:140px;}
+.tsg-metric-label{display:inline-flex;align-items:flex-end;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10px;color:var(--muted2);height:100%;}
 .tsg-table tbody tr:hover td{background:var(--bg3);}
 #tsg-container{width:100%;}
 #tsg-container table{min-width:100%;}
@@ -673,6 +673,10 @@ async function fetchPbpCsv(yr){
 // third_down_converted, third_down_failed, game_id, home_team, away_team,
 // total_home_score, total_away_score.
 function aggregateTeamDefense(pbpText){
+  // nflverse führt die Rams offiziell als "LA" (nicht "LAR") — hier normalisieren,
+  // da der Rest der Seite durchgehend "LAR" nutzt (siehe Chat).
+  const normalizeAbbr = t => t === 'LA' ? 'LAR' : t;
+
   const lines = pbpText.split('\n');
   const H = parseCsvLine(lines[0]).map(h => h.trim());
   console.log(`[TeamStats] PBP Header (${H.length} Spalten):`, H);
@@ -702,10 +706,10 @@ function aggregateTeamDefense(pbpText){
     const gid = idx.game_id>=0 ? c[idx.game_id] : null;
     if(gid){
       const hs = parseFloat(c[idx.total_home_score]), as = parseFloat(c[idx.total_away_score]);
-      if(!isNaN(hs) && !isNaN(as)) gameFinal[gid] = { home:c[idx.home_team], away:c[idx.away_team], hs, as };
+      if(!isNaN(hs) && !isNaN(as)) gameFinal[gid] = { home:normalizeAbbr(c[idx.home_team]), away:normalizeAbbr(c[idx.away_team]), hs, as };
     }
 
-    const defteam = idx.defteam>=0 ? c[idx.defteam] : null;
+    const defteam = idx.defteam>=0 ? normalizeAbbr(c[idx.defteam]) : null;
     if(!defteam) continue;
     const t = T(defteam);
     const playType = c[idx.play_type];
@@ -742,7 +746,7 @@ function aggregateTeamDefense(pbpText){
     if(idx.fourth_down_converted>=0 && c[idx.fourth_down_converted] === '1'){ t.fourthAtt++; t.fourthConv++; }
     if(idx.fourth_down_failed>=0 && c[idx.fourth_down_failed] === '1'){ t.fourthAtt++; }
     if(idx.penalty>=0 && c[idx.penalty] === '1' && c[idx.penalty_team]){
-      const pt = T(c[idx.penalty_team]);
+      const pt = T(normalizeAbbr(c[idx.penalty_team]));
       pt.penalties++;
       if(idx.penalty_yards>=0) pt.penaltyYards += parseFloat(c[idx.penalty_yards]) || 0;
     }
@@ -1204,7 +1208,7 @@ function computeLeagueAverages(teams, labels, category){
 }
 
 const TS_CACHE_TTL_CURRENT = 6*60*60*1000;
-function tsCacheKey(year){ return `mim_teamstats_v1_${year}`; }
+function tsCacheKey(year){ return `mim_teamstats_v2_${year}`; }
 function loadTeamStatsCache(year){
   try{
     const raw = localStorage.getItem(tsCacheKey(year));
