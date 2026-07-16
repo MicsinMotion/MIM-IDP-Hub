@@ -272,6 +272,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .tsg-team-cell{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:2;font-weight:700;min-width:190px;display:flex;align-items:center;gap:8px;}
 .tsg-team-logo{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .tsg-group-hdr{background:var(--bg3);color:var(--muted2);font-size:10px;letter-spacing:.5px;text-transform:uppercase;text-align:center;}
+.tsg-group-start{border-left:3px solid var(--orange-dim) !important;}
 .tsg-metric-hdr{background:var(--bg2);cursor:pointer;user-select:none;padding:6px 4px;}
 .tsg-metric-hdr:hover{background:var(--orange-glow);}
 .tsg-metric-label{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10px;color:var(--muted2);max-height:140px;}
@@ -284,6 +285,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 #lgd-container .tsg-team-cell{min-width:220px;position:static;display:table-cell;}
 #lgd-container th:not(.tsg-team-cell), #lgd-container td:not(.tsg-team-cell){width:auto;}
 #lgd-container .tsg-table td, #lgd-container .tsg-table th{padding:4px 8px;font-size:10px;}
+.lgd-title-cell{text-align:center !important;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:#fff;background:var(--bg3);}
+.trend-arrow{font-size:10px;margin-right:3px;display:inline-block;}
+.trend-up{color:#3fb950;}
+.trend-down{color:#da3633;}
+.trend-flat{color:#fff;}
+.lu-subbox{min-height:60px;}
 </style>
 </head>
 <body>
@@ -1283,6 +1290,20 @@ const ALL_METRICS = flattenTeamStatsMetrics();
 let tsgSortState = { col: null, dir: 'desc' };
 let tsgCurrentTeams = null;
 
+// Farbskala für gute/schlechte Werte: Position des Teams zwischen Minimum und
+// Maximum aller 32 Teams für DIESE Metrik, unter Berücksichtigung von low/high-
+// is-better — grün = gut, rot = schlecht, dazwischen neutral abgestuft.
+function colorForValue(value, allValues, lowIsBetter){
+  const valid = allValues.filter(v => v != null && !isNaN(v));
+  if(valid.length < 2 || value == null || isNaN(value)) return '';
+  const min = Math.min(...valid), max = Math.max(...valid);
+  if(min === max) return '';
+  let t = (value - min) / (max - min); // 0..1
+  if(lowIsBetter) t = 1 - t; // t=1 soll immer "gut" bedeuten
+  const r = Math.round(196 - t*110), g = Math.round(70 + t*120), b = 60;
+  return ` style="background-color:rgba(${r},${g},${b},.22);"`;
+}
+
 function renderTsgTable(){
   const teams = tsgCurrentTeams || {};
   const rows = Object.keys(TEAMS).map(abbr => ({ abbr, t: teams[abbr] || EMPTY_TEAM_STATS() }))
@@ -1300,21 +1321,36 @@ function renderTsgTable(){
     });
   }
 
+  // Alle Werte je Metrik EINMAL über alle 32 Teams sammeln (für die Farbskala) —
+  // unabhängig von der aktuellen Sortierung.
+  const allValuesByMetric = ALL_METRICS.map(m => rows.map(r => m.get(r.t)));
+
   let groupHeaderHtml = '<th class="tsg-team-cell"></th>';
-  TEAM_STATS_GROUPS.forEach(g => { groupHeaderHtml += `<th colspan="${g.items.length}" class="tsg-group-hdr">${g.title}</th>`; });
+  TEAM_STATS_GROUPS.forEach((g,gi) => { groupHeaderHtml += `<th colspan="${g.items.length}" class="tsg-group-hdr${gi>0?' tsg-group-start':''}">${g.title}</th>`; });
 
   let metricHeaderHtml = '<th class="tsg-team-cell">Team</th>';
-  ALL_METRICS.forEach((m,i) => {
-    const arrow = tsgSortState.col === i ? (tsgSortState.dir === 'asc' ? ' ▲' : ' ▼') : '';
-    metricHeaderHtml += `<th class="tsg-metric-hdr" data-col="${i}" title="${m.label}"><span class="tsg-metric-label">${m.label}${arrow}</span></th>`;
+  let mi = 0;
+  TEAM_STATS_GROUPS.forEach((g,gi) => {
+    g.items.forEach((item,ii) => {
+      const arrow = tsgSortState.col === mi ? (tsgSortState.dir === 'asc' ? ' ▲' : ' ▼') : '';
+      const groupStartCls = (ii===0 && gi>0) ? ' tsg-group-start' : '';
+      metricHeaderHtml += `<th class="tsg-metric-hdr${groupStartCls}" data-col="${mi}" title="${item.label}"><span class="tsg-metric-label">${item.label}${arrow}</span></th>`;
+      mi++;
+    });
   });
 
   const bodyHtml = sortedRows.map(({abbr,t}) => {
     const team = TEAMS[abbr];
     let cells = `<td class="tsg-team-cell"><img class="tsg-team-logo" src="${logoUrl(abbr)}" alt=""><span>${team.city} ${team.name}</span></td>`;
-    ALL_METRICS.forEach(m => {
-      const v = m.get(t);
-      cells += `<td>${v == null ? '–' : m.fmt(v)}</td>`;
+    let mi2 = 0;
+    TEAM_STATS_GROUPS.forEach((g,gi) => {
+      g.items.forEach((item,ii) => {
+        const v = item.get(t);
+        const groupStartCls = (ii===0 && gi>0) ? ' tsg-group-start' : '';
+        const colorStyle = colorForValue(v, allValuesByMetric[mi2], item.low);
+        cells += `<td class="${groupStartCls.trim()}"${colorStyle}>${v == null ? '–' : item.fmt(v)}</td>`;
+        mi2++;
+      });
     });
     return `<tr>${cells}</tr>`;
   }).join('');
@@ -1394,21 +1430,36 @@ async function getLineupDataForYear(year, onProgress){
   return teams;
 }
 
+// Tendenzpfeil Jahr-zu-Jahr (siehe Chat) — grün/auf ab +2 Prozentpunkte, rot/ab
+// ab -2 Prozentpunkte, sonst neutrales "–". Gleiche Farbgebung wie die Trend-
+// Pfeile im Team Roster.
+function trendArrowHtmlLgd(diff){
+  if(diff == null || isNaN(diff)) return '';
+  if(diff >= 2) return `<span class="trend-arrow trend-up">▲</span>`;
+  if(diff <= -2) return `<span class="trend-arrow trend-down">▼</span>`;
+  return `<span class="trend-arrow trend-flat">–</span>`;
+}
+
 function renderLgdCategoryTable(title, labels, avgByYear, years){
   const rows = labels.map(([label, code]) => {
-    const cells = years.map(yr => {
+    const cells = years.map((yr, idx) => {
       const avg = avgByYear[yr] && avgByYear[yr][code];
       const pct = avg ? avg.pct : 0;
-      return `<td><div class="lu-bar-track" style="width:60px;display:inline-block;vertical-align:middle;margin-right:6px;"><div class="lu-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>${pct.toFixed(1)}%</td>`;
+      let trendHtml = '';
+      if(idx > 0){
+        const prevAvg = avgByYear[years[idx-1]] && avgByYear[years[idx-1]][code];
+        const prevPct = prevAvg ? prevAvg.pct : 0;
+        trendHtml = trendArrowHtmlLgd(pct - prevPct);
+      }
+      return `<td>${trendHtml}<div class="lu-bar-track" style="width:60px;display:inline-block;vertical-align:middle;margin-right:6px;"><div class="lu-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>${pct.toFixed(1)}%</td>`;
     }).join('');
     return `<tr><td class="tsg-team-cell" style="text-align:left;">${label} <span class="lu-code">${code}</span></td>${cells}</tr>`;
   }).join('');
+  // Jahr direkt in derselben Kopfzeile wie der Kategorie-Titel (siehe Chat) —
+  // keine separate Titel-Leiste + separate Jahres-Zeile mehr.
   const yearHeaders = years.map(yr => `<th>${yr}</th>`).join('');
   return `<div class="lu-subbox" style="margin-bottom:16px;">
-    <div class="lu-subhdr"><span class="lu-subhdr-title">${title}</span></div>
-    <div style="overflow-x:auto;padding:10px 16px;">
-      <table class="tsg-table"><thead><tr><th class="tsg-team-cell"></th>${yearHeaders}</tr></thead><tbody>${rows}</tbody></table>
-    </div>
+    <table class="tsg-table"><thead><tr><th class="tsg-team-cell lgd-title-cell">${title}</th>${yearHeaders}</tr></thead><tbody>${rows}</tbody></table>
   </div>`;
 }
 
