@@ -1260,12 +1260,25 @@ async function loadTeamStatsData(year, statusEl){
   let teams = loadTeamStatsCache(year);
   let noDataYet = false;
   if(!teams){
+    if(statusEl) statusEl.textContent = 'Prüfe geteilten Cache…';
+    const shared = await loadSharedCache(`teamstats_${year}`);
+    const sharedIsFresh = shared && shared.teams &&
+      (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < 6*60*60*1000));
+    if(sharedIsFresh){
+      teams = shared.teams;
+      saveTeamStatsCache(year, teams);
+      console.log(`[TeamStats] GETEILTER CACHE-TREFFER (Firestore) für ${year}.`);
+      return { teams, noDataYet: false };
+    }
+
     if(statusEl) statusEl.textContent = 'Lade Play-by-Play (größte Datei — kann etwas dauern)…';
     const pbpText = await fetchPbpCsv(year);
     if(pbpText){
       if(statusEl) statusEl.textContent = 'Berechne Team-Defense-Stats für alle 32 Teams…';
       teams = aggregateTeamDefense(pbpText);
       saveTeamStatsCache(year, teams);
+      saveSharedCache(`teamstats_${year}`, { teams })
+        .then(ok => { if(ok) console.log(`[TeamStats] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
     } else {
       teams = {};
       noDataYet = true;
