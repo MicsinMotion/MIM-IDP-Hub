@@ -688,20 +688,49 @@ function normalizeContractTeams(raw){
   return raw.split('/').map(part => normalizeContractTeam(part)).filter(Boolean);
 }
 
+// Eigene Proxy-Kette für die GZIP-Binärdatei — dieselbe Reihenfolge/Quellen wie
+// nvProxyUrls() (siehe oben), ABER: allorigins' Standard-Endpunkt /get wickelt
+// die Antwort als JSON-Text ein ({"contents":"..."}) — das würde die Gzip-Bytes
+// zerstören. Deshalb hier /raw statt /get (liefert unveränderte Rohbytes, kein
+// Text/JSON-Unwrapping). Direkter fetch() ohne Proxy scheitert an CORS, da
+// GitHub Release Assets keinen Access-Control-Allow-Origin-Header senden
+// (getestet — weder github.com noch release-assets.githubusercontent.com).
+const gzipProxyUrls = rawUrl => [
+  `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
+  `https://proxy.corsfix.com/?${rawUrl}`,
+  `https://cors.sh/${rawUrl}`,
+  `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`,
+  `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`,
+];
+
 async function fetchGzipCsv(url){
-  try{
-    const res = await fetch(url);
-    if(!res.ok) return null;
-    if(typeof DecompressionStream === 'undefined'){
-      console.warn('[Contracts] DecompressionStream nicht verfügbar in diesem Browser.');
-      return null;
-    }
-    const decompressed = res.body.pipeThrough(new DecompressionStream('gzip'));
-    return await new Response(decompressed).text();
-  }catch(e){
-    console.warn('[Contracts] Gzip-Fetch fehlgeschlagen:', e.message);
+  if(typeof DecompressionStream === 'undefined'){
+    console.warn('[Contracts] DecompressionStream nicht verfügbar in diesem Browser.');
     return null;
   }
+  for(const proxyUrl of gzipProxyUrls(url)){
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), 8000); // ~1.2MB Datei — etwas mehr Zeit als bei den kleineren CSV-Fetches
+      const res = await fetch(proxyUrl, { mode:'cors', signal: ctrl.signal });
+      clearTimeout(timer);
+      if(!res.ok){ console.warn(`[Contracts] HTTP ${res.status} @ ${proxyUrl.slice(0,60)}`); continue; }
+      // Manche Public-Proxies fassen Binärdaten als Text an und beschädigen sie dabei —
+      // das führt dann hier zu einem Fehler beim Entpacken, den wir unten abfangen und
+      // als Anlass nehmen, den nächsten Proxy in der Kette zu versuchen.
+      const decompressed = res.body.pipeThrough(new DecompressionStream('gzip'));
+      const text = await new Response(decompressed).text();
+      if(!text || text.length < 200 || !text.includes('player')){
+        console.warn(`[Contracts] Unerwartete/leere Antwort @ ${proxyUrl.slice(0,60)}`);
+        continue;
+      }
+      console.log(`[MIM] Contracts geladen via ${proxyUrl.slice(0,60)} (${text.length} Zeichen)`);
+      return text;
+    }catch(e){
+      console.warn(`[Contracts] Fehler @ ${proxyUrl.slice(0,60)}:`, e.message);
+    }
+  }
+  return null;
 }
 
 function parseContractsCsv(text){
