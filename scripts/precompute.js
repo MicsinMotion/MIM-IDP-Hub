@@ -390,30 +390,12 @@ const TEAM_STATS_GROUPS = [
 
 // Einklappen der KOMPLETTEN Team-Stats-Sektion (ein einzelner Toggle für den ganzen
 // Bereich, nicht pro Kategorie) — einmalig gebunden, nicht bei jedem Render neu.
-// Einklappen einer KOMPLETTEN Sektion (Depth Chart / Team Stats / Schedule &
-// Standings / Team Roster) — ein einzelner Toggle für den ganzen Bereich inkl.
-// aller Zwischenheader darin (z.B. Defense/Offense/Special Teams oder die 5
-// Roster-Positionsspalten verschwinden mit, statt separat einklappbar zu bleiben).
-// Einmalig gebunden (nicht bei jedem Render neu), einheitlich für alle vier Bereiche.
-const sectionToggleBound = new Set();
-function bindSectionToggle(hdrId, bodyId, chevronId){
-  if(sectionToggleBound.has(hdrId)) return;
-  sectionToggleBound.add(hdrId);
-  const hdr = document.getElementById(hdrId);
-  const body = document.getElementById(bodyId);
-  const chevron = document.getElementById(chevronId);
-  hdr.addEventListener('click', () => {
-    const isOpen = body.style.display !== 'none';
-    body.style.display = isOpen ? 'none' : '';
-    chevron.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
-  });
-}
-bindSectionToggle('dc-toggle-hdr', 'dc-body', 'dc-toggle-chevron');
-bindSectionToggle('ts-toggle-hdr', 'ts-body', 'ts-toggle-chevron');
-bindSectionToggle('sched-toggle-hdr', 'sched-body', 'sched-toggle-chevron');
-bindSectionToggle('lineup-toggle-hdr', 'lineup-body', 'lineup-toggle-chevron');
-bindSectionToggle('community-stats-toggle-hdr', 'community-stats-body', 'community-stats-toggle-chevron');
-bindSectionToggle('roster-toggle-hdr', 'roster-body', 'roster-toggle-chevron');
+// (Der komplette bindSectionToggle-Block wurde hier bewusst entfernt — das war
+// reine Browser-UI-Logik (Auf-/Zuklappen von Boxen, braucht `document`), die
+// beim Portieren aus team.html versehentlich mit reinkopiert wurde. Im
+// Precompute-Skript gibt's keine Benutzeroberfläche, also auch keinen Bedarf
+// dafür — genau das hat den ersten Testlauf mit einem ReferenceError zum
+// Absturz gebracht, siehe Chat.)
 
 // ── CACHE für die BERECHNETEN Aggregate (nicht die Roh-PBP) ──────────────────
 // Sobald einmal berechnet, ändert sich eine ABGESCHLOSSENE Saison nie wieder —
@@ -481,87 +463,11 @@ const SEC_LABELS = [["2 CB / 2 S","BASE"],["3 CB / 2 S","NICKEL"],["4 CB / 2 S",
   ["3 CB / 3 S","BIG DIME"],["4 CB / 3 S","DIME PLUS"],["> 7 DBs","DB HEAVEN"],["< 4 DBs","LIGHT"],
   ["4 CB / 1 S","SKINNY NICKEL"],["1 CB / 3 S","SAFETY PLUS"],["3 CB / 1 S","CB PLUS"],["2 CB / 4 S","HUGE DIME"],["Sonstige Formation","XXX"]];
 
-// v6: komplett neue Datenbasis (echte PFF-Positionen statt defense_positions,
-// strikter play_type-Filter statt defenders_in_box-Näherung) — alte Caches
-// enthalten die vorherige, ungenaue Auswertung und müssen verworfen werden.
-function luCacheKey(year){ return `mim_lineup_v7_${year}`; }
-function loadLineupCache(year){
-  try{
-    const raw = localStorage.getItem(luCacheKey(year));
-    if(!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed.teams;
-  }catch(e){ return null; }
-}
-// Alte, obsolete Lineup-Cache-Versionen (v1-v5) entfernen — verhindert, dass sie
-// unnötig Platz belegen und den v6-Cache am Speichern hindern (siehe Chat: exakt
-// dasselbe localStorage-Voll-Problem wie an anderer Stelle im Projekt bekannt).
-function cleanupOldLineupCaches(){
-  try{
-    const keysToRemove = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(k && /^mim_lineup_v[1-6]_/.test(k)) keysToRemove.push(k);
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-    if(keysToRemove.length) console.log(`[Lineup] ${keysToRemove.length} alte Cache-Version(en) aufgeräumt.`);
-    return keysToRemove.length;
-  }catch(e){ return 0; }
-}
-
-// Der Lineup-Cache selbst ist winzig (siehe Chat: 13,4 KB) — wenn das Speichern
-// trotzdem an "quota exceeded" scheitert, ist der GESAMTE localStorage der Seite
-// voll (bestätigt durch dieselbe Fehlermeldung beim Roster-Cache). Also müssen wir
-// hier auch fremde, aber unkritische Caches opfern — die regenerieren sich bei
-// Bedarf einfach neu. Stufenweise, um nicht mehr wegzuwerfen als nötig.
-function cleanupUnrelatedCachesForSpace(keepAbbr, keepYear){
-  try{
-    const keysToRemove = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(!k) continue;
-      // Roster-Caches ANDERER Teams (aktuelles Team behalten, falls schon geladen)
-      if(/^mim_roster_v\d+_/.test(k) && !k.includes(`_${keepAbbr}_`)) keysToRemove.push(k);
-      // Team-Stats-Caches ANDERER Jahre
-      if(/^mim_teamstats_v\d+_/.test(k) && !k.endsWith(`_${keepYear}`)) keysToRemove.push(k);
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-    if(keysToRemove.length) console.log(`[Lineup] ${keysToRemove.length} fremde Cache-Eintr(ä)ge (Roster/Team-Stats anderer Teams/Jahre) aufgeräumt, um Platz zu schaffen.`);
-    return keysToRemove.length;
-  }catch(e){ return 0; }
-}
-
-function saveLineupCacheLocal(year, teamsObj, abbr){
-  const payload = JSON.stringify({ ts: Date.now(), teams: teamsObj });
-  console.log(`[Lineup] Cache-Payload für ${year}: ${(payload.length/1024).toFixed(1)} KB`);
-  try{
-    localStorage.setItem(luCacheKey(year), payload);
-    return;
-  }catch(e){
-    console.warn('[Lineup] Speichern fehlgeschlagen (evtl. Speicher voll), räume alte Lineup-Caches auf und versuche erneut:', e.message);
-  }
-  cleanupOldLineupCaches();
-  try{
-    localStorage.setItem(luCacheKey(year), payload);
-    return;
-  }catch(e2){
-    console.warn('[Lineup] Immer noch voll — Payload selbst ist klein (siehe KB oben), also liegt es am GESAMTEN Speicher. Räume jetzt auch fremde Caches (Roster/Team-Stats anderer Teams/Jahre) auf:', e2.message);
-  }
-  cleanupUnrelatedCachesForSpace(abbr||'', year);
-  try{
-    localStorage.setItem(luCacheKey(year), payload);
-  }catch(e3){
-    console.warn('[Lineup] Auch nach vollständigem Aufräumen konnte der Cache nicht gespeichert werden — Lineup-Daten werden bei jedem Laden neu berechnet:', e3.message);
-  }
-}
-
-function saveLineupCache(year, teamsObj, abbr){
-  saveLineupCacheLocal(year, teamsObj, abbr);
-  // GETEILT (Firestore): deckt alle 32 Teams auf einmal ab — der nächste Besucher,
-  // der IRGENDEIN Team für diese Saison ansieht, bekommt es sofort (siehe Chat).
-  saveSharedCache(`lineup_${year}`, { teams: teamsObj })
-    .then(ok => { if(ok) console.log(`[Lineup] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
-}
+// (localStorage-basierte Browser-Cache-Funktionen (loadLineupCache, saveLineupCache,
+// cleanupOldLineupCaches, cleanupUnrelatedCachesForSpace) hier bewusst entfernt —
+// localStorage existiert in Node.js nicht und wird im Precompute-Skript auch
+// nicht gebraucht: main() ruft computeLineupDataForSeason direkt auf und schreibt
+// das Ergebnis selbst über saveSharedCache in Firestore.)
 
 function normalizeGameKey(season, week, away, home){
   return `${season}_${String(week).padStart(2,'0')}_${away}_${home}`;
