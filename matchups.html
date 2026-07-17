@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matchups · Mics in Motion</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;--border:#21262d;--border2:#30363d;
+--text:#e6edf3;--muted:#7d8590;--muted2:#9198a1;--orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
+--green:#238636;--green-light:#2ea043;--red:#da3633;--radius:8px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
+.brand em{color:var(--orange);font-style:normal;}
+.nav-mid{display:flex;gap:4px;min-width:0;}
+.nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
+.nav-link:hover{color:var(--text);background:var(--bg3);}
+.nav-link.active{color:var(--orange);background:var(--orange-glow);}
+
+.auth-wrap{display:flex;align-items:center;gap:10px;}
+.auth-btn{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.auth-btn:hover{border-color:var(--orange);}
+.auth-user{display:flex;align-items:center;gap:10px;}
+.auth-avatar{width:30px;height:30px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
+.auth-name{font-size:13px;font-weight:500;color:var(--text);}
+.auth-logout{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
+.auth-logout:hover{color:var(--text);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px;width:340px;position:relative;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.modal-field{margin-bottom:14px;margin-top:16px;}
+.modal-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;}
+.modal-field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+.modal-field input:focus{border-color:var(--orange);}
+.modal-submit{width:100%;background:var(--orange);color:#fff;border:none;padding:11px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;margin-top:6px;font-family:'Inter',sans-serif;}
+.modal-submit:hover{opacity:.9;}
+.modal-error{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+.modal-error.show{display:block;}
+
+.gate-wrap{max-width:520px;margin:80px auto;padding:0 24px;text-align:center;}
+.gate-icon{font-size:40px;margin-bottom:18px;}
+.gate-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:12px;}
+.gate-text{font-size:13px;color:var(--muted);line-height:1.7;}
+
+.page-hdr{padding:28px 32px 20px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#fff;}
+.page-title span{color:var(--orange);}
+.page-sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:720px;line-height:1.6;}
+
+.toolbar{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:18px 32px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.tb-group{display:flex;align-items:center;gap:10px;}
+.tb-group label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.tb-select{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;cursor:pointer;}
+.tb-select:focus{border-color:var(--orange);}
+.win-tabs{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:3px;}
+.win-tab{font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.win-tab.active{background:var(--orange);color:#fff;}
+.legend{margin-left:auto;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+.matchup-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;padding:24px 32px;max-width:1440px;margin:0 auto;align-items:start;}
+.main-col{min-width:0;}
+.sidebar{position:sticky;top:76px;}
+
+.game-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+.game-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:11px;color:var(--muted);letter-spacing:.5px;}
+.game-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start;}
+.vs-divider{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--muted2);align-self:center;padding-top:20px;}
+.team-side{display:flex;flex-direction:column;gap:8px;}
+.team-side-hdr{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.team-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;}
+.team-side-name{font-weight:700;font-size:14px;color:#fff;}
+.team-side-sub{font-size:10px;color:var(--muted);}
+
+.pos-tile{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+.pos-tile:hover{border-color:var(--orange-dim);}
+.pos-tile-hdr{display:flex;justify-content:space-between;align-items:center;}
+.pos-tile-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pos-tile-rank{font-size:10px;font-weight:700;color:var(--text);}
+.pos-tile-score-row{display:flex;align-items:baseline;gap:6px;margin-top:4px;}
+.pos-tile-score{font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.pos-tile-nodata{font-size:11px;color:var(--muted);font-style:italic;padding:2px 0;}
+.pos-tile-chevron{font-size:10px;color:var(--muted);transition:transform .2s;}
+.pos-tile.open .pos-tile-chevron{transform:rotate(180deg);}
+.pos-tile-detail{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
+.pos-tile.open .pos-tile-detail{display:block;}
+.pos-metric-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;color:var(--muted2);}
+.pos-metric-row b{color:var(--text);font-weight:600;}
+
+.empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
+.empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
+.loading-row{padding:16px;text-align:center;color:var(--muted);font-size:13px;font-style:italic;}
+
+/* ── SIDEBAR: COMPARE-TOOL ── */
+.cmp-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.cmp-box-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#fff;margin-bottom:4px;}
+.cmp-box-sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.cmp-search-wrap{position:relative;margin-bottom:12px;}
+.cmp-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;}
+.cmp-search:focus{border-color:var(--orange);}
+.cmp-search::placeholder{color:var(--muted);}
+.cmp-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);z-index:50;max-height:280px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;}
+.cmp-results.open{display:block;}
+.cmp-res-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;}
+.cmp-res-item:last-child{border-bottom:none;}
+.cmp-res-item:hover{background:var(--bg4);}
+.cmp-res-item.disabled{opacity:.35;cursor:not-allowed;}
+.cmp-res-name{font-weight:600;}
+.cmp-res-sub{color:var(--muted);font-size:10px;margin-left:auto;}
+.cmp-loading-db{font-size:11px;color:var(--muted);font-style:italic;padding:6px 0;}
+
+.cmp-mini-card{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:10px;}
+.cmp-mini-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cmp-mini-hs,.cmp-mini-hs-fb{width:42px;height:42px;border-radius:8px;object-fit:cover;object-position:top;background:var(--bg4);flex-shrink:0;}
+.cmp-mini-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--muted);}
+.cmp-mini-name{font-size:13px;font-weight:700;color:#fff;}
+.cmp-mini-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.cmp-mini-remove{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
+.cmp-mini-remove:hover{color:var(--red);}
+.cmp-mini-pts{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.cmp-mini-pts b{color:var(--orange);font-family:'Bebas Neue',sans-serif;font-size:15px;}
+.cmp-mini-badge{font-size:11px;padding:8px 10px;border-radius:6px;background:var(--bg4);border:1px solid var(--border2);line-height:1.5;}
+.cmp-mini-badge .r{font-weight:700;}
+.cmp-empty-hint{font-size:12px;color:var(--muted);text-align:center;padding:20px 0;font-style:italic;}
+
+@media(max-width:1050px){
+  .matchup-layout{grid-template-columns:1fr;}
+  .sidebar{position:static;}
+}
+@media(max-width:700px){
+  nav{padding:0 16px;}
+  .brand{font-size:18px;}
+  .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-mid::-webkit-scrollbar{display:none;}
+  .nav-link{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 9px;}
+  .page-hdr{padding:20px 16px 16px;}
+  .page-title{font-size:24px;}
+  .toolbar{padding:14px 16px;}
+  .matchup-layout{padding:16px;}
+  .game-teams{grid-template-columns:1fr;}
+  .vs-divider{padding-top:0;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
+  <div class="nav-mid">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="players.html" class="nav-link">Player DB</a>
+    <a href="team-hub.html" class="nav-link">Team Hub</a>
+    <a href="rankings.html" class="nav-link">IDP Rankings</a>
+    <a href="matchups.html" class="nav-link active" id="nav-matchups-link">Matchups</a>
+    <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+  </div>
+  <div class="auth-wrap" id="auth-wrap">
+    <button class="auth-btn" id="auth-open-btn">Login</button>
+  </div>
+</nav>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close-btn">&times;</button>
+    <div class="modal-title">Login</div>
+    <div class="modal-field"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-error" id="modal-error"></div>
+  </div>
+</div>
+
+<!-- Gate: kein Login -->
+<div class="gate-wrap" id="gate-app-login">
+  <div class="gate-icon">🔒</div>
+  <div class="gate-title">Nur für Mitglieder</div>
+  <div class="gate-text">Die Matchup-Analyse ist aktuell nur für angemeldete MIM-Mitglieder sichtbar. Bitte melde dich zuerst über den Login-Button oben rechts an.</div>
+</div>
+
+<!-- Hauptinhalt -->
+<div id="matchups-app" style="display:none;">
+  <div class="page-hdr">
+    <div class="page-title">MATCHUP <span>ANALYSE</span></div>
+    <div class="page-sub">Welche Teams sind diese Woche eine leichte Matchup für DL, LB oder DB? Basis: zugelassene Sacks, TFL, QB Hits, Tackles, INT und PBU je Positionsgruppe des AUSFÜHRENDEN Spielers, über alle 32 Teams gerankt.</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tb-group">
+      <label>Woche</label>
+      <select class="tb-select" id="week-select"></select>
+    </div>
+    <div class="tb-group">
+      <label>Fenster</label>
+      <div class="win-tabs" id="win-tabs">
+        <button class="win-tab" data-win="3">Letzte 3</button>
+        <button class="win-tab" data-win="5">Letzte 5</button>
+        <button class="win-tab" data-win="season">Season</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-swatch" style="background:rgba(46,190,60,.35)"></span> leichte Matchup
+      <span class="legend-swatch" style="background:rgba(196,70,60,.35)"></span> schwere Matchup
+    </div>
+  </div>
+
+  <div class="matchup-layout">
+    <div class="main-col" id="main-col">
+      <div class="loading-row">Lade Matchup-Daten…</div>
+    </div>
+
+    <div class="sidebar">
+      <div class="cmp-box">
+        <div class="cmp-box-title">SPIELER <span style="color:var(--orange)">VERGLEICH</span></div>
+        <div class="cmp-box-sub">Bis zu 3 Spieler suchen &amp; direkt sehen, ob sie diese Woche eine gute Matchup haben.</div>
+        <div class="cmp-search-wrap">
+          <input type="text" class="cmp-search" id="cmp-search" placeholder="Spieler suchen…" autocomplete="off">
+          <div class="cmp-results" id="cmp-results"></div>
+        </div>
+        <div id="cmp-selected"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+
+const authWrap = document.getElementById('auth-wrap');
+const overlay = document.getElementById('modal-overlay');
+const errEl = document.getElementById('modal-error');
+document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
+document.getElementById('modal-close-btn').addEventListener('click', () => overlay.classList.remove('open'));
+overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
+function mapAuthError(e){
+  const c = e.code || '';
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
+  return 'Fehler: ' + (e.message || 'unbekannt');
+}
+document.getElementById('login-submit').addEventListener('click', async () => {
+  errEl.classList.remove('show');
+  try{ await loginUser(document.getElementById('login-email').value, document.getElementById('login-pw').value); overlay.classList.remove('open'); }
+  catch(e){ showErr(mapAuthError(e)); }
+});
+
+window._mimAppStarted = false;
+watchAuth(user => {
+  const footerText = document.getElementById('footer-text');
+  if(footerText) footerText.textContent = user
+    ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'
+    : 'MICS IN MOTION · IDP HUB · Community-Modus';
+  if(user){
+    const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
+    document.getElementById('gate-app-login').style.display = 'none';
+    document.getElementById('matchups-app').style.display = 'block';
+    if(!window._mimAppStarted){ window._mimAppStarted = true; window._mimInitApp && window._mimInitApp(); }
+  } else {
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
+    document.getElementById('gate-app-login').style.display = 'block';
+    document.getElementById('matchups-app').style.display = 'none';
+  }
+});
+</script>
+
+<script type="module">
+import { loadSharedCache } from './firebase-init.js';
+
+// ─── JAHR-LOGIK (identisch zu team.html/precompute.js) ──────────────────────
+function isPastMarch1(d){ return d >= new Date(d.getFullYear(), 2, 1); }
+const CURRENT_SEASON_YEAR = isPastMarch1(new Date()) ? new Date().getFullYear() : new Date().getFullYear() - 1;
+
+// ─── TEAMS (identisch zu team-hub.html) ─────────────────────────────────────
+const TEAMS = [
+  {abbr:'BUF',city:'Buffalo',name:'Bills'},{abbr:'MIA',city:'Miami',name:'Dolphins'},
+  {abbr:'NE',city:'New England',name:'Patriots'},{abbr:'NYJ',city:'New York',name:'Jets'},
+  {abbr:'BAL',city:'Baltimore',name:'Ravens'},{abbr:'CIN',city:'Cincinnati',name:'Bengals'},
+  {abbr:'CLE',city:'Cleveland',name:'Browns'},{abbr:'PIT',city:'Pittsburgh',name:'Steelers'},
+  {abbr:'HOU',city:'Houston',name:'Texans'},{abbr:'IND',city:'Indianapolis',name:'Colts'},
+  {abbr:'JAX',city:'Jacksonville',name:'Jaguars'},{abbr:'TEN',city:'Tennessee',name:'Titans'},
+  {abbr:'DEN',city:'Denver',name:'Broncos'},{abbr:'KC',city:'Kansas City',name:'Chiefs'},
+  {abbr:'LV',city:'Las Vegas',name:'Raiders'},{abbr:'LAC',city:'Los Angeles',name:'Chargers'},
+  {abbr:'DAL',city:'Dallas',name:'Cowboys'},{abbr:'NYG',city:'New York',name:'Giants'},
+  {abbr:'PHI',city:'Philadelphia',name:'Eagles'},{abbr:'WAS',city:'Washington',name:'Commanders'},
+  {abbr:'CHI',city:'Chicago',name:'Bears'},{abbr:'DET',city:'Detroit',name:'Lions'},
+  {abbr:'GB',city:'Green Bay',name:'Packers'},{abbr:'MIN',city:'Minnesota',name:'Vikings'},
+  {abbr:'ATL',city:'Atlanta',name:'Falcons'},{abbr:'CAR',city:'Carolina',name:'Panthers'},
+  {abbr:'NO',city:'New Orleans',name:'Saints'},{abbr:'TB',city:'Tampa Bay',name:'Buccaneers'},
+  {abbr:'ARI',city:'Arizona',name:'Cardinals'},{abbr:'LAR',city:'Los Angeles',name:'Rams'},
+  {abbr:'SF',city:'San Francisco',name:'49ers'},{abbr:'SEA',city:'Seattle',name:'Seahawks'},
+];
+const TEAM_BY_ABBR = Object.fromEntries(TEAMS.map(t => [t.abbr, t]));
+const ESPN_A={ARI:'ari',ATL:'atl',BAL:'bal',BUF:'buf',CAR:'car',CHI:'chi',CIN:'cin',CLE:'cle',DAL:'dal',DEN:'den',DET:'det',GB:'gb',HOU:'hou',IND:'ind',JAX:'jax',KC:'kc',LAC:'lac',LAR:'lar',LA:'lar',LV:'lv',MIA:'mia',MIN:'min',NE:'ne',NO:'no',NYG:'nyg',NYJ:'nyj',PHI:'phi',PIT:'pit',SF:'sf',SEA:'sea',TB:'tb',TEN:'ten',WAS:'wsh'};
+function logoUrl(abbr){ return `https://a.espncdn.com/i/teamlogos/nfl/500/${ESPN_A[abbr]||''}.png`; }
+
+// ─── SPIELPLAN — Sleeper Schedule API (EIN Call für die komplette Saison, alle Teams) ──
+// Identisch zum Muster aus player.html (loadSchedule).
+const SL_SCHEDULE = yr => `https://api.sleeper.app/schedule/nfl/regular/${yr}`;
+async function loadSchedule(yr){
+  try{
+    const r = await fetch(SL_SCHEDULE(yr));
+    if(!r.ok) return null;
+    const raw = await r.json();
+    const games = Array.isArray(raw) ? raw : Object.values(raw);
+    const map = {};
+    for(const g of games){
+      const home = g.home || g.home_team, away = g.away || g.away_team, wk = g.week;
+      if(!home || !away || !wk) continue;
+      if(!map[home]) map[home] = {};
+      if(!map[away]) map[away] = {};
+      map[home][wk] = { opp: away, home: true };
+      map[away][wk] = { opp: home, home: false };
+    }
+    return map;
+  }catch(e){ console.warn('[Matchups] Spielplan konnte nicht geladen werden:', e); return null; }
+}
+
+// ─── MATCHUP-DATEN aus shared_cache (vom Precompute-Skript geschrieben) ─────
+const MATCHUP_METRICS = [['sacks','Sacks'],['tfl','TFL'],['qbHits','QB Hits'],['tackles','Tackles'],['ints','INT'],['pbu','PBU']];
+const GROUPS = ['DL','LB','DB'];
+function emptyGroupStats(){ return { DL:{sacks:0,tfl:0,qbHits:0,tackles:0,ints:0,pbu:0}, LB:{sacks:0,tfl:0,qbHits:0,tackles:0,ints:0,pbu:0}, DB:{sacks:0,tfl:0,qbHits:0,tackles:0,ints:0,pbu:0} }; }
+
+// Rollierendes Fenster: Durchschnitt PRO SPIEL (nicht Summe!) über die letzten
+// N verfügbaren Wochen VOR der gewählten Woche — Durchschnitt statt Summe, damit
+// Bye-Wochen einzelner Teams die Vergleichbarkeit nicht verzerren.
+function getTeamWindowStats(teamWeeksObj, uptoWeek, windowSize){
+  const weekNums = Object.keys(teamWeeksObj || {}).map(Number).filter(w => w < uptoWeek).sort((a,b) => a-b);
+  const selected = windowSize === 'season' ? weekNums : weekNums.slice(-windowSize);
+  if(!selected.length) return null;
+  const sums = emptyGroupStats();
+  selected.forEach(wk => {
+    const w = teamWeeksObj[wk];
+    GROUPS.forEach(g => MATCHUP_METRICS.forEach(([m]) => { sums[g][m] += (w[g] && w[g][m]) || 0; }));
+  });
+  const n = selected.length;
+  const avg = emptyGroupStats();
+  GROUPS.forEach(g => MATCHUP_METRICS.forEach(([m]) => { avg[g][m] = sums[g][m] / n; }));
+  return { avg, gamesUsed: n };
+}
+
+// Perzentil-basierter Score (0-100, höher = leichtere Matchup) über alle Teams
+// mit Daten, gemittelt über die 6 Metriken je Gruppe — plus Rang 1-32 je Gruppe
+// UND Rang je Einzelmetrik (für die aufklappbare Detailansicht).
+function computeScoresAndRanks(windowByTeam){
+  const teamsWithData = Object.keys(windowByTeam).filter(t => windowByTeam[t]);
+  const result = {}; // abbr -> { DL:{score,rank,metrics:{sacks:{val,rank},...}}, LB:{...}, DB:{...} }
+  teamsWithData.forEach(t => result[t] = { DL:{}, LB:{}, DB:{} });
+
+  GROUPS.forEach(g => {
+    // Perzentil je Metrik berechnen, dann über alle 6 Metriken je Team mitteln
+    const percentileByTeamMetric = {}; // abbr -> metric -> 0..1
+    teamsWithData.forEach(t => percentileByTeamMetric[t] = {});
+
+    MATCHUP_METRICS.forEach(([m]) => {
+      const values = teamsWithData.map(t => windowByTeam[t].avg[g][m]);
+      const min = Math.min(...values), max = Math.max(...values);
+      teamsWithData.forEach(t => {
+        const v = windowByTeam[t].avg[g][m];
+        const pct = (max === min) ? 0.5 : (v - min) / (max - min); // höher = mehr zugelassen = leichter
+        percentileByTeamMetric[t][m] = pct;
+        result[t][g][m] = { val: v };
+      });
+      // Rang je Einzelmetrik (1 = lässt am meisten zu = leichteste Matchup für diese Metrik)
+      const sorted = [...teamsWithData].sort((a,b) => windowByTeam[b].avg[g][m] - windowByTeam[a].avg[g][m]);
+      sorted.forEach((t,i) => result[t][g][m].rank = i+1);
+    });
+
+    teamsWithData.forEach(t => {
+      const avgPct = MATCHUP_METRICS.reduce((s,[m]) => s + percentileByTeamMetric[t][m], 0) / MATCHUP_METRICS.length;
+      result[t][g].score = Math.round(avgPct * 100);
+    });
+    const sortedByScore = [...teamsWithData].sort((a,b) => result[b][g].score - result[a][g].score);
+    sortedByScore.forEach((t,i) => result[t][g].rank = i+1);
+  });
+
+  return { result, teamCount: teamsWithData.length };
+}
+
+function scoreColor(score){
+  if(score == null) return '';
+  const t = score/100; // 0..1, 1 = leichteste Matchup
+  const r = Math.round(196 - t*136), g = Math.round(60 + t*130), b = 60;
+  return `rgba(${r},${g},${b},.28)`;
+}
+function scoreTextColor(score){
+  if(score == null) return 'var(--muted)';
+  if(score >= 65) return 'var(--green-light)';
+  if(score <= 35) return 'var(--red)';
+  return 'var(--text)';
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let scheduleMap = null;       // team -> week -> {opp, home}
+let matchupsData = null;      // team -> {weeks:{wk:{...}}}
+let currentWeek = null;
+let currentWindow = 3;
+let latestScored = null;      // Ergebnis von computeScoresAndRanks für die aktuelle Woche/Fenster
+
+function computeDefaultWeek(){
+  let maxWeek = 0;
+  if(matchupsData){
+    Object.values(matchupsData).forEach(t => {
+      Object.keys(t.weeks || {}).forEach(wk => { maxWeek = Math.max(maxWeek, parseInt(wk,10)); });
+    });
+  }
+  return Math.min(18, Math.max(1, maxWeek + 1));
+}
+
+function recompute(){
+  if(!matchupsData) return;
+  const windowByTeam = {};
+  TEAMS.forEach(t => {
+    const teamData = matchupsData[t.abbr];
+    windowByTeam[t.abbr] = teamData ? getTeamWindowStats(teamData.weeks, currentWeek, currentWindow) : null;
+  });
+  latestScored = computeScoresAndRanks(windowByTeam);
+  window._mimLatestScored = latestScored; // Compare-Panel greift darauf zu
+  window._mimCurrentWeek = currentWeek;
+  renderMainCol();
+  window._mimRerenderCompare && window._mimRerenderCompare();
+}
+
+function posTileHtml(abbr, group){
+  const entry = latestScored.result[abbr];
+  if(!entry || entry[group].score == null){
+    return `<div class="pos-tile"><div class="pos-tile-hdr"><span class="pos-tile-label">${group}</span></div><div class="pos-tile-nodata">Keine Daten</div></div>`;
+  }
+  const g = entry[group];
+  const uid = `${abbr}-${group}-${Math.random().toString(36).slice(2,7)}`;
+  const detailRows = MATCHUP_METRICS.map(([m,label]) => `
+    <div class="pos-metric-row"><span>${label}</span><span><b>${g[m].val.toFixed(1)}</b>/Spiel · Rang ${g[m].rank}/${latestScored.teamCount}</span></div>
+  `).join('');
+  return `<div class="pos-tile" onclick="document.getElementById('${uid}').closest('.pos-tile').classList.toggle('open')" id="${uid}">
+    <div class="pos-tile-hdr">
+      <span class="pos-tile-label">${group}</span>
+      <span class="pos-tile-rank">Rang ${g.rank}/${latestScored.teamCount} <span class="pos-tile-chevron">▾</span></span>
+    </div>
+    <div class="pos-tile-score-row">
+      <span class="pos-tile-score" style="color:${scoreTextColor(g.score)}">${g.score}</span>
+      <span style="font-size:10px;color:var(--muted)">/ 100</span>
+    </div>
+    <div class="pos-tile-detail">${detailRows}</div>
+  </div>`;
+}
+
+function teamSideHtml(abbr, isHome){
+  const t = TEAM_BY_ABBR[abbr];
+  if(!t) return '';
+  return `<div class="team-side">
+    <div class="team-side-hdr">
+      <img class="team-logo" src="${logoUrl(abbr)}" alt="">
+      <div><div class="team-side-name">${t.city} ${t.name}</div><div class="team-side-sub">${isHome?'Heim':'Auswärts'}</div></div>
+    </div>
+    ${GROUPS.map(g => posTileHtml(abbr, g)).join('')}
+  </div>`;
+}
+
+function renderMainCol(){
+  const el = document.getElementById('main-col');
+  if(!scheduleMap){ el.innerHTML = '<div class="empty-state"><h3>Spielplan nicht verfügbar</h3></div>'; return; }
+
+  const games = [];
+  TEAMS.forEach(t => {
+    const entry = scheduleMap[t.abbr] && scheduleMap[t.abbr][currentWeek];
+    if(entry && entry.home) games.push({ home: t.abbr, away: entry.opp });
+  });
+
+  if(!games.length){
+    el.innerHTML = `<div class="empty-state"><h3>Keine Spiele in Woche ${currentWeek}</h3><p>Spielplan für diese Woche noch nicht verfügbar oder Bye-Week-lastige Woche.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = games.map(game => `
+    <div class="game-card">
+      <div class="game-card-hdr"><span>Woche ${currentWeek}</span><span>${currentWindow === 'season' ? 'Season bisher' : 'Letzte ' + currentWindow + ' Spiele'}</span></div>
+      <div class="game-teams">
+        ${teamSideHtml(game.away, false)}
+        <div class="vs-divider">@</div>
+        ${teamSideHtml(game.home, true)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderWeekSelect(){
+  const sel = document.getElementById('week-select');
+  sel.innerHTML = Array.from({length:18}, (_,i) => i+1).map(w => `<option value="${w}" ${w===currentWeek?'selected':''}>Woche ${w}</option>`).join('');
+  sel.addEventListener('change', () => { currentWeek = parseInt(sel.value,10); recompute(); });
+}
+function renderWinTabs(){
+  document.querySelectorAll('.win-tab').forEach(btn => {
+    const val = btn.dataset.win === 'season' ? 'season' : parseInt(btn.dataset.win,10);
+    btn.classList.toggle('active', val === currentWindow);
+    btn.addEventListener('click', () => {
+      currentWindow = val;
+      document.querySelectorAll('.win-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      recompute();
+    });
+  });
+}
+
+async function initApp(){
+  const [sched, cache] = await Promise.all([
+    loadSchedule(CURRENT_SEASON_YEAR),
+    loadSharedCache(`matchups_${CURRENT_SEASON_YEAR}`),
+  ]);
+  scheduleMap = sched;
+  matchupsData = (cache && cache.teams) || null;
+  if(!matchupsData){
+    document.getElementById('main-col').innerHTML = '<div class="empty-state"><h3>Noch keine Matchup-Daten</h3><p>Der Precompute-Lauf für diese Saison hat noch keine matchups_' + CURRENT_SEASON_YEAR + ' geschrieben.</p></div>';
+    return;
+  }
+  currentWeek = computeDefaultWeek();
+  renderWeekSelect();
+  renderWinTabs();
+  recompute();
+}
+
+window._mimInitApp = initApp;
+// Für die Compare-Sidebar zugänglich machen
+window._mimGetTeamAbbr = () => TEAM_BY_ABBR;
+window._mimGroupForPositions = (positions) => {
+  const DL_SET=new Set(['DE','DT','NT','EDGE','IDL','DL']), LB_SET=new Set(['LB','ILB','MLB','OLB']), DB_SET=new Set(['CB','FS','SS','S','DB','SAF']);
+  const groups = new Set();
+  (positions||[]).forEach(p => {
+    const t=(p||'').toUpperCase();
+    if(DL_SET.has(t)) groups.add('DL');
+    else if(LB_SET.has(t)) groups.add('LB');
+    else if(DB_SET.has(t)) groups.add('DB');
+  });
+  return [...groups];
+};
+window._mimGetOpponent = (teamAbbr) => {
+  if(!scheduleMap || !currentWeek) return null;
+  const entry = scheduleMap[teamAbbr] && scheduleMap[teamAbbr][currentWeek];
+  return entry ? entry.opp : null;
+};
+</script>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════════════════════
+// SPIELER-VERGLEICH (Sidebar) — sucht über dieselbe kanonische IDP-Datenbank wie
+// players.html (Cache-Key mim_players_db_v4, Sleeper+nflverse+PFF gemergt).
+// WICHTIG: bewusst NICHT compare.html's alten Cache-Key (mim_sleeper_players_v3)
+// wiederverwendet — der ist seit players.html's Umbau veraltet (siehe dortiger
+// Kommentar) und würde hier eine andere, unvollständigere Form liefern.
+// ═══════════════════════════════════════════════════════════════════════════
+const CACHE_KEY = 'mim_players_db_v4', CACHE_TS_KEY = 'mim_players_db_ts_v4', CACHE_TTL = 23*60*60*1000;
+const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+const CUR_YEAR = new Date().getFullYear();
+const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
+const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
+const PFF_POS_MAP={DI:'DT',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
+const DL_SET=new Set(['DE','DT','NT','EDGE','IDL','DL']), LB_SET=new Set(['LB','ILB','MLB','OLB']), DB_SET=new Set(['CB','FS','SS','S','DB','SAF']);
+function classifyTag(tag){ const t=(tag||'').toUpperCase(); if(DL_SET.has(t))return'DL'; if(LB_SET.has(t))return'LB'; if(DB_SET.has(t))return'DB'; return null; }
+function idpGroups(p){
+  const groups = new Set();
+  const tags = (p.fantasy_positions && p.fantasy_positions.length) ? p.fantasy_positions : [p.position];
+  tags.forEach(t => { const c = classifyTag(t); if(c) groups.add(c); });
+  if(groups.size===0){ const c2 = classifyTag(p.depth_chart_position); if(c2) groups.add(c2); }
+  return [...groups];
+}
+function splitCSV(l){const c=[];let cur='',q=false;for(const ch of l){if(ch==='"'){q=!q;}else if(ch===','&&!q){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c;}
+function store(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return localStorage; }catch{ return sessionStorage; } }
+
+function nvProxyUrls(rawUrl){
+  return [
+    `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
+    `https://proxy.corsfix.com/?${rawUrl}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
+    `https://cors.sh/${rawUrl}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`,
+  ];
+}
+async function fetchCsvOnce(urlBuilder, years, mustContain){
+  for(const yr of years){
+    for(const url of nvProxyUrls(urlBuilder(yr))){
+      try{
+        const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 6000);
+        const r = await fetch(url, { mode:'cors', signal: ctrl.signal }); clearTimeout(timer);
+        if(!r.ok) continue;
+        let t = await r.text();
+        if(t && t.startsWith('{') && t.includes('"contents"')){ try{ t = JSON.parse(t).contents || ''; }catch{} }
+        if(t && t.length > 500 && (!mustContain || t.includes(mustContain))) return t;
+      }catch(e){}
+    }
+  }
+  return null;
+}
+function buildRosterLookup(csvText){
+  const map = new Map();
+  if(!csvText) return map;
+  const lines = csvText.split('\n');
+  if(lines.length < 2) return map;
+  const H = splitCSV(lines[0]);
+  const idx = { sleeper_id:H.indexOf('sleeper_id'), full_name:H.indexOf('full_name'), team:H.indexOf('team'),
+    gsis_id:H.indexOf('gsis_id'), pff_id:H.indexOf('pff_id'), espn_id:H.indexOf('espn_id'),
+    depth_chart_position:H.indexOf('depth_chart_position') };
+  if(idx.sleeper_id < 0) return map;
+  const val=(row,i)=>(i>=0 && row[i] && row[i]!=='NA')?row[i]:'';
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const row = splitCSV(lines[i]);
+    const sid = row[idx.sleeper_id];
+    if(!sid) continue;
+    map.set(sid, { full_name:val(row,idx.full_name), team:val(row,idx.team), gsis_id:val(row,idx.gsis_id),
+      pff_id:val(row,idx.pff_id), espn_id:val(row,idx.espn_id), depth_chart_position:val(row,idx.depth_chart_position) });
+  }
+  return map;
+}
+async function fetchPffAllTeams(){
+  const pffMap = new Map();
+  const teamIds = [...new Set(Object.values(PFF_TEAM_ID))];
+  await Promise.all(teamIds.map(async teamId => {
+    try{
+      const url = `https://www.pff.com/api/teams/${teamId}/roster`;
+      const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 6000);
+      const res = await fetch(`${MIM_WORKER}${encodeURIComponent(url)}`, { signal: ctrl.signal }); clearTimeout(timer);
+      if(!res.ok) return;
+      const json = await res.json();
+      (json.team_players||[]).forEach(pl => { if(pl.id && pl.position) pffMap.set(String(pl.id), PFF_POS_MAP[pl.position.toUpperCase()] || pl.position); });
+    }catch(e){}
+  }));
+  return pffMap;
+}
+function getCached(){
+  try{
+    const s = store(); const ts = s.getItem(CACHE_TS_KEY);
+    if(!ts || Date.now()-parseInt(ts) > CACHE_TTL) return null;
+    const raw = s.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch{ return null; }
+}
+function setCache(data){
+  try{ const s = store(); s.setItem(CACHE_KEY, JSON.stringify(data)); s.setItem(CACHE_TS_KEY, Date.now().toString()); }catch(e){}
+}
+
+let allPlayers = [];
+async function loadPlayerDb(){
+  let cached = getCached();
+  if(cached && cached.length && !('years_exp' in cached[0])) cached = null; // gleicher Formcheck wie players.html
+  if(cached){ allPlayers = cached; return; }
+
+  const sleeperData = await fetch('https://api.sleeper.app/v1/players/nfl').then(r => r.json());
+  const [rosterCsv, pffMap] = await Promise.all([
+    fetchCsvOnce(NV_ROSTER_URL, [CUR_YEAR, CUR_YEAR-1], 'sleeper_id'),
+    fetchPffAllTeams(),
+  ]);
+  const rosterMap = buildRosterLookup(rosterCsv);
+
+  allPlayers = Object.entries(sleeperData).map(([id,p]) => {
+    const groups = idpGroups(p);
+    if(!groups.length) return null;
+    const nv = rosterMap.get(id);
+    const pffId = (nv && nv.pff_id) || p.pff_id || p.stats_id || '';
+    const pffPos = pffId ? pffMap.get(pffId) : null;
+    return {
+      sleeper_id: id,
+      full_name: (nv && nv.full_name) || p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim(),
+      position: groups[0], positions: groups,
+      detail_pos: pffPos || (nv && nv.depth_chart_position) || p.depth_chart_position || p.position || '',
+      team: (nv && nv.team) || p.team || '',
+      years_exp: p.years_exp ?? '',
+      headshot: p.fantasy_data_id ? `https://sleepercdn.com/content/nfl/players/${id}.jpg` : '',
+      search_name: (p.search_full_name || p.full_name || '').toLowerCase(),
+    };
+  }).filter(Boolean).sort((a,b) => (a.full_name||'').localeCompare(b.full_name||''));
+  setCache(allPlayers);
+}
+
+// ─── SEASON PTS (identisch zu compare.html) ─────────────────────────────────
+const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+  idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
+function calcPts(s){ if(!s) return 0; let pts=0; for(const [k,v] of Object.entries(LIGA_SCORING)){ const val=getStat(s,k); if(val && val>0) pts += val*v; } return Math.round(pts*100)/100; }
+const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
+const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
+async function fetchSeasonPts(id, yr){
+  for(const url of [SL_SEASON_DIRECT(id,yr), SL_SEASON_PROXY(id,yr)]){
+    try{
+      const r = await fetch(url); if(!r.ok) continue;
+      const t = await r.text(); if(!t || t==='null') return 0;
+      const obj = JSON.parse(t); if(!obj || typeof obj !== 'object') continue;
+      return calcPts(obj.stats || obj);
+    }catch(e){}
+  }
+  return 0;
+}
+
+// ─── UI ──────────────────────────────────────────────────────────────────────
+let selectedIds = []; // max 3, sleeper_id
+const searchInput = document.getElementById('cmp-search');
+const resultsEl = document.getElementById('cmp-results');
+const selectedEl = document.getElementById('cmp-selected');
+let dbLoadStarted = false, dbReady = false;
+
+function initials(name){ return (name||'??').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(); }
+
+function renderResults(q){
+  if(!q || q.length < 2){ resultsEl.classList.remove('open'); return; }
+  const ql = q.toLowerCase();
+  const matches = allPlayers.filter(p => p.search_name.includes(ql) || (p.full_name||'').toLowerCase().includes(ql)).slice(0, 12);
+  if(!matches.length){ resultsEl.innerHTML = '<div class="cmp-res-item disabled">Keine Treffer</div>'; resultsEl.classList.add('open'); return; }
+  resultsEl.innerHTML = matches.map(p => {
+    const already = selectedIds.includes(p.sleeper_id);
+    const full = selectedIds.length >= 3 && !already;
+    return `<div class="cmp-res-item ${already||full?'disabled':''}" data-id="${p.sleeper_id}">
+      <span class="cmp-res-name">${p.full_name}</span>
+      <span class="cmp-res-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</span>
+    </div>`;
+  }).join('');
+  resultsEl.classList.add('open');
+  resultsEl.querySelectorAll('.cmp-res-item:not(.disabled)').forEach(el => {
+    el.addEventListener('click', () => { addPlayer(el.dataset.id); searchInput.value=''; resultsEl.classList.remove('open'); });
+  });
+}
+
+function addPlayer(id){
+  if(selectedIds.length >= 3 || selectedIds.includes(id)) return;
+  selectedIds.push(id);
+  renderSelected();
+}
+function removePlayer(id){
+  selectedIds = selectedIds.filter(x => x !== id);
+  renderSelected();
+}
+
+function matchupBadgeHtml(p){
+  const groupForFn = window._mimGroupForPositions, getOppFn = window._mimGetOpponent, scored = window._mimLatestScored, teamMap = window._mimGetTeamAbbr && window._mimGetTeamAbbr();
+  if(!groupForFn || !p.team) return '';
+  const opp = getOppFn ? getOppFn(p.team) : null;
+  if(!opp) return `<div class="cmp-mini-badge">Kein Spiel in der gewählten Woche (Bye) gefunden.</div>`;
+  if(!scored || !scored.result[opp]) return `<div class="cmp-mini-badge">Matchup-Daten für Gegner ${opp} noch nicht verfügbar.</div>`;
+  const groups = groupForFn(p.positions || [p.position]);
+  if(!groups.length) return '';
+  const oppTeam = teamMap && teamMap[opp];
+  const oppName = oppTeam ? `${oppTeam.city} ${oppTeam.name}` : opp;
+  return groups.map(g => {
+    const entry = scored.result[opp][g];
+    if(!entry || entry.score == null) return `<div class="cmp-mini-badge">vs. ${oppName} (${g}): Keine Daten</div>`;
+    return `<div class="cmp-mini-badge">vs. <b>${oppName}</b> — ${g}-Matchup: <span class="r" style="color:${scoreTextColorLocal(entry.score)}">Rang ${entry.rank}/${scored.teamCount}</span> (Score ${entry.score})</div>`;
+  }).join('<div style="height:6px"></div>');
+}
+function scoreTextColorLocal(score){
+  if(score >= 65) return '#2ea043';
+  if(score <= 35) return '#da3633';
+  return '#e6edf3';
+}
+
+function renderSelected(){
+  if(!selectedIds.length){ selectedEl.innerHTML = '<div class="cmp-empty-hint">Noch keine Spieler ausgewählt.</div>'; return; }
+  selectedEl.innerHTML = selectedIds.map(id => {
+    const p = allPlayers.find(x => x.sleeper_id === id);
+    if(!p) return '';
+    return `<div class="cmp-mini-card" id="cmp-card-${id}">
+      <div class="cmp-mini-hdr">
+        <img class="cmp-mini-hs" src="${p.headshot || ''}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="cmp-mini-hs-fb" style="display:none">${initials(p.full_name)}</div>
+        <div><div class="cmp-mini-name">${p.full_name}</div><div class="cmp-mini-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</div></div>
+        <button class="cmp-mini-remove" data-id="${id}">&times;</button>
+      </div>
+      <div class="cmp-mini-pts" id="cmp-pts-${id}">Lade Punkte…</div>
+      ${matchupBadgeHtml(p)}
+    </div>`;
+  }).join('');
+  selectedEl.querySelectorAll('.cmp-mini-remove').forEach(btn => btn.addEventListener('click', () => removePlayer(btn.dataset.id)));
+
+  selectedIds.forEach(async id => {
+    const p = allPlayers.find(x => x.sleeper_id === id);
+    if(!p) return;
+    const pts = await fetchSeasonPts(id, CUR_YEAR-1);
+    const el = document.getElementById(`cmp-pts-${id}`);
+    if(el) el.innerHTML = `<b>${pts.toFixed(1)}</b> Pts (${CUR_YEAR-1})`;
+  });
+}
+
+searchInput.addEventListener('input', async () => {
+  if(!dbLoadStarted){
+    dbLoadStarted = true;
+    resultsEl.innerHTML = '<div class="cmp-loading-db">Lade Spieler-Datenbank (einmalig, danach gecacht)…</div>';
+    resultsEl.classList.add('open');
+    await loadPlayerDb();
+    dbReady = true;
+  }
+  if(!dbReady) return;
+  renderResults(searchInput.value.trim());
+});
+document.addEventListener('click', e => {
+  if(!e.target.closest('.cmp-search-wrap')) resultsEl.classList.remove('open');
+});
+
+window._mimRerenderCompare = () => { if(selectedIds.length) renderSelected(); };
+renderSelected();
+</script>
+
+<footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
+  <div id="footer-text">MICS IN MOTION · IDP HUB</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+</footer>
+</body>
+</html>

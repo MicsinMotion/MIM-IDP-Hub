@@ -539,6 +539,7 @@ footer {
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
     <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+    <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
   </div>
   <div class="auth-wrap" id="auth-wrap">
     <button class="auth-btn" id="auth-open-btn">Login</button>
@@ -593,6 +594,14 @@ footer {
         <div class="card-title">College Scouting</div>
         <div class="card-desc">Draft-Prospects nach Position und Jahrgang durchsuchen, Tape direkt öffnen und mit der Crew tracken, wer schon gesichtet hat.</div>
         <div class="card-arrow">Scouting öffnen →</div>
+      </div>
+    </a>
+    <a href="matchups.html" class="hub-card" id="matchups-card" style="--card-accent:#C4722A; display:none;">
+      <div class="card-icon-bg">🎯</div>
+      <div class="card-content">
+        <div class="card-title">Matchup Analyse</div>
+        <div class="card-desc">Welche Teams sind diese Woche eine leichte Matchup für DL, LB oder DB? Spielplan-Ansicht mit rollierendem Fenster (3/5/Season) und eingebautem Spieler-Vergleich.</div>
+        <div class="card-arrow">Matchups öffnen →</div>
       </div>
     </a>
     <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="hub-card" id="coaching-tree-card" style="--card-accent:#C4722A; display:none;">
@@ -689,6 +698,9 @@ watchAuth(user => {
   document.getElementById('nav-scouting-link').style.display = user ? '' : 'none';
   document.getElementById('scouting-card').style.display = user ? '' : 'none';
   document.getElementById('coaching-tree-card').style.display = user ? '' : 'none';
+  document.getElementById('matchups-card').style.display = user ? '' : 'none';
+  const matchupsNav = document.getElementById('nav-matchups-link');
+  if(matchupsNav) matchupsNav.style.display = user ? '' : 'none';
   document.getElementById('rankings-card-desc').textContent = user
     ? 'Eigene Tier-Rankings per Drag & Drop erstellen und pflegen.'
     : 'Unsere Tier-Rankings ansehen — von der Crew erstellt und laufend gepflegt.';
