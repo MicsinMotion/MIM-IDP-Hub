@@ -47,6 +47,11 @@ function parseCsvLine(line){
   return out;
 }
 
+// Zweite CSV-Parser-Variante (trimmt zusätzlich jedes Feld) — wird an anderen
+// Stellen in team.html verwendet als parseCsvLine; beide werden gebraucht,
+// da die portierten Funktionen unterschiedliche der beiden aufrufen.
+function splitCSV(l){const c=[];let cur='',q=false;for(const ch of l){if(ch==='"'){q=!q;}else if(ch===','&&!q){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c;}
+
 // Eigener Cloudflare Worker — dauerhaft zuverlässig, da er uns gehört (siehe Chat).
 // Wird von mehreren Funktionen geteilt (nflverse-CSV, ourlads).
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
