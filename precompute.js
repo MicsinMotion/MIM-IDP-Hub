@@ -685,9 +685,12 @@ async function computeLineupDataForSeason(year, onProgress){
 // ══════════════════════════════════════════════════════════════════════════
 // MATCHUP-ANALYSE — welche Teams sind für DL/LB/DB gerade eine "leichte"
 // Matchup? Jede einzelne Aktion (Sack/TFL/QB-Hit/Tackle/INT/PBU) wird über
-// dieselbe gsisToBucket-Zuordnung (PFF-Position, s.o.) der exakten Position
-// des AUSFÜHRENDEN Spielers zugeordnet (DI/ED/LB/CB/S), dann zu den 3
-// IDP-Gruppen verdichtet: DL = DI+ED, LB = LB, DB = CB+S.
+// Sleepers eigene fantasy_positions-Tags (DL/LB/DB, siehe
+// buildGsisToGroupViaSleeper) der exakten Position des AUSFÜHRENDEN Spielers
+// zugeordnet — bewusst NICHT dieselbe PFF-Kette wie Lineup Details (siehe
+// Chat: PFF liefert für viele Spieler keine Daten, dessen OLB→ED-Fallback hat
+// echte Off-Ball-Linebacker fälschlich zu DL gezählt). Play-by-Play-Auswertung
+// und Lineup Details selbst bleiben davon komplett unberührt.
 //
 // WICHTIG (siehe Chat): bewusst ALLE 6 Metriken für ALLE 3 Gruppen erfasst,
 // nicht nur die "klassische" Zuordnung (Sacks nur DL, INT nur DB etc.) — ein
@@ -709,11 +712,47 @@ function emptyMatchupBucketStats(){
 function emptyMatchupGroupStats(){
   return { DL: emptyMatchupBucketStats(), LB: emptyMatchupBucketStats(), DB: emptyMatchupBucketStats() };
 }
-function groupForBucket(bucket){
-  if(bucket === 'DI' || bucket === 'ED') return 'DL';
-  if(bucket === 'LB') return 'LB';
-  if(bucket === 'CB' || bucket === 'S') return 'DB';
+// Eigene, einfache Positions-Zuordnung NUR für die Matchup-Analyse (siehe Chat):
+// bewusst NICHT die PFF-Kette von Lineup Details (buildGsisToBucketMapForSeason)
+// mitbenutzt, sondern direkt Sleepers eigene fantasy_positions-Tags — dieselbe
+// Konvention wie auf players.html/compare.html (DL/LB/DB, 3-Wege statt 5-Wege).
+// Grund: PFF liefert für viele Spieler keine Daten (Fallback musste bei 511
+// Spielern greifen), und dessen OLB→ED-Fallback-Heuristik hat echte Off-Ball-
+// Linebacker (z.B. Buffalos Matt Milano) fälschlich in den DL-Topf geworfen.
+// Sleepers Tags sind pro Spieler eindeutig und brauchen keinen Fallback.
+const MATCHUP_DL_SET = new Set(['DE','DT','NT','EDGE','IDL','DL']);
+const MATCHUP_LB_SET = new Set(['LB','ILB','MLB','OLB']);
+const MATCHUP_DB_SET = new Set(['CB','FS','SS','S','DB','SAF']);
+function classifyMatchupTag(tag){
+  const t = (tag || '').toUpperCase();
+  if(MATCHUP_DL_SET.has(t)) return 'DL';
+  if(MATCHUP_LB_SET.has(t)) return 'LB';
+  if(MATCHUP_DB_SET.has(t)) return 'DB';
   return null;
+}
+function classifyMatchupPlayer(x){
+  const tags = (x.fantasy_positions && x.fantasy_positions.length) ? x.fantasy_positions : [x.position];
+  for(const t of tags){ const g = classifyMatchupTag(t); if(g) return g; }
+  return classifyMatchupTag(x.depth_chart_position);
+}
+
+// Baut gsis_id -> 'DL'|'LB'|'DB' EINMAL direkt aus Sleepers kompletter
+// Spielerliste (ein einziger Fetch, kein Proxy nötig — Sleepers API ist von
+// GitHub Actions aus direkt erreichbar, kein CORS-Problem serverseitig).
+async function buildGsisToGroupViaSleeper(onProgress){
+  onProgress && onProgress(50, 'Lade Sleeper-Spielerliste für Matchup-Positionen…');
+  const map = new Map();
+  try{
+    const res = await fetch('https://api.sleeper.app/v1/players/nfl');
+    if(!res.ok){ console.warn('[Matchups] Sleeper-Spielerliste: HTTP', res.status); return map; }
+    const data = await res.json();
+    Object.values(data).forEach(x => {
+      if(!x || !x.gsis_id) return;
+      const group = classifyMatchupPlayer(x);
+      if(group) map.set(x.gsis_id, group);
+    });
+  }catch(e){ console.warn('[Matchups] Sleeper-Spielerliste konnte nicht geladen werden:', e.message); }
+  return map;
 }
 
 // Spalten, die in derselben PBP-Zeile MEHRFACH für dieselbe Metrik auftreten
@@ -744,7 +783,7 @@ const MATCHUP_CREDIT_COLUMNS = [
 ];
 
 async function computeMatchupDataForSeason(year, onProgress){
-  const gsisToBucket = await getGsisToBucketMapCached(year, onProgress);
+  const gsisToGroup = await buildGsisToGroupViaSleeper(onProgress);
 
   onProgress && onProgress(55, 'Lade Play-by-Play-Daten für Matchup-Analyse…');
   const pbpText = await fetchPbpCsv(year); // teilt sich den Cache mit TeamStats, falls schon geladen
@@ -788,8 +827,7 @@ async function computeMatchupDataForSeason(year, onProgress){
       if(colIdx < 0) continue;
       const gid = row[colIdx];
       if(!gid) continue;
-      const bucket = gsisToBucket.get(gid);
-      const group = groupForBucket(bucket);
+      const group = gsisToGroup.get(gid);
       if(!group) continue;
       weekStats[group][metric] += weight;
     }
