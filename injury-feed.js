@@ -112,7 +112,12 @@ export async function loadInjuryFeed(forceRefresh){
       const ts = localStorage.getItem(FEED_CACHE_TS);
       if(ts && Date.now()-parseInt(ts) < FEED_CACHE_TTL){
         const cached = localStorage.getItem(FEED_CACHE_KEY);
-        if(cached) return JSON.parse(cached);
+        if(cached){
+          const parsed = JSON.parse(cached);
+          const ageMin = Math.round((Date.now()-parseInt(ts))/60000);
+          console.log(`[InjuryFeed] Feed aus 6h-Cache übernommen: ${parsed.length} Einträge, Cache ist ${ageMin} Min. alt. (Zum Umgehen: loadInjuryFeed(true) bzw. localStorage.removeItem('${FEED_CACHE_KEY}') + removeItem('${FEED_CACHE_TS}'))`);
+          return parsed;
+        }
       }
     }catch{}
   }
