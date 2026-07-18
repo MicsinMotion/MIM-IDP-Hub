@@ -357,6 +357,9 @@ const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:
   idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
+// Identisch zu player.html — Sleeper liefert die Körpergröße als reine Zoll-Zahl
+// (z.B. "77"), hier ins übliche US-Format (6'5") umgerechnet.
+function fmtH(h){ if(!h||h==='NA') return '–'; if(String(h).includes("'")) return h; const n=parseInt(h); if(isNaN(n)) return h; return `${Math.floor(n/12)}'${n%12}"`; }
 function calcPts(s){
   if(!s) return 0;
   let pts = 0;
@@ -368,6 +371,8 @@ const TOP50_CACHE_KEY = `mim_players_top50_v1_${TOP50_SEASON}`, TOP50_CACHE_TS =
 const SL_BULK_SEASON_DIRECT = yr => `https://api.sleeper.com/stats/nfl/${yr}?season_type=regular&position[]=DL&position[]=LB&position[]=DB`;
 const SL_BULK_SEASON_PROXY  = yr => `https://corsproxy.io/?url=${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`;
 let top50ByPos = { DL: [], LB: [], DB: [] }; // sleeper_id-Arrays, schon nach Punkten sortiert & auf 50 gekappt
+let topFAByPos = { DL: [], LB: [], DB: [] }; // dasselbe, aber NUR Free Agents (kein Team), auf 25 gekappt — siehe Chat
+const TOP_FA_CACHE_KEY = `mim_players_top_fa_v1_${TOP50_SEASON}`, TOP_FA_CACHE_TS = `mim_players_top_fa_ts_v1_${TOP50_SEASON}`;
 let seasonPtsMap = new Map(); // sleeper_id -> Fantasy Points der letzten abgeschlossenen Saison (für die Kartenanzeige)
 const SEASON_PTS_CACHE_KEY = `mim_players_season_pts_v1_${TOP50_SEASON}`, SEASON_PTS_CACHE_TS = `mim_players_season_pts_ts_v1_${TOP50_SEASON}`;
 
@@ -407,13 +412,23 @@ async function loadTop50ByPosition(){
       if(cached){ top50ByPos = JSON.parse(cached); top50Cached = true; }
     }
   }catch{}
-  if(top50Cached && seasonPtsMap.size) return; // beides schon frisch im Cache — kein Fetch nötig
+  let faCached = false;
+  try{
+    const s = getStorage();
+    const ts = s.getItem(TOP_FA_CACHE_TS);
+    if(ts && Date.now()-parseInt(ts) < TOP50_CACHE_TTL){
+      const cached = s.getItem(TOP_FA_CACHE_KEY);
+      if(cached){ topFAByPos = JSON.parse(cached); faCached = true; }
+    }
+  }catch{}
+  if(top50Cached && faCached && seasonPtsMap.size) return; // alles schon frisch im Cache — kein Fetch nötig
 
   const entries = await fetchBulkSeasonStats(TOP50_SEASON);
   if(!entries) return; // Bulk-Endpoint down/geblockt → Top-50-Ansicht & Punkte-Anzeige bleiben einfach leer, kein Fehlerfall
 
   const playerById = new Map(players.map(p => [p.sleeper_id, p]));
   const scored = { DL: [], LB: [], DB: [] };
+  const scoredFA = { DL: [], LB: [], DB: [] };
   const ptsObj = {};
   entries.forEach(entry => {
     const pid = entry.player_id != null ? String(entry.player_id) : null;
@@ -426,6 +441,7 @@ async function loadTop50ByPosition(){
     if(pts <= 0) return;
     (p.positions||[p.position]).forEach(pos => {
       if(scored[pos]) scored[pos].push({ id: pid, pts });
+      if(scoredFA[pos] && !p.team) scoredFA[pos].push({ id: pid, pts }); // eigene Rangliste NUR unter Free Agents
     });
   });
   seasonPtsMap = new Map(Object.entries(ptsObj));
@@ -433,11 +449,14 @@ async function loadTop50ByPosition(){
   ['DL','LB','DB'].forEach(pos => {
     scored[pos].sort((a,b) => b.pts - a.pts);
     top50ByPos[pos] = scored[pos].slice(0, 50).map(x => x.id);
+    scoredFA[pos].sort((a,b) => b.pts - a.pts);
+    topFAByPos[pos] = scoredFA[pos].slice(0, 25).map(x => x.id);
   });
 
   try{
     const s = getStorage();
     s.setItem(TOP50_CACHE_KEY, JSON.stringify(top50ByPos)); s.setItem(TOP50_CACHE_TS, Date.now().toString());
+    s.setItem(TOP_FA_CACHE_KEY, JSON.stringify(topFAByPos)); s.setItem(TOP_FA_CACHE_TS, Date.now().toString());
     s.setItem(SEASON_PTS_CACHE_KEY, JSON.stringify(ptsObj)); s.setItem(SEASON_PTS_CACHE_TS, Date.now().toString());
   }catch{}
 }
@@ -746,17 +765,22 @@ function renderResults() {
     // Positions-Filter ohne Suchtext: Top 50 nach Punkten dieser Position zeigen
     // (alphabetisch sortiert), statt nur den leeren "Suche mind. 3 Zeichen"-Hinweis
     // — siehe Chat.
-    if (activePos && top50ByPos[activePos] && top50ByPos[activePos].length) {
-      const ids = new Set(top50ByPos[activePos]);
+    // Bei aktivem FA-Filter NICHT die Top-50-Liste nachträglich filtern (die
+    // besteht praktisch nur aus Rostered-Spielern, da wer viele Punkte macht,
+    // i.d.R. auch unter Vertrag steht — das ließ fast nichts übrig). Stattdessen
+    // eine EIGENE Top-25-Rangliste NUR unter Free Agents nutzen (topFAByPos).
+    const usingFA = activeStatus === 'FA';
+    const sourceIds = usingFA ? topFAByPos[activePos] : top50ByPos[activePos];
+    if (activePos && sourceIds && sourceIds.length) {
+      const ids = new Set(sourceIds);
       let topResults = players.filter(p => ids.has(p.sleeper_id));
       if (activeStatus === 'Active') topResults = topResults.filter(p => p.status === 'Active');
-      if (activeStatus === 'FA') topResults = topResults.filter(p => !p.team);
       topResults.sort((a,b) => (a.full_name||'').localeCompare(b.full_name||''));
 
       header.style.display = 'flex';
       hint.textContent = '';
       document.getElementById('results-count').innerHTML =
-        `<strong>Top ${topResults.length}</strong> ${activePos} nach Punkten (${TOP50_SEASON}) · alphabetisch`;
+        `<strong>Top ${topResults.length}</strong> ${usingFA ? 'FA ' : ''}${activePos} nach Punkten (${TOP50_SEASON}) · alphabetisch`;
       list.innerHTML = topResults.map(p => playerRow(p)).join('');
       return;
     }
@@ -833,7 +857,7 @@ function playerRow(p) {
   const exp = p.years_exp !== '' ? `${p.years_exp}Y exp` : '';
   const college = p.college && p.college !== 'null' ? p.college : '';
   const age = p.age ? `${p.age} J.` : '';
-  const height = p.height || '';
+  const height = fmtH(p.height);
   const weight = p.weight ? `${p.weight} lbs` : '';
   const checked = compareIds.has(p.sleeper_id) ? 'checked' : '';
 
@@ -856,7 +880,7 @@ function playerRow(p) {
           ${exp ? `<span>${exp}</span>` : ''}
           ${college ? `<span>${college}</span>` : ''}
           ${age ? `<span>${age}</span>` : ''}
-          ${height ? `<span>${height}</span>` : ''}
+          ${height && height !== '–' ? `<span>${height}</span>` : ''}
           ${weight ? `<span>${weight}</span>` : ''}
         </div>
       </div>
