@@ -830,7 +830,7 @@ function renderBoard(){
     return `<div class="col ${tierKey==='inbox'?'col-inbox':'tier-'+tierKey.slice(1)}" data-tier="${tierKey}">
       <div class="col-hdr">
         <div class="col-hdr-title">${TIER_LABELS[tierKey]}</div>
-        ${tierKey === 'inbox' && editable && (board.inbox||[]).length ? `<button class="inbox-clear-btn" id="inbox-clear-btn" title="Gesamte Inbox leeren">Leeren</button>` : ''}
+        ${tierKey === 'inbox' && editable && ids.length ? `<button class="inbox-clear-btn" id="inbox-clear-btn" title="Gesamte Inbox leeren (auch Top-75-Vorschläge)">Leeren</button>` : ''}
         <div class="col-hdr-count">${ids.length}</div>
       </div>
       <div class="col-body" data-tier="${tierKey}">
@@ -859,8 +859,17 @@ function renderBoard(){
     if(clearBtn){
       clearBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if(!confirm(`Wirklich die gesamte Inbox leeren? (${(board.inbox||[]).length} Spieler werden entfernt, das lässt sich nicht rückgängig machen.)`)) return;
+        const realCount = (board.inbox||[]).length;
+        const suggestedCount = displayInbox.suggestedSet.size;
+        const msg = `Wirklich die gesamte Inbox leeren? ${realCount} echte Einträge werden entfernt`
+          + (suggestedCount ? ` und ${suggestedCount} Top-75-Vorschläge dauerhaft ausgeblendet` : '')
+          + ' — das lässt sich nicht rückgängig machen.';
+        if(!confirm(msg)) return;
         board.inbox = [];
+        // Alle aktuell angezeigten Top-75-Vorschläge dauerhaft dismissen, sonst
+        // würden sie beim nächsten Rendern sofort wieder auftauchen (siehe
+        // computeDisplayInbox — die füllt die Inbox ja genau daraus wieder auf).
+        displayInbox.suggestedSet.forEach(id => dismissSuggestion(id));
         scheduleSave();
         renderBoard();
       });
