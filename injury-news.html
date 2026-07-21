@@ -10,10 +10,14 @@
 --text:#e6edf3;--muted:#7d8590;--orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);--red:#da3633;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
-nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;position:relative;}
 .brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
 .brand em{color:var(--orange);font-style:normal;}
-.nav-mid{display:flex;gap:4px;min-width:0;}
+/* Fix (siehe Chat): auf anderen Seiten wirkt .nav-mid nur "zentriert", weil dort
+   rechts ein gleich schweres Element (Suche/Auth) die space-between-Verteilung
+   ausbalanciert. Hier fehlt das — bisher rutschte .nav-mid dadurch ganz nach
+   rechts. Jetzt unabhängig von Geschwister-Elementen absolut zentriert. */
+.nav-mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:4px;min-width:0;}
 .nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
 .nav-link:hover{color:var(--text);background:var(--bg3);}
 
@@ -46,7 +50,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 @media(max-width:700px){
   nav{padding:0 16px;}
   .brand{font-size:18px;}
-  .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 32px);}
   .nav-mid::-webkit-scrollbar{display:none;}
   .nav-link{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 9px;}
   .page-hdr{padding:20px 16px 16px;}
@@ -67,6 +71,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
     <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+    <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
+    <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
 </nav>
 
@@ -75,6 +81,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   watchAuth(user => {
     const link = document.getElementById('nav-scouting-link');
     if(link) link.style.display = user ? '' : 'none';
+    const linkMatchups = document.getElementById('nav-matchups-link');
+    if(linkMatchups) linkMatchups.style.display = user ? '' : 'none';
+    const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
+    if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
     const footerText = document.getElementById('footer-text');
     if(footerText) footerText.textContent = user
       ? 'MICS IN MOTION · IDP HUB · Nur für internen Gebrauch · Interner-Modus'

@@ -122,6 +122,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
     <a href="college-scouting.html" class="nav-link active" id="nav-scouting-link">College Scouting</a>
+    <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
+    <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
   <div class="auth-wrap" id="auth-wrap">
     <button class="auth-btn" id="auth-open-btn">Login</button>
@@ -227,12 +229,16 @@ watchAuth(user => {
     document.getElementById('gate-app-login').style.display = 'none';
     document.getElementById('gate-google-login').style.display = googleAccessToken ? 'none' : 'block';
     document.getElementById('scouting-app').style.display = googleAccessToken ? 'block' : 'none';
+    document.getElementById('nav-matchups-link').style.display = '';
+    document.getElementById('nav-coaching-tree-link').style.display = '';
   } else {
     authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
     document.getElementById('gate-app-login').style.display = 'block';
     document.getElementById('gate-google-login').style.display = 'none';
     document.getElementById('scouting-app').style.display = 'none';
+    document.getElementById('nav-matchups-link').style.display = 'none';
+    document.getElementById('nav-coaching-tree-link').style.display = 'none';
   }
 });
 
