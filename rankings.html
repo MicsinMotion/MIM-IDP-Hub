@@ -88,23 +88,16 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .ov-tag-num{background:var(--bg2);border-radius:3px;padding:0 3px;color:var(--muted);font-weight:700;}
 /* Legende oben am Overview-Board — zeigt einmal, welche Nummer zu welchem Nutzer
    gehört, statt das nur per Tooltip auf jeder einzelnen Karte zu verstecken. */
-.ov-legend{display:flex;flex-wrap:wrap;gap:14px;padding:12px 32px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center;}
-.ov-legend-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px;}
-.ov-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);}
-.ov-legend-num{font-size:10px;font-weight:700;background:var(--bg4);border:1px solid var(--border2);border-radius:3px;padding:0 4px;color:var(--muted2);}
-.ov-legend-avatar,.ov-legend-avatar-fb{width:20px;height:20px;border-radius:5px;object-fit:cover;}
-.ov-legend-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;}
+
 
 /* ── KONSENS-LISTE (scrollbare Rangliste, siehe Chat) ── */
-.ov-flex{display:flex;gap:24px;max-width:1300px;margin:0 auto;padding:0 32px 40px;align-items:flex-start;}
-.ov-list-wrap{flex:1;min-width:0;}
-.ov-list-hdr{display:grid;grid-template-columns:44px 40px 1fr 64px 64px 56px 64px 32px;gap:10px;align-items:center;padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:5;}
-.ov-list-hdr span{text-align:center;}
-.ov-list-hdr span:nth-child(3){text-align:left;}
+.ov-list-wrap{max-width:1400px;margin:0 auto;padding:0 32px 40px;overflow-x:auto;}
+.ov-list-hdr{display:grid;gap:8px;align-items:end;padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:5;}
+.ov-list-hdr>span{text-align:center;}
+.ov-list-hdr>span:nth-child(3){text-align:left;}
 .ov-tier-bar{padding:8px 14px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:#fff;background:var(--bg3);border-radius:6px;margin:14px 0 6px;}
-.ov-list-row{display:grid;grid-template-columns:44px 40px 1fr 64px 64px 56px 64px 32px;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);}
+.ov-list-row{display:grid;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);}
 .ov-list-row:hover{background:var(--bg2);}
-.ov-list-row.active{background:var(--orange-glow);}
 .ov-list-rk{text-align:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted2);}
 .ov-list-hs,.ov-list-hs-fb{width:32px;height:32px;border-radius:6px;object-fit:cover;object-position:top;background:var(--bg3);cursor:pointer;}
 .ov-list-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--muted);}
@@ -116,32 +109,16 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .ov-list-cell.worst{color:#e0464a;}
 .ov-list-cell.avg{font-weight:700;color:var(--orange);}
 .ov-list-cell-sub{font-size:9px;color:var(--muted);display:block;margin-top:1px;}
-.ov-list-chevron-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:6px;transition:color .15s;}
-.ov-list-chevron-btn:hover{color:var(--orange);}
-.ov-list-row.active .ov-list-chevron-btn{color:var(--orange);}
 
-/* ── PERSISTENTER SEITEN-BEREICH (Rater-Detail, siehe Chat: konstant sichtbar,
-   nicht mehr als Drawer/Overlay, klar per Rahmen abgetrennt) ── */
-.ov-side-panel{width:300px;flex-shrink:0;position:sticky;top:78px;background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--orange);border-radius:8px;padding:18px;max-height:calc(100vh - 100px);overflow-y:auto;}
-.ov-panel-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:.5px;}
-.ov-panel-sub{font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:16px;}
-.ov-panel-empty{font-size:12px;color:var(--muted);font-style:italic;text-align:center;padding:30px 10px;}
-.ov-panel-list{display:flex;flex-direction:column;gap:10px;}
-.ov-panel-item{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;}
-.ov-panel-item.none{opacity:.4;}
-.ov-panel-avatar,.ov-panel-avatar-fb{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;}
-.ov-panel-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
-.ov-panel-info{min-width:0;}
-.ov-panel-name{font-size:12px;font-weight:600;color:var(--text);}
-.ov-panel-stats{font-size:13px;color:var(--muted2);margin-top:2px;}
-.ov-panel-stats b{color:#fff;}
-@media(max-width:1050px){
-  .ov-flex{flex-direction:column;}
-  .ov-side-panel{width:100%;position:static;max-height:none;}
-}
-@media(max-width:900px){
-  .ov-list-hdr,.ov-list-row{grid-template-columns:32px 32px 1fr 50px 50px 44px 50px 24px;gap:6px;padding:8px 10px;}
-}
+/* Pro-Rater-Spalten (Logo im Header, Tier+Rang je Zeile — siehe Chat: keine
+   Ausklapp-Mechanik mehr, alles direkt inline sichtbar) */
+.ov-rater-hdr-cell{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.ov-rater-hdr-avatar,.ov-rater-hdr-avatar-fb{width:22px;height:22px;border-radius:5px;object-fit:cover;}
+.ov-rater-hdr-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;}
+.ov-rater-cell{text-align:center;font-size:11px;line-height:1.35;}
+.ov-rater-cell.none{opacity:.3;}
+.ov-rater-cell .ov-rt{color:var(--muted);font-size:9px;display:block;}
+.ov-rater-cell .ov-rr{font-weight:700;color:var(--text);}
 .avatar-item .avatar-tip{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none;}
 .avatar-item:hover .avatar-tip,.avatar-item.active .avatar-tip{opacity:1;}
 .status-pill{font-size:11px;padding:5px 12px;border-radius:20px;font-weight:600;letter-spacing:.5px;white-space:nowrap;}.status-edit{background:rgba(46,160,67,.12);color:var(--green-light);border:1px solid rgba(46,160,67,.25);}
@@ -1165,7 +1142,6 @@ function switchToOverview(){
   viewMode = 'overview';
   viewingUserId = null;
   editable = false;
-  overviewSelectedId = null; // Panel-Auswahl zurücksetzen, wenn neu in die Konsens-Ansicht gewechselt wird
   markActiveAvatar('__overview__');
   document.getElementById('status-pill').textContent = 'Konsens';
   document.getElementById('status-pill').className = 'status-pill status-view';
@@ -1236,34 +1212,29 @@ function computeOverview(){
   return results;
 }
 
-function avatarChipHtml(user){
-  const img = avatarFor(user.displayName);
-  const initial = (user.displayName || '?')[0].toUpperCase();
-  return img
-    ? `<img class="ov-legend-avatar" src="${img}" alt="">`
-    : `<div class="ov-legend-avatar-fb">${initial}</div>`;
-}
-
-let overviewSelectedId = null; // aktuell im Seiten-Panel angezeigter Spieler
-
 function renderOverviewBoard(){
   const wrap = document.getElementById('board-wrap');
   const results = computeOverview();
 
-  // Legende einmal oben: Nummer ↔ Nutzer (nur noch zur groben Orientierung —
-  // das Seiten-Panel zeigt pro Spieler zusätzlich direkt die Logos).
-  const legendHtml = `<div class="ov-legend">
-    <span class="ov-legend-label">Rater</span>
-    ${allRankings.map((u,i) => `<span class="ov-legend-item"><span class="ov-legend-num">${i+1}</span>${avatarChipHtml(u)}${u.displayName||'Unbenannt'}</span>`).join('')}
-  </div>`;
+  // Grid-Spalten dynamisch: feste Basis-Spalten + eine Spalte pro Rater (statt
+  // fester Anzahl 5, falls das Team mal wächst/schrumpft).
+  const raterColWidth = 68;
+  const gridCols = `44px 36px 1fr 52px 52px 50px 56px repeat(${allRankings.length}, ${raterColWidth}px)`;
 
-  const headerHtml = `<div class="ov-list-hdr">
+  const raterHdrCells = allRankings.map(u => {
+    const img = avatarFor(u.displayName);
+    const initial = (u.displayName || '?')[0].toUpperCase();
+    const avatarHtml = img ? `<img class="ov-rater-hdr-avatar" src="${img}" alt="">` : `<div class="ov-rater-hdr-avatar-fb">${initial}</div>`;
+    return `<span class="ov-rater-hdr-cell" title="${u.displayName||''}">${avatarHtml}</span>`;
+  }).join('');
+
+  const headerHtml = `<div class="ov-list-hdr" style="grid-template-columns:${gridCols};">
     <span>RK</span><span></span><span>Spieler</span>
     <span title="Bester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters">Best</span>
     <span title="Schlechtester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters">Worst</span>
     <span title="Durchschnittlicher Rang über alle Rater, die diesen Spieler bewertet haben">Avg</span>
     <span title="Standardabweichung — wie einig sich die Rater sind (niedrig = Einigkeit, hoch = Uneinigkeit)">Std.Dev</span>
-    <span></span>
+    ${raterHdrCells}
   </div>`;
 
   let rowsHtml = '';
@@ -1278,9 +1249,15 @@ function renderOverviewBoard(){
     const initials = (p.full_name||'??').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
     const posTeam = `${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}`;
     const ageStr = p.age ? `${p.age} J. · ` : '';
-    const activeClass = r.pid === overviewSelectedId ? ' active' : '';
 
-    rowsHtml += `<div class="ov-list-row${activeClass}" data-id="${r.pid}">
+    const raterCells = allRankings.map(u => {
+      const rec = r.records.find(x => x.userId === u.id);
+      return rec
+        ? `<div class="ov-rater-cell"><span class="ov-rt">T${rec.tier}</span><span class="ov-rr">#${rec.rank}</span></div>`
+        : `<div class="ov-rater-cell none">–</div>`;
+    }).join('');
+
+    rowsHtml += `<div class="ov-list-row" data-id="${r.pid}" style="grid-template-columns:${gridCols};">
       <div class="ov-list-rk">${idx+1}</div>
       <img class="ov-list-hs" src="https://sleepercdn.com/content/nfl/players/${r.pid}.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="ov-list-hs-fb" style="display:none">${initials}</div>
@@ -1292,76 +1269,26 @@ function renderOverviewBoard(){
       <div class="ov-list-cell worst">#${r.worst}<span class="ov-list-cell-sub">T${r.worstTier}</span></div>
       <div class="ov-list-cell avg">${r.avg.toFixed(1)}</div>
       <div class="ov-list-cell">${r.stdDev.toFixed(1)}</div>
-      <button class="ov-list-chevron-btn" data-id="${r.pid}">▸</button>
+      ${raterCells}
     </div>`;
   });
 
-  const listHtml = `${legendHtml}<div class="ov-list-wrap">${headerHtml}${rowsHtml || '<div class="col-empty" style="padding:20px;">Noch keine Rankings vorhanden.</div>'}</div>`;
-  wrap.innerHTML = `<div class="ov-flex">${listHtml}${overviewPanelHtml(results)}</div>`;
+  wrap.innerHTML = `<div class="ov-list-wrap">${headerHtml}${rowsHtml || '<div class="col-empty" style="padding:20px;">Noch keine Rankings vorhanden.</div>'}</div>`;
 
   wrap.querySelectorAll('.ov-list-name-wrap, .ov-list-hs, .ov-list-hs-fb').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
+    el.addEventListener('click', () => {
       const row = el.closest('.ov-list-row');
       if(row) openComparison(row.dataset.id);
     });
   });
-  wrap.querySelectorAll('.ov-list-row').forEach(row => {
-    row.addEventListener('click', () => selectOverviewPlayer(row.dataset.id, results));
-  });
 }
 
-// Wählt einen Spieler fürs persistente Seiten-Panel aus (bleibt konstant sichtbar,
-// kein Drawer/Overlay mehr — siehe Chat) und aktualisiert nur das Panel + die
-// aktive Zeilen-Markierung, ohne die ganze Liste neu zu rendern.
-function selectOverviewPlayer(pid, results){
-  overviewSelectedId = pid;
-  document.querySelectorAll('.ov-list-row').forEach(el => el.classList.toggle('active', el.dataset.id === pid));
-  const panel = document.getElementById('ov-side-panel');
-  if(panel) panel.outerHTML = overviewPanelHtml(results);
-}
-
-function overviewPanelHtml(results){
-  const r = results.find(x => x.pid === overviewSelectedId);
-  const p = r ? playerMap[r.pid] : null;
-
-  if(!r || !p){
-    return `<div class="ov-side-panel" id="ov-side-panel">
-      <div class="ov-panel-empty">Klicke auf einen Spieler (Pfeil-Button), um die einzelnen Rater-Ränge zu sehen.</div>
-    </div>`;
-  }
-
-  const itemsHtml = allRankings.map(u => {
-    const rec = r.records.find(x => x.userId === u.id);
-    const img = avatarFor(u.displayName);
-    const initial = (u.displayName || '?')[0].toUpperCase();
-    const avatarHtml = img ? `<img class="ov-panel-avatar" src="${img}" alt="">` : `<div class="ov-panel-avatar-fb">${initial}</div>`;
-    // Nicht bewertete Rater bewusst ausgeblasst (opacity via .none), statt
-    // einfach weggelassen — so bleibt sichtbar, WER fehlt.
-    const statsHtml = rec
-      ? `<div class="ov-panel-stats">Tier <b>${rec.tier}</b> · Rang <b>#${rec.rank}</b></div>`
-      : `<div class="ov-panel-stats">Nicht bewertet</div>`;
-    return `<div class="ov-panel-item${rec?'':' none'}">
-      ${avatarHtml}
-      <div class="ov-panel-info">
-        <div class="ov-panel-name">${u.displayName || 'Unbenannt'}</div>
-        ${statsHtml}
-      </div>
-    </div>`;
-  }).join('');
-
-  return `<div class="ov-side-panel" id="ov-side-panel">
-    <div class="ov-panel-title">${p.full_name}</div>
-    <div class="ov-panel-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</div>
-    <div class="ov-panel-list">${itemsHtml}</div>
-  </div>`;
-}
 
 function switchPosition(pos){
   currentPositionTag = pos;
   document.querySelectorAll('.pos-tab').forEach(b => b.classList.toggle('active', b.dataset.pos === pos));
   if(editable) searchInput.placeholder = `${currentPositionTag}-Spieler suchen und zur Inbox hinzufügen…`;
-  if(viewMode === 'overview'){ overviewSelectedId = null; renderOverviewBoard(); }
+  if(viewMode === 'overview') renderOverviewBoard();
   else applyBoardFromLatest();
 }
 
