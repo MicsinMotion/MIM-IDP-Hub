@@ -883,22 +883,6 @@ function renderBoard(){
       card.addEventListener('click', () => openComparison(card.dataset.id));
     });
   }
-  attachSyncedScroll(wrap);
-}
-
-// Lässt alle Tier-Spalten gemeinsam scrollen (Chrome zeigt sonst pro Spalte eine eigene
-// Scrollbar, und man kann jede einzeln unabhängig scrollen — hier synchron gehalten).
-let syncingScroll = false;
-function attachSyncedScroll(wrap){
-  const bodies = wrap.querySelectorAll('.col-body');
-  bodies.forEach(el => {
-    el.addEventListener('scroll', () => {
-      if(syncingScroll) return;
-      syncingScroll = true;
-      bodies.forEach(other => { if(other !== el) other.scrollTop = el.scrollTop; });
-      syncingScroll = false;
-    });
-  });
 }
 
 // ── DRAG & DROP (Pointer Events — funktioniert für Maus & Touch) ──────────
