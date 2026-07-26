@@ -206,7 +206,7 @@ function cardHtml(id, p){
       ${headshotHtml(p, id)}
       <div>
         <div class="cmp-name">${p.full_name}</div>
-        <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</div>
+        <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+' J.' : ''}</div>
       </div>
     </div>
     <div class="cmp-loading">Lade Statistiken…</div>

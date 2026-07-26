@@ -691,6 +691,7 @@ async function loadPlayerDb(){
       detail_pos: pffPos || (nv && nv.depth_chart_position) || p.depth_chart_position || p.position || '',
       team: (nv && nv.team) || p.team || '',
       years_exp: p.years_exp ?? '',
+      age: p.age || '',
       headshot: p.fantasy_data_id ? `https://sleepercdn.com/content/nfl/players/${id}.jpg` : '',
       search_name: (p.search_full_name || p.full_name || '').toLowerCase(),
     };
@@ -787,7 +788,7 @@ function renderSelected(){
       <div class="cmp-mini-hdr">
         <img class="cmp-mini-hs" src="${p.headshot || ''}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="cmp-mini-hs-fb" style="display:none">${initials(p.full_name)}</div>
-        <div><div class="cmp-mini-name">${p.full_name}</div><div class="cmp-mini-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</div></div>
+        <div><div class="cmp-mini-name">${p.full_name}</div><div class="cmp-mini-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+' J.' : ''}</div></div>
         <button class="cmp-mini-remove" data-id="${id}">&times;</button>
       </div>
       <div class="cmp-mini-pts" id="cmp-pts-${id}">Lade Punkte…</div>
