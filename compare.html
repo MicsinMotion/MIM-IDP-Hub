@@ -6,6 +6,7 @@
 <title>Spieler-Vergleich · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root{--bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;--border:#21262d;--border2:#30363d;
 --text:#e6edf3;--muted:#7d8590;--orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);--red:#da3633;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -63,11 +64,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <nav>
   <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link">Player DB</a>
-    <a href="#" class="nav-link">Team Hub</a>
+    <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
     <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+    <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
+    <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
 </nav>
 
@@ -76,6 +79,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   watchAuth(user => {
     const link = document.getElementById('nav-scouting-link');
     if(link) link.style.display = user ? '' : 'none';
+    const linkMatchups = document.getElementById('nav-matchups-link');
+    if(linkMatchups) linkMatchups.style.display = user ? '' : 'none';
+    const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
+    if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
     const footerText = document.getElementById('footer-text');
     if(footerText) footerText.textContent = user
       ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
@@ -162,9 +169,10 @@ function calcPts(s){
 }
 const NOW_YEAR = new Date().getFullYear();
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonStats(id, yr){
-  for(const url of [SL_SEASON_DIRECT(id,yr), SL_SEASON_PROXY(id,yr)]){
+  for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
       const r = await fetch(url);
       if(!r.ok) continue;

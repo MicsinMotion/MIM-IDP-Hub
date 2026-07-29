@@ -6,6 +6,7 @@
 <title>IDP Rankings · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root {
   --bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;
   --border:#21262d;--border2:#30363d;
@@ -254,13 +255,19 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   .brand{font-size:18px;}
 }
 </style>
+<!-- Für den Rankings-Export (siehe Chat): CSV kennt weder mehrere Tabellenblätter
+     noch Zellformatierung (z.B. dickere Trennstriche zwischen Tiers) — beides ist
+     nur mit echtem .xlsx möglich. ExcelJS baut das clientseitig im Browser,
+     "defer" damit das Laden den Seitenaufbau nicht blockiert. -->
+<script src="https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
+<script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js" defer></script>
 </head>
 <body>
 
 <nav>
   <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link">Player DB</a>
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link active">IDP Rankings</a>
@@ -323,7 +330,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     </div>
     <span class="status-pill status-view" id="status-pill">Nur Ansicht</span>
     <span class="save-indicator" id="save-indicator">Gespeichert ✓</span>
-    <button class="export-btn" id="export-btn">⬇ CSV Export</button>
+    <button class="export-btn" id="export-btn">⬇ Excel Export</button>
+    <button class="export-btn" id="export-csv-btn">⬇ CSV Export (ZIP)</button>
   </div>
 </div>
 
@@ -432,10 +440,12 @@ async function loadAllPlayers(){
 // sofort als Fallback anzeigbar sind und nicht auf diesen zusätzlichen Fetch
 // gewartet werden muss, bevor überhaupt etwas gerendert wird.
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
 const NV_INJURIES_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_${yr}.csv`;
 function nvProxyUrls(rawUrl){
   return [
+    `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
     `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
     `https://proxy.corsfix.com/?${rawUrl}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
@@ -538,7 +548,7 @@ function calcPts(s){
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonStats(id, yr){
-  for(const url of [SL_SEASON_DIRECT(id,yr), SL_SEASON_PROXY(id,yr)]){
+  for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
       const r = await fetch(url);
       if(!r.ok) continue;
@@ -567,7 +577,7 @@ const SL_BULK_SEASON_PROXY  = yr => `https://corsproxy.io/?url=${encodeURICompon
 let top50ByPos = { DL: [], LB: [], DB: [] }; // { DL:[sleeper_id,...], ... } bereits sortiert & auf 50 gekappt
 
 async function fetchBulkSeasonStats(yr){
-  for(const url of [SL_BULK_SEASON_DIRECT(yr), SL_BULK_SEASON_PROXY(yr)]){
+  for(const url of [SL_BULK_SEASON_DIRECT(yr), `${OWN_PROXY}${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`, SL_BULK_SEASON_PROXY(yr)]){
     try{
       const r = await fetch(url);
       if(!r.ok) continue;
@@ -754,6 +764,16 @@ let viewMode = 'user'; // 'user' | 'overview'
 let unsubBoard = null;
 let saveTimer = null;
 let allRankings = [];
+// Flo pflegt sein Ranking nicht so regelmäßig wie die anderen (siehe Chat) —
+// er bleibt als Account bestehen und kann sich weiterhin einloggen, sein eigenes
+// Ranking pflegen und dabei alle anderen normal sehen. Für ALLE ANDEREN Betrachter
+// (andere eingeloggte Nutzer UND die Community-/Logged-out-Ansicht) bleibt er
+// unsichtbar: kein Avatar-Tab, keine Rater-Spalte, und er fließt nicht in den
+// Konsens ein (sonst sähe man dort ein leeres/verwaistes Ranking).
+const RATER_NAME_HIDDEN_UNLESS_SELF = 'Flo';
+function isHiddenRater(displayName){
+  return (displayName||'').trim().toLowerCase() === RATER_NAME_HIDDEN_UNLESS_SELF.toLowerCase();
+}
 
 function emptyBoard(){ return { inbox:[], t1:[], t2:[], t3:[], t4:[], t5:[], t6:[], t7:[] }; }
 
@@ -1064,6 +1084,13 @@ async function refreshUserList(){
   // Falls der eingeloggte Nutzer noch kein sichtbares Ranking-Dokument hat (ganz neuer Account), trotzdem anzeigen
   if(currentUser && !allRankings.find(r => r.id === currentUser.uid)){
     allRankings = [{ id: currentUser.uid, displayName: currentUser.displayName || currentUser.email }, ...allRankings];
+  }
+  // Siehe RATER_NAME_HIDDEN_UNLESS_SELF oben: nur wenn Flo SELBST eingeloggt
+  // ist, taucht er in seiner eigenen Liste auf. Für jeden anderen Betrachter
+  // (inkl. Community) wird er komplett rausgefiltert.
+  const viewerIsFlo = currentUser && isHiddenRater(currentUser.displayName);
+  if(!viewerIsFlo){
+    allRankings = allRankings.filter(r => !isHiddenRater(r.displayName));
   }
   allRankings.sort((a,b) => (a.displayName||'').localeCompare(b.displayName||'', 'de', { sensitivity: 'base' }));
 
@@ -1391,41 +1418,195 @@ document.getElementById('year-select').addEventListener('change', e => {
   else switchView(viewingUserId);
 });
 
-// ── CSV EXPORT ───────────────────────────────────────────────────────────
+// ── EXCEL EXPORT ─────────────────────────────────────────────────────────
+// Siehe Chat: vorher eine einzige CSV mit allen 3 Positionen untereinander.
+// Jetzt: eine .xlsx-Datei mit einem Tabellenblatt PRO POSITION (DL/LB/DB),
+// einem dickeren Trennstrich zwischen Tiers, einer Datums-Zeile oben in jedem
+// Blatt, und — nur in der Konsens-Ansicht — zusätzlich Best/Worst/Avg/Std.Dev
+// sowie einer eigenen Spalte pro Rater (exakt dasselbe Schema wie in der
+// Online-Rangliste, siehe buildRaterListHtml oben). Zusätzlich zum Excel-Export
+// gibt es auf Wunsch (siehe Chat) auch einen reinen CSV-Export als ZIP (3
+// Dateien, eine je Position) — ohne Tier-Trennstrich, da CSV keine
+// Zellformatierung kennt, aber ansonsten dieselben Daten/Spalten.
+const EXPORT_POSITIONS = ['DL','LB','DB'];
+
+function exportTimestampLabel(){
+  const d = new Date();
+  const datum = d.toLocaleDateString('de-DE');
+  const uhrzeit = d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+  return `Exportiert am: ${datum}, ${uhrzeit} Uhr`;
+}
+
+// ── Reine Datenlogik (formatunabhängig, von Excel- UND CSV-Export genutzt) ──
+function buildPersonalRowsForPosition(pos){
+  const posBoard = latestListDoc.boards[pos] || {};
+  const rows = [];
+  let rank = 0;
+  TIERS.filter(t => t !== 'inbox').forEach(tierKey => {
+    const tierNum = parseInt(tierKey.slice(1), 10);
+    (posBoard[tierKey] || []).forEach(id => {
+      rank++;
+      const p = playerMap[id];
+      rows.push({ tier: tierNum, cells: [TIER_LABELS[tierKey], rank, p ? p.full_name : id, p ? (p.team||'FA') : ''] });
+    });
+  });
+  const columns = [
+    { header:'Tier', width:10 }, { header:'Rang', width:8 },
+    { header:'Spieler', width:26 }, { header:'Team', width:8 },
+  ];
+  return { columns, rows };
+}
+
+// overviewDocs enthält bereits ALLE 3 Positions-Boards jedes Raters (ein
+// einziges Firestore-Dokument pro Rater, siehe ensureOverviewDataForCurrentNeed)
+// — daher reicht das kurze Umschalten von currentPositionTag ohne neuen
+// Datenabruf. Aufrufer ist dafür verantwortlich, currentPositionTag danach
+// wieder zurückzusetzen (siehe beide Export-Handler unten).
+function buildCombinedRowsForPosition(pos){
+  currentPositionTag = pos;
+  const results = computeOverview();
+  const raterColumns = allRankings.map(u => ({ header: u.displayName || '?', width: 12 }));
+  const rows = results.map((r, idx) => {
+    const p = playerMap[r.pid];
+    if(!p) return null;
+    const raterCells = allRankings.map(u => {
+      const rec = r.records.find(x => x.userId === u.id);
+      return rec ? `T${rec.tier} #${rec.rank}` : '–';
+    });
+    return {
+      tier: r.consensusTier,
+      cells: [
+        TIER_LABELS['t'+r.consensusTier], idx+1, p.full_name, p.team||'FA',
+        `#${r.best} (T${r.bestTier})`, `#${r.worst} (T${r.worstTier})`,
+        r.avg.toFixed(1), r.stdDev.toFixed(1),
+        ...raterCells,
+      ],
+    };
+  }).filter(Boolean);
+  const columns = [
+    { header:'Tier', width:10 }, { header:'RK', width:6 },
+    { header:'Spieler', width:26 }, { header:'Team', width:8 },
+    { header:'Best', width:14 }, { header:'Worst', width:14 },
+    { header:'Avg', width:8 }, { header:'Std.Dev', width:9 },
+    ...raterColumns,
+  ];
+  return { columns, rows };
+}
+
+// Ermittelt, ob gerade die persönliche oder die Konsens-Ansicht exportiert
+// werden soll, inkl. der dafür passenden Datenfunktion und des Dateinamen-Präfix.
+// Gibt null zurück (und zeigt selbst eine Warnung), falls (noch) keine Daten da sind.
+function collectExportContext(){
+  if(viewMode === 'overview'){
+    if(!allRankings.length || !Object.keys(overviewDocs).length){
+      alert('Konsens-Daten sind noch nicht geladen — bitte kurz warten und erneut versuchen.');
+      return null;
+    }
+    return { ownerName: 'konsens', buildRowsForPosition: buildCombinedRowsForPosition };
+  }
+  if(!latestListDoc || !latestListDoc.boards){ alert('Kein Ranking zum Exportieren vorhanden.'); return null; }
+  const ownerName = allRankings.find(r => r.id === viewingUserId)?.displayName || (currentUser && currentUser.uid === viewingUserId ? (currentUser.displayName||'ranking') : 'ranking');
+  return { ownerName, buildRowsForPosition: buildPersonalRowsForPosition };
+}
+
+function triggerFileDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ── Excel-Ausgabe (.xlsx, mit Tier-Trennstrich) ─────────────────────────────
+// Schreibt Datums-Zeile + Leerzeile + Header + Datenzeilen in ein Worksheet.
+// Sobald sich `tier` gegenüber der vorherigen Zeile ändert, bekommt die neue
+// Zeile einen dickeren oberen Rahmen ("medium") als Tier-Trennstrich.
+function writeRankingSheet(sheet, columns, rows){
+  sheet.columns = columns.map(c => ({ width: c.width }));
+
+  const dateRow = sheet.addRow([exportTimestampLabel()]);
+  dateRow.getCell(1).font = { italic: true, color: { argb: 'FF7D8590' } };
+  sheet.mergeCells(dateRow.number, 1, dateRow.number, columns.length);
+  sheet.addRow([]);
+
+  const headerRow = sheet.addRow(columns.map(c => c.header));
+  headerRow.eachCell({ includeEmpty:true }, cell => {
+    cell.font = { bold: true };
+    cell.border = { bottom: { style: 'thin' } };
+  });
+
+  let lastTier = null;
+  rows.forEach(r => {
+    const row = sheet.addRow(r.cells);
+    if(lastTier !== null && r.tier !== lastTier){
+      row.eachCell({ includeEmpty:true }, cell => {
+        cell.border = Object.assign({}, cell.border, { top: { style: 'medium' } });
+      });
+    }
+    lastTier = r.tier;
+  });
+}
+
+// ── CSV-Ausgabe (eine Datei je Position, gezippt) ───────────────────────────
 function csvEscape(val){
   const s = String(val ?? '');
   return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
 }
 
-document.getElementById('export-btn').addEventListener('click', () => {
-  if(!latestListDoc || !latestListDoc.boards){ alert('Kein Ranking zum Exportieren vorhanden.'); return; }
-  const rows = [['Position','Tier','Rang','Spieler','Team']];
-  const posOrder = ['DL','LB','DB'];
-  posOrder.forEach(pos => {
-    const posBoard = latestListDoc.boards[pos];
-    if(!posBoard) return;
-    let rank = 0;
-    TIERS.filter(t => t !== 'inbox').forEach(tierKey => {
-      const ids = posBoard[tierKey] || [];
-      ids.forEach(id => {
-        rank++;
-        const p = playerMap[id];
-        rows.push([pos, TIER_LABELS[tierKey], rank, p ? p.full_name : id, p ? (p.team||'FA') : '']);
-      });
-    });
+function rowsToCsvString(columns, rows){
+  const lines = [
+    csvEscape(exportTimestampLabel()),
+    '',
+    columns.map(c => csvEscape(c.header)).join(';'),
+    ...rows.map(r => r.cells.map(csvEscape).join(';')),
+  ];
+  return '\uFEFF' + lines.join('\n');
+}
+
+document.getElementById('export-btn').addEventListener('click', async () => {
+  if(typeof ExcelJS === 'undefined'){
+    alert('Export-Bibliothek konnte noch nicht geladen werden. Bitte kurz warten und erneut versuchen.');
+    return;
+  }
+  const ctx = collectExportContext();
+  if(!ctx) return;
+
+  const wb = new ExcelJS.Workbook();
+  const originalPos = currentPositionTag;
+  EXPORT_POSITIONS.forEach(pos => {
+    const { columns, rows } = ctx.buildRowsForPosition(pos);
+    writeRankingSheet(wb.addWorksheet(pos), columns, rows);
   });
-  const csv = rows.map(r => r.map(csvEscape).join(';')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const ownerName = allRankings.find(r => r.id === viewingUserId)?.displayName || (currentUser && currentUser.uid === viewingUserId ? (currentUser.displayName||'ranking') : 'ranking');
+  currentPositionTag = originalPos;
+
   const listLabel = currentListType === 'rookie' ? `rookie_${currentRookieYear}` : currentListType;
-  a.href = url;
-  a.download = `${ownerName}_${listLabel}_ranking.csv`.replace(/\s+/g,'_');
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  triggerFileDownload(blob, `${ctx.ownerName}_${listLabel}_ranking.xlsx`.replace(/\s+/g,'_'));
+});
+
+document.getElementById('export-csv-btn').addEventListener('click', async () => {
+  if(typeof JSZip === 'undefined'){
+    alert('Export-Bibliothek konnte noch nicht geladen werden. Bitte kurz warten und erneut versuchen.');
+    return;
+  }
+  const ctx = collectExportContext();
+  if(!ctx) return;
+
+  const zip = new JSZip();
+  const originalPos = currentPositionTag;
+  EXPORT_POSITIONS.forEach(pos => {
+    const { columns, rows } = ctx.buildRowsForPosition(pos);
+    zip.file(`${pos}.csv`, rowsToCsvString(columns, rows));
+  });
+  currentPositionTag = originalPos;
+
+  const listLabel = currentListType === 'rookie' ? `rookie_${currentRookieYear}` : currentListType;
+  const blob = await zip.generateAsync({ type: 'blob' });
+  triggerFileDownload(blob, `${ctx.ownerName}_${listLabel}_ranking_csv.zip`.replace(/\s+/g,'_'));
 });
 
 // ── AUTH (gleiches Muster wie index.html) ──────────────────────────────

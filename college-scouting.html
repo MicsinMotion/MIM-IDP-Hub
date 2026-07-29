@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root{
   --bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;
   --border:#21262d;--border2:#30363d;
@@ -117,7 +118,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <nav>
   <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link">Player DB</a>
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
@@ -299,6 +300,11 @@ async function loadPlayersForTab(title){
 }
 
 // ─── NCAA-API: TEAM-LOGOS (ncaa-api.henrygd.me) ────────────────────────────
+// Eigener Server-Proxy (siehe Chat): ncaa-api.henrygd.me erlaubt nur eine feste
+// Liste bekannter Herkunfts-Domains per CORS — unsere neue Domain steht da
+// (noch) nicht drauf, was die Team-Farb-Erkennung (Canvas + crossOrigin) bricht.
+// Route deshalb über proxy.php, der IMMER Access-Control-Allow-Origin:* sendet.
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 // Simple, öffentliche API extra für sowas: GET /logo/{schul-slug}.svg
 // Wird als reines <img>/CSS-background eingebunden — nie per fetch() geladen,
 // daher betrifft uns CORS hier gar nicht (Bilder sind davon immer ausgenommen).
@@ -378,7 +384,9 @@ function ncaaLogoUrl(school){
     if(hit) slug = ncaaSchoolMap[hit];
   }
   if(!slug) slug = slugifySchool(expanded);
-  return slug ? `https://ncaa-api.henrygd.me/logo/${slug}.svg` : '';
+  if(!slug) return '';
+  const directUrl = `https://ncaa-api.henrygd.me/logo/${slug}.svg`;
+  return `${OWN_PROXY}${encodeURIComponent(directUrl)}`;
 }
 
 // ─── SLUG (für Firestore-Doc-Keys) ─────────────────────────────────────────

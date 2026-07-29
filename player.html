@@ -6,6 +6,7 @@
 <title>Player · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root {
   --bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;
   --border:#21262d;--border2:#30363d;
@@ -210,7 +211,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <nav>
   <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link active">Player DB</a>
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
@@ -225,7 +226,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   </div>
 </nav>
 <div class="breadcrumb">
-  <a href="index.html">Home</a><span>›</span>
+  <a href="index.html">Front Office</a><span>›</span>
   <a href="players.html">Player Database</a><span>›</span>
   <span id="bc-name">–</span>
 </div>
@@ -320,9 +321,11 @@ const NV_SNAP_URL = yr=>'https://github.com/nflverse/nflverse-data/releases/down
 // Eigener Cloudflare Worker — dauerhaft zuverlässig, da er uns gehört (siehe Chat).
 // Öffentliche Proxies bleiben als Fallback, falls der Worker mal down sein sollte.
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 // Generalisierte Proxy-Kette für BELIEBIGE nflverse-Raw-URL (nicht mehr nur Rosters) —
 // NV_CSV_URLS bleibt als Alias für Rosters bestehen, damit nvFetch() unverändert läuft.
 const nvProxyUrls = rawUrl => [
+  `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
   `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
   `https://proxy.corsfix.com/?${rawUrl}`,
   `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
@@ -341,6 +344,13 @@ const SL_SCHEDULE = yr=>`https://api.sleeper.app/schedule/nfl/regular/${yr}`;
 // mit unvollständigen Daten überschrieben (genau das war die Ursache für die
 // "undefinedY"-Anzeige auf players.html).
 const CACHE_KEY='mim_player_search_index_v1',CACHE_TS='mim_player_search_index_ts_v1',CACHE_TTL=23*60*60*1000;
+// Separater Cache für die vollen Stats-Daten je Spieler (Season-Stats, Fantasy-Punkte,
+// Snap-Counts) — siehe Chat: player.html lud diese Daten bislang bei JEDEM Aufruf neu,
+// selbst beim Zurückwechseln zum selben Spieler (z.B. Hutchinson → Parsons → zurück),
+// da hierfür (anders als beim Such-Index oben) noch kein localStorage-Cache existierte.
+// Eigener Key-PREFIX pro Spieler (nicht ein gemeinsamer Key), damit jeder Spieler
+// seinen eigenen 23h-Cache-Eintrag bekommt und sich Spieler nicht gegenseitig überschreiben.
+const PSTATS_CACHE_PREFIX='mim_pstats_v1_';
 const CUR_YEAR=new Date().getFullYear();
 
 const ESPN_A={ARI:'ari',ATL:'atl',BAL:'bal',BUF:'buf',CAR:'car',CHI:'chi',CIN:'cin',CLE:'cle',DAL:'dal',DEN:'den',DET:'det',GB:'gb',HOU:'hou',IND:'ind',JAX:'jax',KC:'kc',LAC:'lac',LAR:'lar',LA:'lar',LV:'lv',MIA:'mia',MIN:'min',NE:'ne',NO:'no',NYG:'nyg',NYJ:'nyj',PHI:'phi',PIT:'pit',SF:'sf',SEA:'sea',TB:'tb',TEN:'ten',WAS:'wsh'};
@@ -616,6 +626,41 @@ const nvCache={};
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function store(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return localStorage;}catch{return sessionStorage;}}
+// ── PER-PLAYER STATS CACHE (23h, siehe PSTATS_CACHE_PREFIX oben) ─────────────
+// Shape-Validation nach demselben Muster wie beim bekannten Cache-Poisoning-Fix
+// (schlanke vs. volle Objekt-Form): ein Treffer wird nur akzeptiert, wenn alle
+// erwarteten Felder als Objekte vorliegen — sonst leise verwerfen und normal neu
+// laden, statt mit kaputter Form weiterzurechnen.
+// Map-Objekte (z.B. snapMap[yr].byWeek) überleben JSON.stringify NICHT von Haus aus —
+// würden sonst beim Cache-Schreiben still zu {} werden und beim späteren Öffnen der
+// Weekly-Ansicht mit ".get is not a function" abbrechen. Generischer Replacer/Reviver
+// statt Spezialfall, damit auch künftige Map-Felder automatisch mitgehen.
+function statsCacheReplacer(key,value){
+  if(value instanceof Map) return {__isMap:true,entries:[...value.entries()]};
+  return value;
+}
+function statsCacheReviver(key,value){
+  if(value&&typeof value==='object'&&value.__isMap) return new Map(value.entries);
+  return value;
+}
+function isValidStatsCacheShape(o){
+  if(!o||typeof o!=='object')return false;
+  const keys=['statsMap','ptsMap','teamMap','snapMap','cum'];
+  return keys.every(k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k]))&&typeof o.anyStats==='boolean';
+}
+function readStatsCache(sleeperId){
+  try{
+    const raw=store().getItem(PSTATS_CACHE_PREFIX+sleeperId);
+    if(!raw)return null;
+    const parsed=JSON.parse(raw,statsCacheReviver);
+    if(!parsed||!parsed.ts||Date.now()-parsed.ts>=CACHE_TTL)return null;
+    if(!isValidStatsCacheShape(parsed.data))return null;
+    return parsed.data;
+  }catch{return null;}
+}
+function writeStatsCache(sleeperId,data){
+  try{store().setItem(PSTATS_CACHE_PREFIX+sleeperId,JSON.stringify({ts:Date.now(),data},statsCacheReplacer));}catch{}
+}
 function idpG(pos,dc){const p=(pos||'').toUpperCase(),d=(dc||'').toUpperCase();const DL=new Set(['DE','DT','NT','EDGE','IDL','DL']),LB=new Set(['LB','ILB','MLB','OLB']),DB=new Set(['CB','FS','SS','S','DB','SAF']);if(p==='OLB')return DB.has(d)?'DB':(DL.has(d)?'DL':'LB');if(DL.has(p)&&!LB.has(p))return'DL';if(LB.has(p))return'LB';if(DB.has(p))return'DB';if(DL.has(d))return'DL';if(LB.has(d))return'LB';if(DB.has(d))return'DB';return pos||'DEF';}
 // Mehrfach-Positionen (z.B. T.J. Watt, Micah Parsons: LB + DL) — identisch zu players.html/rankings.html,
 // liest Sleepers eigenes fantasy_positions[]-Array statt nur der einzelnen position.
@@ -1466,85 +1511,135 @@ async function toggleWeekly(yr){
 // ── LOAD ALL STATS ────────────────────────────────────────────────────────────
 async function loadAllStats(p){
   const seasons=window._S||[];
-  const statsMap={},ptsMap={},teamMap={};
-  const cum={gp:0,snaps:0,solo:0,ast:0,tkl:0,tfl:0,sk:0,qbh:0,pbu:0,int:0,fr:0,ff:0,safe:0,td:0};
+  let statsMap={},ptsMap={},teamMap={},snapMap={};
+  let cum={gp:0,snaps:0,solo:0,ast:0,tkl:0,tfl:0,sk:0,qbh:0,pbu:0,int:0,fr:0,ff:0,safe:0,td:0};
   let anyStats=false;
 
-  // Fetch NFL state + all season stats in parallel (nflverse runs separately in background)
-  sub('Loading stats…');
-  const [stateRes, ...seasonResults] = await Promise.all([
-    fetch('https://api.sleeper.app/v1/state/nfl').then(r=>r.json()).catch(()=>({week:1,display_week:1})),
-    ...seasons.filter(yr=>yr<=CUR_YEAR).map(yr=>Promise.all([
-      fetchFB(SL_S_D(p.sleeper_id,yr),SL_S_P(p.sleeper_id,yr)),
-      Promise.resolve(yr)
-    ]))
-  ]);
-  const stateWk=Math.min(stateRes.week||1,stateRes.display_week||1,18);
-  // Current year team always known from Sleeper
-  teamMap[CUR_YEAR]=p.team||'';
-  if(!window._teamMap)window._teamMap={};
-  window._teamMap[CUR_YEAR]=p.team||'';
+  // Cache-Check ZUERST (siehe Chat: bislang lud diese Funktion bei JEDEM Aufruf
+  // alles neu, auch beim Zurückwechseln zum selben Spieler — u.a. weil der Fantasy-
+  // Punkte-Scan unten pro Saison Woche für Woche sequenziell die Matchups abfragt,
+  // das war der Haupttreiber der 10-15s Ladezeit). Bei einem gültigen, <23h alten
+  // Treffer werden ALLE Netzwerk-Requests dieser Funktion übersprungen.
+  const cached=readStatsCache(p.sleeper_id);
 
-  for(const [data,yr] of seasonResults){
-    try{
+  if(cached){
+    sub('Loading cached stats…');
+    ({statsMap,ptsMap,teamMap,snapMap,cum,anyStats}=cached);
+    if(!window._teamMap)window._teamMap={};
+    Object.assign(window._teamMap,teamMap);
+  }else{
+    // Fetch NFL state + all season stats in parallel (nflverse runs separately in background)
+    sub('Loading stats…');
+    const [stateRes, ...seasonResults] = await Promise.all([
+      fetch('https://api.sleeper.app/v1/state/nfl').then(r=>r.json()).catch(()=>({week:1,display_week:1})),
+      ...seasons.filter(yr=>yr<=CUR_YEAR).map(yr=>Promise.all([
+        fetchFB(SL_S_D(p.sleeper_id,yr),SL_S_P(p.sleeper_id,yr)),
+        Promise.resolve(yr)
+      ]))
+    ]);
+    const stateWk=Math.min(stateRes.week||1,stateRes.display_week||1,18);
+    // Current year team always known from Sleeper
+    teamMap[CUR_YEAR]=p.team||'';
+    if(!window._teamMap)window._teamMap={};
+    window._teamMap[CUR_YEAR]=p.team||'';
 
-      if(!data)continue;
-      const s=data.stats||data;
-      if(!s||!Object.keys(s).length)continue;
+    for(const [data,yr] of seasonResults){
+      try{
 
-      // Log all keys + pts fields on first hit
-      if(!anyStats){
-        console.log(`[MIM] ${yr} keys:`,Object.keys(s).sort().join(', '));
-        const ptsFields=Object.entries(s).filter(([k])=>k.startsWith('pts')||k.includes('fpts')||k.includes('point'));
-        console.log(`[MIM] ${yr} pts fields:`,Object.fromEntries(ptsFields));
-        console.log(`[MIM] ${yr} IDP:`,{gp:s.gp,def_snp:s.def_snp,idp_tkl:s.idp_tkl,idp_tkl_solo:s.idp_tkl_solo,idp_tkl_loss:s.idp_tkl_loss,idp_sack:s.idp_sack,idp_qb_hit:s.idp_qb_hit,idp_pass_def:s.idp_pass_def,idp_int:s.idp_int,idp_ff:s.idp_ff,pts_idp:s.pts_idp,pts_std:s.pts_std,pts_ppr:s.pts_ppr});
+        if(!data)continue;
+        const s=data.stats||data;
+        if(!s||!Object.keys(s).length)continue;
+
+        // Log all keys + pts fields on first hit
+        if(!anyStats){
+          console.log(`[MIM] ${yr} keys:`,Object.keys(s).sort().join(', '));
+          const ptsFields=Object.entries(s).filter(([k])=>k.startsWith('pts')||k.includes('fpts')||k.includes('point'));
+          console.log(`[MIM] ${yr} pts fields:`,Object.fromEntries(ptsFields));
+          console.log(`[MIM] ${yr} IDP:`,{gp:s.gp,def_snp:s.def_snp,idp_tkl:s.idp_tkl,idp_tkl_solo:s.idp_tkl_solo,idp_tkl_loss:s.idp_tkl_loss,idp_sack:s.idp_sack,idp_qb_hit:s.idp_qb_hit,idp_pass_def:s.idp_pass_def,idp_int:s.idp_int,idp_ff:s.idp_ff,pts_idp:s.pts_idp,pts_std:s.pts_std,pts_ppr:s.pts_ppr});
+        }
+
+        // Calculate pts using league scoring — only if player actually played
+        const gpVal=getStat(s,'gp')||0;
+        const gmsActive=getStat(s,'gms_active')||0;
+        // Only show pts if player played at least 1 regular season game
+        // For current year: extra check — if NFL state week is 0/1 preseason, skip
+        const hasPlayedGames = gpVal >= 1 || gmsActive >= 1;
+        if(!hasPlayedGames){
+          delete ptsMap[yr]; // ensure no stale pts shown
+        } else {
+          const ptsCalc = calcPts(s);
+          if(ptsCalc > 0) ptsMap[yr] = ptsCalc;
+        }
+
+        statsMap[yr]=s;anyStats=true;
+        const g=(a,...ks)=>getStat(a,...ks)||0;
+        cum.gp   +=g(s,'gp');cum.snaps+=g(s,'def_snp');
+        cum.solo +=g(s,'idp_tkl_solo');cum.ast+=g(s,'idp_tkl_ast');
+        cum.tkl  +=(g(s,'idp_tkl')||(g(s,'idp_tkl_solo')+g(s,'idp_tkl_ast')));
+        cum.tfl  +=g(s,'idp_tkl_loss');cum.sk+=g(s,'idp_sack');
+        cum.qbh  +=g(s,'idp_qb_hit');cum.pbu+=g(s,'idp_pass_def');
+        cum.int  +=g(s,'idp_int','def_int');cum.fr+=g(s,'idp_fum_rec');
+        cum.ff   +=g(s,'idp_ff','def_ff');cum.safe+=g(s,'idp_safe');
+        cum.td   +=g(s,'idp_td','def_td');
+      }catch(e){console.warn(`Stats ${yr}:`,e);}
+    }
+
+    // Fantasy points: ALWAYS from matchup scan (league-specific custom scoring)
+    sub('Loading fantasy points…');
+    // Ensure league chain is fully built before scanning
+    if(window._leagueChainReady) await window._leagueChainReady;
+    // If chain only has current year, try building again (may have failed silently)
+    if(Object.keys(leagueChain).length<=1){
+      console.warn('[MIM] League chain incomplete, retrying buildLeagueChain...');
+      await buildLeagueChain();
+    }
+    const ptsSeasonsToScan=seasons.filter(yr=>yr<=CUR_YEAR&&leagueChain[yr]);
+    console.log(`[MIM] Pts scan: ${ptsSeasonsToScan.length} seasons:`, ptsSeasonsToScan.join(', '));
+    await Promise.all(ptsSeasonsToScan.map(async yr=>{
+      const lgId=leagueChain[yr];
+      const maxWk=yr<CUR_YEAR?18:stateWk;
+      const total=await fetchSeasonPtsForPlayer(p.sleeper_id,yr,lgId,maxWk);
+      if(total!==null) ptsMap[yr]=total; // null = not in league, undefined key = show "-"
+    }));
+
+    // nflverse/PFR Snap Counts pro Saison laden (parallel) — Sleeper-Fallback bleibt
+    // in renderHistRows/toggleWeekly erhalten, falls pfr_id fehlt oder eine Jahres-
+    // Datei nicht verfügbar ist.
+    // WICHTIG: enrichIds() (ermittelt p.pfr_id) läuft PARALLEL zu loadAllStats(), nicht
+    // vorher — ohne diesen Schritt hier würde der Snap-Join oft starten, bevor die
+    // pfr_id überhaupt bekannt ist, und lautlos auf Sleeper zurückfallen (genau das
+    // beobachtete Verhalten aus dem Chat: Snaps blieben bei der Sleeper-Zahl). nvFetch()
+    // ist gecacht (nvCache), ein zweiter Aufruf hier kostet also keinen extra Request,
+    // falls enrichIds bereits gelaufen ist.
+    sub('Loading snap counts…');
+    if(!p.pfr_id){
+      for(const yr of [CUR_YEAR, CUR_YEAR-1, CUR_YEAR-2]){
+        const nv = await nvFetch(p, yr);
+        if(nv && nv.pfr_id && nv.pfr_id!=='NA'){ p.pfr_id = nv.pfr_id; console.log(`[MIM] pfr_id nachträglich aufgelöst: ${p.pfr_id} (${yr})`); break; }
       }
+      if(!p.pfr_id) console.warn(`[MIM] Keine pfr_id für ${p.full_name} gefunden (2022-${CUR_YEAR}) — Snaps bleiben auf Sleeper-Fallback.`);
+    }
+    await Promise.all(seasons.filter(yr=>yr<=CUR_YEAR).map(async yr=>{
+      const r = await fetchNvSnapsForPlayer(p, yr);
+      if(r) snapMap[yr] = r;
+    }));
 
-      // Calculate pts using league scoring — only if player actually played
-      const gpVal=getStat(s,'gp')||0;
-      const gmsActive=getStat(s,'gms_active')||0;
-      // Only show pts if player played at least 1 regular season game
-      // For current year: extra check — if NFL state week is 0/1 preseason, skip
-      const hasPlayedGames = gpVal >= 1 || gmsActive >= 1;
-      if(!hasPlayedGames){
-        delete ptsMap[yr]; // ensure no stale pts shown
-      } else {
-        const ptsCalc = calcPts(s);
-        if(ptsCalc > 0) ptsMap[yr] = ptsCalc;
-      }
-
-      statsMap[yr]=s;anyStats=true;
-      const g=(a,...ks)=>getStat(a,...ks)||0;
-      cum.gp   +=g(s,'gp');cum.snaps+=g(s,'def_snp');
-      cum.solo +=g(s,'idp_tkl_solo');cum.ast+=g(s,'idp_tkl_ast');
-      cum.tkl  +=(g(s,'idp_tkl')||(g(s,'idp_tkl_solo')+g(s,'idp_tkl_ast')));
-      cum.tfl  +=g(s,'idp_tkl_loss');cum.sk+=g(s,'idp_sack');
-      cum.qbh  +=g(s,'idp_qb_hit');cum.pbu+=g(s,'idp_pass_def');
-      cum.int  +=g(s,'idp_int','def_int');cum.fr+=g(s,'idp_fum_rec');
-      cum.ff   +=g(s,'idp_ff','def_ff');cum.safe+=g(s,'idp_safe');
-      cum.td   +=g(s,'idp_td','def_td');
-    }catch(e){console.warn(`Stats ${yr}:`,e);}
+    // Cache SOFORT schreiben, nicht erst nach enrichTeams() weiter unten — siehe Chat:
+    // player.html ist keine SPA, ein Klick auf den nächsten Spieler ist eine komplette
+    // Seiten-Navigation, die den JS-Kontext zerstört. Wartet der Schreibvorgang auf das
+    // (langsamere, nicht-blockierende) enrichTeams(), kam er nie zum Zug, wenn schnell
+    // weitergeklickt wurde (genau das beobachtete Verhalten: Hutchinson → Parsons →
+    // zurück lud wieder alles neu). teamMap enthält hier ggf. noch nicht alle
+    // vergangenen Team-Namen — das ist unkritisch, enrichTeams löst das bei einem
+    // späteren Cache-Treffer einfach selbst nach (siehe unten).
+    writeStatsCache(p.sleeper_id,{statsMap,ptsMap,teamMap,snapMap,cum,anyStats});
   }
-
-  // Fantasy points: ALWAYS from matchup scan (league-specific custom scoring)
-  sub('Loading fantasy points…');
-  // Ensure league chain is fully built before scanning
-  if(window._leagueChainReady) await window._leagueChainReady;
-  // If chain only has current year, try building again (may have failed silently)
-  if(Object.keys(leagueChain).length<=1){
-    console.warn('[MIM] League chain incomplete, retrying buildLeagueChain...');
-    await buildLeagueChain();
-  }
-  const ptsSeasonsToScan=seasons.filter(yr=>yr<=CUR_YEAR&&leagueChain[yr]);
-  console.log(`[MIM] Pts scan: ${ptsSeasonsToScan.length} seasons:`, ptsSeasonsToScan.join(', '));
-  await Promise.all(ptsSeasonsToScan.map(async yr=>{
-    const lgId=leagueChain[yr];
-    const maxWk=yr<CUR_YEAR?18:stateWk;
-    const total=await fetchSeasonPtsForPlayer(p.sleeper_id,yr,lgId,maxWk);
-    if(total!==null) ptsMap[yr]=total; // null = not in league, undefined key = show "-"
-  }));
 
   // Current season card
+  // (läuft jetzt für Cache-Treffer UND Cache-Miss gemeinsam nach diesem Punkt —
+  // beim Cache-Miss erscheint die Karte dadurch minimal später als vorher, nämlich
+  // nach statt vor dem Snap-Counts-Fetch; UX-Unterschied ist gering, dafür bleibt
+  // der Code für beide Fälle gemeinsam statt dupliziert)
   const csWrap=document.getElementById('cs-wrap'),csBadge=document.getElementById('cs-badge');
   const curS=statsMap[CUR_YEAR];
   if(curS&&Object.keys(curS).length){
@@ -1571,29 +1666,6 @@ async function loadAllStats(p){
   // Snaps, die Summe hier muss also aus DENSELBEN Werten gebildet werden, sonst
   // stimmt "Summe der Zeilen" nicht mit der angezeigten Gesamtsumme überein (genau
   // der Bug aus dem Chat: Career-Bar zeigte die Sleeper-Summe, Zeilen die nflverse-Werte).
-
-  // nflverse/PFR Snap Counts pro Saison laden (parallel) — Sleeper-Fallback bleibt
-  // in renderHistRows/toggleWeekly erhalten, falls pfr_id fehlt oder eine Jahres-
-  // Datei nicht verfügbar ist.
-  // WICHTIG: enrichIds() (ermittelt p.pfr_id) läuft PARALLEL zu loadAllStats(), nicht
-  // vorher — ohne diesen Schritt hier würde der Snap-Join oft starten, bevor die
-  // pfr_id überhaupt bekannt ist, und lautlos auf Sleeper zurückfallen (genau das
-  // beobachtete Verhalten aus dem Chat: Snaps blieben bei der Sleeper-Zahl). nvFetch()
-  // ist gecacht (nvCache), ein zweiter Aufruf hier kostet also keinen extra Request,
-  // falls enrichIds bereits gelaufen ist.
-  sub('Loading snap counts…');
-  if(!p.pfr_id){
-    for(const yr of [CUR_YEAR, CUR_YEAR-1, CUR_YEAR-2]){
-      const nv = await nvFetch(p, yr);
-      if(nv && nv.pfr_id && nv.pfr_id!=='NA'){ p.pfr_id = nv.pfr_id; console.log(`[MIM] pfr_id nachträglich aufgelöst: ${p.pfr_id} (${yr})`); break; }
-    }
-    if(!p.pfr_id) console.warn(`[MIM] Keine pfr_id für ${p.full_name} gefunden (2022-${CUR_YEAR}) — Snaps bleiben auf Sleeper-Fallback.`);
-  }
-  const snapMap = {};
-  await Promise.all(seasons.filter(yr=>yr<=CUR_YEAR).map(async yr=>{
-    const r = await fetchNvSnapsForPlayer(p, yr);
-    if(r) snapMap[yr] = r;
-  }));
 
   // Career-Bar-Snaps aus DENSELBEN Werten summieren, die auch pro Zeile angezeigt
   // werden (nflverse bevorzugt, Sleeper def_snp nur Fallback) — vorher wurde hier
@@ -1624,8 +1696,20 @@ async function loadAllStats(p){
     anyStats?'Stats via Sleeper · Snaps via nflverse/PFR · Career highs in orange · Click row for weekly breakdown'
             :'Stats pending · Click a row to expand weekly';
   sub('Done');
-  // Fill in past team names in background without blocking stats display
-  enrichTeams(p,seasons,statsMap,ptsMap,teamMap);
+  // Fill in past team names in background without blocking stats display.
+  // Der Haupt-Cache-Schreibvorgang ist bereits oben (direkt nach dem Snap-Counts-
+  // Fetch) passiert — hier nur noch ein Best-Effort-Update, FALLS enrichTeams()
+  // tatsächlich fertig wird, bevor die Seite verlassen wird (dann landen auch die
+  // nachträglich aufgelösten früheren Team-Namen im Cache). Läuft die Seite vorher
+  // weg, geht dieses Update einfach verloren — die Haupt-Cache-Datei besteht davon
+  // unabhängig bereits, das war ja genau der Bug (Hutchinson → Parsons → zurück).
+  if(cached){
+    enrichTeams(p,seasons,statsMap,ptsMap,teamMap); // Cache bereits vollständig, hier nur Formsache
+  }else{
+    enrichTeams(p,seasons,statsMap,ptsMap,teamMap)
+      .then(()=>writeStatsCache(p.sleeper_id,{statsMap,ptsMap,teamMap,snapMap,cum,anyStats}))
+      .catch(e=>console.warn('[MIM] enrichTeams/cache-update fehlgeschlagen:',e));
+  }
   window._snapMap = snapMap; // für toggleWeekly (weekly Snap-Daten) verfügbar machen
 }
 

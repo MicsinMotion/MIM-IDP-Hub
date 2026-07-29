@@ -6,6 +6,7 @@
 <title>Team · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root{
   --bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;
   --border:#21262d;--border2:#30363d;
@@ -272,7 +273,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <nav>
   <a href="index.html" class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="Mics in Motion Logo">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link">Player DB</a>
     <a href="team-hub.html" class="nav-link active">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
@@ -760,9 +761,11 @@ function parseCsvLine(line){
 // Eigener Cloudflare Worker — dauerhaft zuverlässig, da er uns gehört (siehe Chat).
 // Wird von mehreren Funktionen geteilt (nflverse-CSV, ourlads).
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 
 async function fetchNflverseCSV(url){
   const attempts = [
+    `${OWN_PROXY}${encodeURIComponent(url)}`,
     `${MIM_WORKER}${encodeURIComponent(url)}`,
     `https://proxy.corsfix.com/?${url}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
@@ -922,6 +925,7 @@ async function fetchPbpCsv(yr){
   pbpCsvPromiseByYear[yr] = (async () => {
     const rawUrl = NV_PBP_URL(yr);
     for(const url of [
+      `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
       `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
       `https://proxy.corsfix.com/?${rawUrl}`,
       `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
@@ -1155,18 +1159,26 @@ const FRONT_LOOKUP = {
   '00':'SKINNY','01':'SKINNY','10':'SKINNY','11':'SKINNY','20':'SKINNY',
   '33':'X-TRA BIG',
   '30':'BIG',
-  '03':'NASCAR','04':'NASCAR','05':'NASCAR', // "04" bewusst NASCAR, nicht GOAL LINE (siehe Chat-Klärung)
   '22':'4',
   '31':'31',
   '23':'43 UNDER/OVER',
   '13':'EDGE IN','02':'EDGE IN',
   '12':'3','32':'3','21':'3'
 };
+// GOAL LINE / NASCAR / EDGE IN (siehe Chat-Klärung, finale Version) —
+//   a) DI = 0, egal wie viel ED (3, 4, 5, 6…) → NASCAR, unabhängig von der
+//      genauen ED-Zahl (kein hartkodiertes '03'/'04'/'05' mehr nötig).
+//   b) Alles andere mit DI >= 4 ODER ED >= 4 → GOAL LINE (sowohl DI-lastige
+//      Jumbo-/Kurzyardage-Fronten als auch ED-lastige Pass-Rush-Pakete zählen
+//      hier als GOAL LINE — bewusste Entscheidung, siehe Chat).
+//   c) EDGE IN bleibt auf die zwei festen Kombis 1DI&3ED / 0DI&2ED beschränkt
+//      (kein genereller Auffangkorb für hohe ED-Zahlen).
 function classifyFront(di, ed){
   const key = `${di}${ed}`;
   if(FRONT_LOOKUP[key]) return FRONT_LOOKUP[key];
+  if(di === 0 && ed >= 3) return 'NASCAR';
   if(di >= 4 || ed >= 4) return 'GOAL LINE';
-  return 'SONSTIGE';
+  return 'SONSTIGE'; // defensiv, sollte bei obiger Abdeckung nie erreicht werden
 }
 function classifyLB(lb){
   if(lb >= 5) return '5+'; // im Chat nicht explizit vergeben, Sammelkategorie
@@ -1186,9 +1198,9 @@ function classifySecondary(cb, s){
   return 'XXX';
 }
 
-const FRONT_LABELS = [["max. 2 DL","SKINNY"],["3DI & 3ED","X-TRA BIG"],["3DI & 0ED","BIG"],["0DI / 3,4 or 5 ED","NASCAR"],
+const FRONT_LABELS = [["max. 2 DL","SKINNY"],["3DI & 3ED","X-TRA BIG"],["3DI & 0ED","BIG"],["0DI & 3+ ED","NASCAR"],
   ["2DI & 2ED","4"],["3 DI & 1 ED","31"],["2DI & 3ED (1 as SAM)","43 UNDER/OVER"],["1DI&3ED / 0DI&2ED","EDGE IN"],
-  ["1DI&2ED / 3DI&2ED / 2DI&1ED","3"],["ab 4 DI / ab 4 ED","GOAL LINE"]];
+  ["1DI&2ED / 3DI&2ED / 2DI&1ED","3"],["ab 4 DI / ab 4 ED (außer 0 DI, siehe NASCAR)","GOAL LINE"]];
 const LB_LABELS = [["0 LB","0"],["1 LB","1"],["2 LB","2"],["3 LB","3"],["4 LB","4"],["5+ LB","5+"]];
 const SEC_LABELS = [["2 CB / 2 S","BASE"],["3 CB / 2 S","NICKEL"],["4 CB / 2 S","DIME"],["2 CB / 3 S","BIG NICKEL"],
   ["3 CB / 3 S","BIG DIME"],["4 CB / 3 S","DIME PLUS"],["> 7 DBs","DB HEAVEN"],["< 4 DBs","LIGHT"],
@@ -1197,7 +1209,7 @@ const SEC_LABELS = [["2 CB / 2 S","BASE"],["3 CB / 2 S","NICKEL"],["4 CB / 2 S",
 // v6: komplett neue Datenbasis (echte PFF-Positionen statt defense_positions,
 // strikter play_type-Filter statt defenders_in_box-Näherung) — alte Caches
 // enthalten die vorherige, ungenaue Auswertung und müssen verworfen werden.
-function luCacheKey(year){ return `mim_lineup_v7_${year}`; }
+function luCacheKey(year){ return `mim_lineup_v9_${year}`; }
 function loadLineupCache(year){
   try{
     const raw = localStorage.getItem(luCacheKey(year));
@@ -1214,7 +1226,7 @@ function cleanupOldLineupCaches(){
     const keysToRemove = [];
     for(let i=0;i<localStorage.length;i++){
       const k = localStorage.key(i);
-      if(k && /^mim_lineup_v[1-6]_/.test(k)) keysToRemove.push(k);
+      if(k && /^mim_lineup_v[1-8]_/.test(k)) keysToRemove.push(k);
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
     if(keysToRemove.length) console.log(`[Lineup] ${keysToRemove.length} alte Cache-Version(en) aufgeräumt.`);
@@ -1272,7 +1284,11 @@ function saveLineupCache(year, teamsObj, abbr){
   saveLineupCacheLocal(year, teamsObj, abbr);
   // GETEILT (Firestore): deckt alle 32 Teams auf einmal ab — der nächste Besucher,
   // der IRGENDEIN Team für diese Saison ansieht, bekommt es sofort (siehe Chat).
-  saveSharedCache(`lineup_${year}`, { teams: teamsObj })
+  // "v2" (siehe Chat, Front/LB-Klassifizierungs-Fix): der alte unversionierte Key
+  // "lineup_<jahr>" enthielt Daten mit der fehlerhaften GOAL-LINE/ED-Zuordnung und
+  // dem fehlenden Sleeper-Tag-Fix — bewusst NEUER Key, damit niemand mehr die
+  // alten, falsch klassifizierten Werte aus Firestore serviert bekommt.
+  saveSharedCache(`lineup_v3_${year}`, { teams: teamsObj })
     .then(ok => { if(ok) console.log(`[Lineup] Geteilter Cache (Firestore) für ${year} geschrieben.`); });
 }
 
@@ -1280,33 +1296,25 @@ function normalizeGameKey(season, week, away, home){
   return `${season}_${String(week).padStart(2,'0')}_${away}_${home}`;
 }
 
-// Fallback-Zuordnung NUR für Lineup Details — bewusst eigene Version statt der
-// bestehenden classifyIdpGroup, da OLB hier zu ED zählen soll (nicht zu LB wie
-// beim Team Roster), siehe Chat.
-function classifyLineupFallback(dcp, pos){
-  const t = (dcp || pos || '').toUpperCase();
-  if(['DT','NT','DL'].includes(t)) return 'DI';
-  if(['DE','EDGE','OLB'].includes(t)) return 'ED'; // OLB zählt hier bewusst zu ED
-  if(['LB','ILB','MLB'].includes(t)) return 'LB';
-  if(t === 'CB') return 'CB';
-  if(['S','FS','SS','DB'].includes(t)) return 'S';
-  return null;
-}
-
 // gsis_id -> echte PFF-Position (DI/ED/LB/CB/S), über ALLE 32 Teams — nutzt
 // dieselbe PFF_TEAM_ID/PFF_POS_MAP/fetchViaWorker-Infrastruktur wie Team Roster.
-// Kann PFF für einen Spieler nichts liefern (z.B. bei älteren Saisons, wenn der
-// Spieler heute nicht mehr aktiv/beim selben Team ist), fällt es auf die
-// depth_chart_position/position aus der jeweiligen Saison-Rosters-CSV zurück.
+// Priorität (siehe Chat, Devin-White-Fall): 1) PFF, 2) Sleepers fantasy_positions-
+// Tag über classifyViaSleeperTag (DL+LB-Doppeltag = Tweener-Edge-Rusher wie Van
+// Noy → ED; NUR LB = klassischer Off-Ball-Backer wie Devin White → LB), 3) alter
+// dcp/pos-Fallback als letzte Rettung. Vorher nutzten die Lineup Details NUR den
+// alten dcp/pos-Fallback (classifyLineupFallback, jetzt entfernt) — der Sleeper-
+// Tag-Fix, der Devin White beim Team Roster korrekt einordnet, griff hier nie,
+// weshalb er in den Lineup Details weiterhin als ED statt LB landete.
 async function buildGsisToBucketMapForSeason(year, onProgress){
   onProgress && onProgress(2, 'Lade Rosters-CSV…');
   const gsisToPffId = new Map();
-  const gsisToFallback = new Map();
+  const gsisToSleeperId = new Map();
+  const gsisToRosterTags = new Map(); // gid -> { dcp, pos }
   const rosterText = await fetchNflverseCSV(NV_ROSTER_URL(year));
   if(rosterText){
     const lines = rosterText.split('\n').filter(l => l.trim());
     const H = splitCSV(lines[0]).map(h => h.trim().toLowerCase());
-    const iGs = H.indexOf('gsis_id'), iPf = H.indexOf('pff_id'),
+    const iGs = H.indexOf('gsis_id'), iPf = H.indexOf('pff_id'), iSl = H.indexOf('sleeper_id'),
           iDcp = H.indexOf('depth_chart_position'), iPos = H.indexOf('position');
     if(iGs >= 0){
       for(let i=1;i<lines.length;i++){
@@ -1317,8 +1325,11 @@ async function buildGsisToBucketMapForSeason(year, onProgress){
           const pid = (row[iPf]||'').trim();
           if(pid && pid !== 'NA') gsisToPffId.set(gid, pid);
         }
-        const fallbackBucket = classifyLineupFallback(iDcp>=0?row[iDcp]:'', iPos>=0?row[iPos]:'');
-        if(fallbackBucket) gsisToFallback.set(gid, fallbackBucket);
+        if(iSl >= 0){
+          const sid = (row[iSl]||'').trim();
+          if(sid && sid !== 'NA') gsisToSleeperId.set(gid, sid);
+        }
+        gsisToRosterTags.set(gid, { dcp: iDcp>=0?row[iDcp]:'', pos: iPos>=0?row[iPos]:'' });
       }
     }
   } else {
@@ -1343,19 +1354,27 @@ async function buildGsisToBucketMapForSeason(year, onProgress){
       }
     }catch(e){ console.warn('[Lineup] PFF-Roster Fehler für Team', teamId, e); }
     done++;
-    onProgress && onProgress(8 + Math.round(done/uniqueTeamIds.length*42), `Lade PFF-Team-Rosters (${done}/${uniqueTeamIds.length})…`);
+    onProgress && onProgress(8 + Math.round(done/uniqueTeamIds.length*36), `Lade PFF-Team-Rosters (${done}/${uniqueTeamIds.length})…`);
   }
 
+  onProgress && onProgress(46, 'Lade Sleeper-Positionstags…');
+  const sleeperAll = await fetchSleeperAllPlayers(); // bereits global gecacht, kein Doppel-Fetch
+
   const gsisToBucket = new Map();
-  gsisToPffId.forEach((pid, gid) => {
-    const bucket = pffIdToBucket.get(pid);
-    if(bucket) gsisToBucket.set(gid, bucket);
+  let pffUsed = 0, sleeperTagUsed = 0, fallbackUsed = 0;
+  gsisToRosterTags.forEach((tags, gid) => {
+    const pffId = gsisToPffId.get(gid);
+    const pffBucket = pffId ? (pffIdToBucket.get(pffId) || null) : null;
+    const sleeperId = gsisToSleeperId.get(gid);
+    const sr = sleeperId ? sleeperAll[sleeperId] : null;
+    const bucket = classifyViaSleeperTag(pffBucket, sr && sr.fantasy_positions, tags.dcp, tags.pos);
+    if(!bucket) return;
+    gsisToBucket.set(gid, bucket);
+    if(pffBucket) pffUsed++;
+    else if(sr && (sr.fantasy_positions||[]).length) sleeperTagUsed++;
+    else fallbackUsed++;
   });
-  let fallbackUsed = 0;
-  gsisToFallback.forEach((bucket, gid) => {
-    if(!gsisToBucket.has(gid)){ gsisToBucket.set(gid, bucket); fallbackUsed++; }
-  });
-  if(fallbackUsed) console.log(`[Lineup] ${fallbackUsed} Spieler über nflverse depth_chart_position/position statt PFF zugeordnet (Fallback für ${year}).`);
+  console.log(`[Lineup] Zuordnung ${year}: ${pffUsed} über PFF, ${sleeperTagUsed} über Sleeper-Tag, ${fallbackUsed} über alten dcp/pos-Fallback.`);
   return gsisToBucket;
 }
 
@@ -1572,7 +1591,7 @@ async function renderLineupSection(abbr, year, includeDetails){
     // Hub (PBP + participation + PFF für alle 32 Teams) — lohnt sich besonders,
     // hier zu prüfen, ob schon irgendjemand anders das für diese Saison berechnet
     // hat, bevor wir selbst von vorne anfangen (siehe Chat).
-    const sharedKey = `lineup_${year}`;
+    const sharedKey = `lineup_v3_${year}`;
     const shared = await loadSharedCache(sharedKey);
     const sharedIsFresh = shared && shared.teams &&
       (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < 6*60*60*1000));
@@ -1818,6 +1837,7 @@ async function fetchNvInjuriesCsv(years){
 }
 function nvProxyUrlsInj(rawUrl){
   return [
+    `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
     `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
     `https://proxy.corsfix.com/?${rawUrl}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
@@ -1860,6 +1880,7 @@ function fetchSleeperAllPlayers(){
     const url = 'https://api.sleeper.app/v1/players/nfl';
     const attempts = [
       url,
+      `${OWN_PROXY}${encodeURIComponent(url)}`,
       `${MIM_WORKER}${encodeURIComponent(url)}`,
       `https://proxy.corsfix.com/?${url}`,
       `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
@@ -1995,17 +2016,18 @@ function calcPts(s){
 // Proxy-Kette für api.sleeper.com — ACHTUNG: euer eigener Worker hat aktuell eine
 // Domain-Allowlist (github.com, sports.core.api.espn.com, ourlads.com, pff.com), in
 // der api.sleeper.com FEHLT. Der Worker-Versuch schlägt also mit 403 fehl, bis ihr
-// 'sleeper.com' dort ergänzt — die Fallback-Proxies fangen das in der Zwischenzeit
-// auf, sind aber langsamer. Empfehlung: 'sleeper.com' im Worker-Code zur Allowlist
-// hinzufügen, dann greift der schnelle, eigene Weg zuerst.
+// Eigener Server-Proxy (proxy.php) ZUERST versucht — unterstützt 'api.sleeper.app'/
+// 'api.sleeper.com' direkt in seiner Whitelist, im Gegensatz zum Cloudflare Worker,
+// der das bisher NICHT in seiner Allowlist hat (siehe Kommentar unten). Löst damit
+// genau das Problem, das MIM_WORKER hier ans Ende der Kette verbannt hat.
 function sleeperProxyUrls(rawUrl){
   return [
-    // MIM_WORKER bewusst ZULETZT versucht: solange 'sleeper.com' nicht in der
+    `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
+    // MIM_WORKER weiterhin ZULETZT versucht: solange 'sleeper.com' nicht in der
     // Worker-Allowlist steht, scheitert dieser Versuch garantiert mit 403 — das hat
     // bisher bei JEDEM einzelnen Spieler eine komplette Roundtrip-Wartezeit verschwendet,
     // bevor überhaupt der erste funktionierende Proxy versucht wurde. Sobald ihr
-    // 'sleeper.com' im Worker ergänzt, lohnt es sich, ihn wieder nach vorne zu holen
-    // (eigener Worker ist zuverlässiger als die öffentlichen Fallbacks).
+    // 'sleeper.com' im Worker ergänzt, lohnt es sich, ihn weiter vorne einzureihen.
     `https://proxy.corsfix.com/?${rawUrl}`,
     `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,

@@ -6,6 +6,7 @@
 <title>Matchups · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root{--bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;--border:#21262d;--border2:#30363d;
 --text:#e6edf3;--muted:#7d8590;--muted2:#9198a1;--orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
 --green:#238636;--green-light:#2ea043;--red:#da3633;--radius:8px;}
@@ -152,12 +153,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <nav>
   <a href="index.html" class="brand">MICS IN <em>MOTION</em></a>
   <div class="nav-mid">
-    <a href="index.html" class="nav-link">Home</a>
+    <a href="index.html" class="nav-link">Front Office</a>
     <a href="players.html" class="nav-link">Player DB</a>
     <a href="team-hub.html" class="nav-link">Team Hub</a>
     <a href="rankings.html" class="nav-link">IDP Rankings</a>
-    <a href="matchups.html" class="nav-link active" id="nav-matchups-link">Matchups</a>
     <a href="college-scouting.html" class="nav-link" id="nav-scouting-link" style="display:none;">College Scouting</a>
+    <a href="matchups.html" class="nav-link active" id="nav-matchups-link">Matchups</a>
+    <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
   <div class="auth-wrap" id="auth-wrap">
     <button class="auth-btn" id="auth-open-btn">Login</button>
@@ -254,6 +256,10 @@ document.getElementById('login-submit').addEventListener('click', async () => {
 
 window._mimAppStarted = false;
 watchAuth(user => {
+  const linkScouting = document.getElementById('nav-scouting-link');
+  if(linkScouting) linkScouting.style.display = user ? '' : 'none';
+  const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
+  if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
   if(footerText) footerText.textContent = user
     ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
@@ -577,6 +583,7 @@ window._mimGetOpponent = (teamAbbr) => {
 // ═══════════════════════════════════════════════════════════════════════════
 const CACHE_KEY = 'mim_players_db_v4', CACHE_TS_KEY = 'mim_players_db_ts_v4', CACHE_TTL = 23*60*60*1000;
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const CUR_YEAR = new Date().getFullYear();
 const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
 const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
@@ -595,6 +602,7 @@ function store(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('
 
 function nvProxyUrls(rawUrl){
   return [
+    `${OWN_PROXY}${encodeURIComponent(rawUrl)}`,
     `${MIM_WORKER}${encodeURIComponent(rawUrl)}`,
     `https://proxy.corsfix.com/?${rawUrl}`,
     `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`,
@@ -708,7 +716,7 @@ function calcPts(s){ if(!s) return 0; let pts=0; for(const [k,v] of Object.entri
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonPts(id, yr){
-  for(const url of [SL_SEASON_DIRECT(id,yr), SL_SEASON_PROXY(id,yr)]){
+  for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
       const r = await fetch(url); if(!r.ok) continue;
       const t = await r.text(); if(!t || t==='null') return 0;
