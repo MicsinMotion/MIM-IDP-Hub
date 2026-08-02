@@ -179,7 +179,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .ov-tier-bar.tier-6{color:var(--muted2);}
 .ov-tier-bar.tier-7{color:#8b6dd6;}
 .col-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:80px;position:relative;}
-.drop-indicator{position:absolute;left:10px;right:10px;height:3px;background:var(--orange);border-radius:2px;box-shadow:0 0 6px rgba(196,114,42,.7);pointer-events:none;display:none;z-index:5;}
+.drop-indicator{height:3px;background:var(--orange);border-radius:2px;box-shadow:0 0 6px rgba(196,114,42,.7);pointer-events:none;display:none;flex-shrink:0;}
 .col-body.drag-over{background:var(--orange-glow);outline:2px dashed var(--orange);outline-offset:-6px;}
 .col-empty{font-size:11px;color:var(--muted);text-align:center;padding:20px 8px;font-style:italic;}
 
@@ -191,6 +191,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .pcard.editable{cursor:grab;}
 .pcard.editable:active{cursor:grabbing;}
 .pcard.dragging{opacity:.3;}
+.pcard.search-highlight,.ov-list-row.search-highlight{animation:searchPulse 2s ease-out;}
+@keyframes searchPulse{
+  0%,30%{box-shadow:0 0 0 3px var(--orange);background:var(--orange-glow);}
+  100%{box-shadow:0 0 0 0px transparent;background:transparent;}
+}
 .pcard-hs{width:32px;height:32px;border-radius:4px;object-fit:cover;object-position:top;background:var(--bg2);flex-shrink:0;}
 .pcard-fb{width:32px;height:32px;border-radius:4px;background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--muted);}
 /* Injury-Badge — kleines Kreuz-Symbol unten rechts am Headshot, damit Verletzungen
@@ -243,6 +248,18 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .cmp-stat-val{font-weight:600;}
 .cmp-profile-link{display:block;text-align:center;font-size:12px;font-weight:600;color:var(--orange);text-decoration:none;padding:8px;border:1px solid var(--orange-dim);border-radius:6px;transition:all .15s;}
 .cmp-profile-link:hover{background:var(--orange-glow);}
+.cmp-radar-wrap{margin:0 0 14px;padding-top:12px;border-top:1px solid var(--border);}
+.cmp-radar-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cmp-radar-svg-box{display:flex;justify-content:center;}
+.cmp-radar-cat-list{display:flex;flex-direction:column;margin-top:6px;}
+.cmp-radar-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px dashed var(--border);font-size:11px;}
+.cmp-radar-cat-row:last-child{border-bottom:none;}
+.cmp-radar-cat-label{font-weight:600;color:var(--text);}
+.cmp-radar-cat-feeds{font-size:9.5px;color:var(--muted);margin-top:1px;}
+.cmp-radar-cat-score{flex-shrink:0;text-align:right;}
+.cmp-radar-cat-val{font-size:12px;font-weight:700;color:var(--orange);}
+.cmp-radar-cat-rank{font-size:9.5px;color:var(--muted);margin-left:2px;}
+.cmp-radar-note{font-size:9px;color:var(--muted);margin-top:8px;line-height:1.4;}
 
 @media(max-width:700px){
   nav{padding:0 20px;}
@@ -337,10 +354,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <div class="search-bar">
   <div class="search-input-wrap">
-    <input type="text" class="search-input" id="player-search" placeholder="Spieler suchen und zur Inbox hinzufügen…" disabled>
+    <input type="text" class="search-input" id="player-search" placeholder="Spieler im Ranking finden…">
     <div class="search-res" id="search-res"></div>
   </div>
-  <div class="search-hint" id="search-hint">Melde dich an, um dein eigenes Ranking zu bearbeiten.</div>
+  <div class="search-hint" id="search-hint"></div>
   <div id="ranking-updated-at" style="position:absolute;top:16px;right:32px;font-size:11px;color:var(--muted);"></div>
 </div>
 
@@ -357,7 +374,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 </aside>
 
 <script type="module">
-import { watchAuth, loginUser, logoutUser, loadBoard, saveBoard, listAllRankings, watchBoard, avatarFor } from './firebase-init.js';
+import { watchAuth, loginUser, logoutUser, loadBoard, saveBoard, listAllRankings, watchBoard, avatarFor, loadSharedCache, saveSharedCache } from './firebase-init.js';
 
 // ── SLEEPER PLAYER CACHE (wie player.html / players.html) ──────────────────
 const SLEEPER_ALL = 'https://api.sleeper.app/v1/players/nfl';
@@ -535,18 +552,267 @@ async function enrichInjuriesFromNflverse(){
 }
 
 // ── LIGA SCORING (identisch zu player.html) ────────────────────────────────
-const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+// ── SCORING (MIM Standard / MIM Bowl, siehe Chat) ───────────────────────────
+// Umschaltbar über einen einzelnen Schalter auf der Startseite — der Modus wird
+// global in localStorage gespeichert, jede Seite liest ihn beim Laden.
+const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
   idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
+  idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+const SCORING_MODE_KEY = 'mim_scoring_mode';
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
-function calcPts(s){
+function calcPts(s, mode){
   if(!s) return 0;
   let pts = 0;
-  for(const [k,v] of Object.entries(LIGA_SCORING)){ const val = getStat(s,k); if(val && val>0) pts += val*v; }
+  const table = getScoringTable(mode);
+  for(const [k,v] of Object.entries(table)){ const val = getStat(s,k); if(val && val>0) pts += val*v; }
   return Math.round(pts*100)/100;
 }
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
+// ── PFF POSITION (frei sichtbar, kein Login/Premium nötig — unterscheidet ED/DI)
+// Identisch zu player.html/compare.html portiert (siehe Chat). Nutzt MIM_WORKER,
+// das schon weiter oben für die nflverse-Injury-Anreicherung deklariert ist.
+const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
+const PFF_POS_MAP={DI:'DT',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
+const pffRosterCache={};
+function normalizeNameForMatch(name){
+  return (name||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z\s]/g, '')
+    .replace(/\b(jr|sr|ii|iii|iv|v)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+async function fetchPffGradePosition(teamAbbr, pffId, fullName){
+  const teamId = PFF_TEAM_ID[teamAbbr];
+  if(!teamId) return null;
+  try{
+    if(pffRosterCache[teamId] === undefined){
+      const url = `https://www.pff.com/api/teams/${teamId}/roster`;
+      const res = await fetch(`${MIM_WORKER}${encodeURIComponent(url)}`);
+      const text = await res.text();
+      if(!res.ok){ console.warn('[PFF] Roster-Fetch fehlgeschlagen, Status', res.status); return null; }
+      let json;
+      try{ json = JSON.parse(text); }
+      catch(e){ console.warn('[PFF] Antwort war kein gültiges JSON'); return null; }
+      pffRosterCache[teamId] = json.team_players || [];
+    }
+    if(!pffId){
+      const target = normalizeNameForMatch(fullName);
+      const nameMatch = pffRosterCache[teamId].find(pl => normalizeNameForMatch(pl.name) === target);
+      if(nameMatch && nameMatch.position) return PFF_POS_MAP[nameMatch.position.toUpperCase()] || nameMatch.position;
+      return null;
+    }
+    const match = pffRosterCache[teamId].find(pl => String(pl.id) === String(pffId));
+    if(!match || !match.position) return null;
+    return PFF_POS_MAP[match.position.toUpperCase()] || match.position;
+  }catch(e){ console.warn('[PFF] position konnte nicht geladen werden für', teamAbbr, pffId, e); return null; }
+}
+function classifyViaSleeperTag(positions, dcpRaw){
+  const tags = new Set((positions||[]).map(t => (t||'').toUpperCase()));
+  const hasDL = tags.has('DL'), hasLB = tags.has('LB'), hasDB = tags.has('DB');
+  const dcp = (dcpRaw||'').toUpperCase();
+  if(hasDL && hasLB) return 'ED';
+  if(hasLB) return 'LB';
+  if(hasDL){
+    if(['DT','NT'].includes(dcp)) return 'DT';
+    if(['DE','EDGE','OLB'].includes(dcp)) return 'ED';
+    return 'DT';
+  }
+  if(hasDB){
+    if(dcp === 'CB') return 'CB';
+    if(['S','FS','SS'].includes(dcp)) return 'S';
+    return null;
+  }
+  return null;
+}
+
+// ── STÄRKEN & SCHWÄCHEN RADAR (siehe Chat — identisch zu player.html/compare.html
+// portiert, jetzt auch im Compare-Panel der Rankings-Seite, nur intern sichtbar) ──
+const RADAR_CATEGORIES = {
+  DT: [
+    { label:'Pass Rush',    feeds:'Sacks', concepts:[['idp_sack']] },
+    { label:'Pressure',     feeds:'QB Hits', concepts:[['idp_qb_hit']] },
+    { label:'Run Defense',  feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',     feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Takeaways',    feeds:'Forced Fum. + Fum. Rec. + INT', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_int','def_int']] },
+    { label:'Splash Plays', feeds:'TD + Safety + PBU', concepts:[['idp_td','def_td'],['idp_safe'],['idp_pass_def']] },
+  ],
+  ED: [
+    { label:'Pass Rush',        feeds:'Sacks', concepts:[['idp_sack']] },
+    { label:'Pressure',         feeds:'QB Hits', concepts:[['idp_qb_hit']] },
+    { label:'Run Def. (Contain)', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',         feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Takeaways',        feeds:'Forced Fum. + Fum. Rec.', concepts:[['idp_ff','def_ff'],['idp_fum_rec']] },
+    { label:'Coverage/Splash',  feeds:'PBU + INT + TD + Safety', concepts:[['idp_pass_def'],['idp_int','def_int'],['idp_td','def_td'],['idp_safe']] },
+  ],
+  LB: [
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+  ],
+  CB: [
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+  ],
+  S: [
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+  ],
+};
+function radarCategoryValue(stats, category){
+  return category.concepts.reduce((sum, keys) => sum + (getStat(stats, ...keys) || 0), 0);
+}
+function radarPercentile(peerValues, ownValue){
+  if(!peerValues.length) return 50;
+  let below=0, equal=0;
+  peerValues.forEach(v => { if(v<ownValue) below++; else if(v===ownValue) equal++; });
+  return Math.round(((below + equal*0.5) / peerValues.length) * 1000) / 10;
+}
+function radarRank(peerValues, ownValue){
+  const better = peerValues.filter(v => v > ownValue).length;
+  return better + 1;
+}
+const RADAR_CAREER_WINDOW_YEARS = 5;
+const ALL_RADAR_STAT_KEYS = [...new Set(
+  Object.values(RADAR_CATEGORIES).flatMap(cats => cats.flatMap(cat => cat.concepts.flatMap(keys => keys)))
+)];
+function aggregateCareerPerGame(seasonStatsList){
+  let totalGp=0, seasonsUsed=0;
+  const sums={};
+  (seasonStatsList||[]).forEach(s => {
+    if(!s) return;
+    const gp=getStat(s,'gp')||0;
+    if(gp<=0) return;
+    totalGp+=gp; seasonsUsed++;
+    ALL_RADAR_STAT_KEYS.forEach(k => {
+      const v=getStat(s,k);
+      if(v) sums[k]=(sums[k]||0)+v;
+    });
+  });
+  if(totalGp<=0) return null;
+  const perGame={};
+  ALL_RADAR_STAT_KEYS.forEach(k => { if(sums[k]!==undefined) perGame[k]=sums[k]/totalGp; });
+  perGame._seasonsUsed=seasonsUsed;
+  perGame._totalGp=totalGp;
+  return perGame;
+}
+const RADAR_PEER_CACHE_PREFIX = 'mim_radar_peers_v1_';
+const RADAR_PEER_CACHE_TTL = 23*60*60*1000;
+const RADAR_SHORT_LABEL = { 'Run Def. (Contain)':'Run Defense' };
+function radarShortLabel(label){ return RADAR_SHORT_LABEL[label] || label; }
+
+function buildRadarSvg(categories, percentiles, ranks){
+  const cx=120, cy=100, maxR=44, n=categories.length;
+  const angleFor = i => (Math.PI*2*i/n) - Math.PI/2;
+  const ringPoly = level => categories.map((_,i) => {
+    const r=maxR*level/100, a=angleFor(i);
+    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+  const grid = [25,50,75,100].map(level =>
+    `<polygon points="${ringPoly(level)}" fill="none" stroke="var(--border2)" stroke-width="1"/>`
+  ).join('');
+  const axes = categories.map((_,i) => {
+    const a=angleFor(i), x2=cx+maxR*Math.cos(a), y2=cy+maxR*Math.sin(a);
+    return `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--border2)" stroke-width="1"/>`;
+  }).join('');
+  const dataPts = percentiles.map((v,i) => {
+    const r=maxR*Math.max(0,Math.min(100,v))/100, a=angleFor(i);
+    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+  const dots = percentiles.map((v,i) => {
+    const r=maxR*Math.max(0,Math.min(100,v))/100, a=angleFor(i);
+    return `<circle cx="${(cx+r*Math.cos(a)).toFixed(1)}" cy="${(cy+r*Math.sin(a)).toFixed(1)}" r="2.5" fill="var(--orange)"/>`;
+  }).join('');
+  const labels = categories.map((cat,i) => {
+    const a=angleFor(i), lr=maxR+20, x=cx+lr*Math.cos(a), y=cy+lr*Math.sin(a);
+    const anchor = Math.abs(Math.cos(a))<0.25 ? 'middle' : (Math.cos(a)>0 ? 'start' : 'end');
+    return `<text x="${x.toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="${anchor}" fill="var(--muted)" font-size="8.5" font-family="Inter,sans-serif" font-weight="600">${radarShortLabel(cat.label)}</text>
+    <text x="${x.toFixed(1)}" y="${(y+9).toFixed(1)}" text-anchor="${anchor}" font-size="9.5" font-family="Inter,sans-serif" font-weight="700"><tspan fill="var(--orange)">${Math.round(percentiles[i])}</tspan><tspan fill="var(--muted)" font-size="7.5" font-weight="500"> (#${ranks[i]})</tspan></text>`;
+  }).join('');
+  return `<svg viewBox="0 0 240 200" width="100%" style="max-width:240px;display:block;margin:0 auto;overflow:visible;">
+    ${grid}${axes}
+    <polygon points="${dataPts}" fill="var(--orange-glow)" stroke="var(--orange)" stroke-width="2"/>
+    ${dots}${labels}
+  </svg>`;
+}
+
+// Baut die Vergleichsgruppe — identische Logik zu player.html/compare.html.
+async function buildRadarPeerGroup(posGroup, windowYears){
+  const yearsKey = windowYears.slice().sort((a,b)=>a-b).join('-');
+  const cacheKey = RADAR_PEER_CACHE_PREFIX + posGroup + '_' + yearsKey;
+  const sharedKey = `radar_peers_v1_${posGroup}_${yearsKey}`;
+  try{
+    const raw = store().getItem(cacheKey);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.ts && Date.now()-parsed.ts < RADAR_PEER_CACHE_TTL && Array.isArray(parsed.data) && parsed.data.length){
+        console.log(`[Radar] Peer-Gruppe ${posGroup}/${yearsKey} aus lokalem Cache: ${parsed.data.length} Spieler.`);
+        return parsed.data;
+      }
+    }
+  }catch{}
+  try{
+    const shared = await loadSharedCache(sharedKey);
+    if(shared && shared.ts && Date.now()-shared.ts < RADAR_PEER_CACHE_TTL && Array.isArray(shared.data) && shared.data.length){
+      console.log(`[Radar] Peer-Gruppe ${posGroup}/${yearsKey} aus geteiltem Firestore-Cache: ${shared.data.length} Spieler.`);
+      try{ store().setItem(cacheKey, JSON.stringify({ts:shared.ts, data:shared.data})); }catch{}
+      return shared.data;
+    }
+  }catch(e){ console.warn('[Radar] Geteilter Cache konnte nicht gelesen werden:', e); }
+
+  const broadTag = (posGroup==='DT'||posGroup==='ED') ? 'DL' : (posGroup==='LB' ? 'LB' : 'DB');
+  const candidates = Object.values(playerMap).filter(x => x.team && (x.positions||[x.position]).includes(broadTag));
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${candidates.length} Kandidaten gefunden.`);
+
+  const resolved = [];
+  for(const c of candidates){
+    let bucket = null;
+    try{ bucket = await fetchPffGradePosition(c.team, c.pff_id, c.full_name); }catch{}
+    if(!bucket) bucket = classifyViaSleeperTag(c.positions, c.detail_pos);
+    if(bucket === posGroup) resolved.push(c);
+  }
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${resolved.length} von ${candidates.length} Kandidaten haben Position "${posGroup}".`);
+
+  const BATCH = 6;
+  const peerAggs = [];
+  for(let i=0;i<resolved.length;i+=BATCH){
+    const batch = resolved.slice(i,i+BATCH);
+    const results = await Promise.all(batch.map(async c => {
+      try{
+        const seasonStats = await Promise.all(windowYears.map(yr => fetchSeasonStats(c.sleeper_id, yr).catch(()=>null)));
+        return aggregateCareerPerGame(seasonStats);
+      }catch{ return null; }
+    }));
+    results.forEach(r => { if(r) peerAggs.push(r); });
+  }
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${peerAggs.length} von ${resolved.length} Positions-Treffern hatten Season-Stats im Fenster.`);
+
+  if(peerAggs.length){
+    const payload = {ts:Date.now(), data:peerAggs};
+    try{ store().setItem(cacheKey, JSON.stringify(payload)); }catch{}
+    saveSharedCache(sharedKey, payload).then(ok=>{ if(ok) console.log(`[Radar] Geteilter Cache für ${posGroup}/${yearsKey} geschrieben.`); });
+  }
+  return peerAggs;
+}
+
 async function fetchSeasonStats(id, yr){
   for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
@@ -568,13 +834,14 @@ async function fetchSeasonStats(id, yr){
 // eigenen Liga-Scoring-Formel. Wird NIE automatisch gespeichert — nur zur Anzeige
 // in der Inbox verwendet; erst ein aktives Ziehen in ein Tier landet wirklich im Board.
 const TOP50_SEASON = 2025;
-// Cache-Key-Version hochgezählt (v2), damit ein bereits bestehender 23h-Cache mit der
-// ALTEN Top-50-Liste nicht einfach weiterverwendet wird, nachdem der Slice-Wert im
-// Code geändert wurde — erzwingt einmalig einen frischen Bulk-Fetch mit 75 Einträgen.
-const TOP50_CACHE_KEY = `mim_top75_v2_${TOP50_SEASON}`, TOP50_CACHE_TS = `mim_top75_v2_ts_${TOP50_SEASON}`, TOP50_CACHE_TTL = 23*60*60*1000;
+// Cache-Key-Version hochgezählt (v3), da jetzt BEIDE Scoring-Modi gleichzeitig
+// gecacht werden (siehe Chat) — WER überhaupt in die Top 75 kommt, kann sich
+// zwischen MIM Standard und MIM Bowl unterscheiden, nicht nur die Punktzahl.
+const TOP50_CACHE_KEY = `mim_top75_v3_${TOP50_SEASON}`, TOP50_CACHE_TS = `mim_top75_v3_ts_${TOP50_SEASON}`, TOP50_CACHE_TTL = 23*60*60*1000;
 const SL_BULK_SEASON_DIRECT = yr => `https://api.sleeper.com/stats/nfl/${yr}?season_type=regular&position[]=DL&position[]=LB&position[]=DB`;
 const SL_BULK_SEASON_PROXY  = yr => `https://corsproxy.io/?url=${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`;
-let top50ByPos = { DL: [], LB: [], DB: [] }; // { DL:[sleeper_id,...], ... } bereits sortiert & auf 50 gekappt
+let top50ByPosStandard = { DL: [], LB: [], DB: [] }, top50ByPosBowl = { DL: [], LB: [], DB: [] }; // { DL:[sleeper_id,...], ... } bereits sortiert & auf 75 gekappt
+function currentTop50ByPos(){ return getScoringMode()==='bowl' ? top50ByPosBowl : top50ByPosStandard; }
 
 async function fetchBulkSeasonStats(yr){
   for(const url of [SL_BULK_SEASON_DIRECT(yr), `${OWN_PROXY}${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`, SL_BULK_SEASON_PROXY(yr)]){
@@ -593,31 +860,33 @@ async function fetchBulkSeasonStats(yr){
 
 async function loadTop50Leaderboard(){
   const cached = (()=>{ try{ const s=store(), ts=s.getItem(TOP50_CACHE_TS); if(ts && Date.now()-parseInt(ts)<TOP50_CACHE_TTL){ const r=s.getItem(TOP50_CACHE_KEY); return r?JSON.parse(r):null; } }catch{} return null; })();
-  if(cached){ top50ByPos = cached; return; }
+  if(cached){ top50ByPosStandard = cached.standard; top50ByPosBowl = cached.bowl; return; }
 
   const entries = await fetchBulkSeasonStats(TOP50_SEASON);
   if(!entries){ return; } // Bulk-Endpoint down/geblockt → Inbox zeigt einfach keine Vorschläge, kein Fehlerfall
 
-  const scored = { DL: [], LB: [], DB: [] };
+  const scoredStandard = { DL: [], LB: [], DB: [] }, scoredBowl = { DL: [], LB: [], DB: [] };
   entries.forEach(entry => {
     const pid = entry.player_id != null ? String(entry.player_id) : null;
     if(!pid) return;
     const p = playerMap[pid];
     if(!p) return; // nicht in unserem IDP-Pool (z.B. falsch gefiltert von Sleeper zurückgegeben)
     const stats = entry.stats || entry;
-    const pts = calcPts(stats);
-    if(pts <= 0) return;
+    const ptsStandard = calcPts(stats, 'standard'), ptsBowl = calcPts(stats, 'bowl');
     (p.positions||[p.position]).forEach(pos => {
-      if(scored[pos]) scored[pos].push({ id: pid, pts });
+      if(ptsStandard > 0 && scoredStandard[pos]) scoredStandard[pos].push({ id: pid, pts: ptsStandard });
+      if(ptsBowl > 0 && scoredBowl[pos]) scoredBowl[pos].push({ id: pid, pts: ptsBowl });
     });
   });
 
   ['DL','LB','DB'].forEach(pos => {
-    scored[pos].sort((a,b) => b.pts - a.pts);
-    top50ByPos[pos] = scored[pos].slice(0, 75).map(x => x.id);
+    scoredStandard[pos].sort((a,b) => b.pts - a.pts);
+    top50ByPosStandard[pos] = scoredStandard[pos].slice(0, 75).map(x => x.id);
+    scoredBowl[pos].sort((a,b) => b.pts - a.pts);
+    top50ByPosBowl[pos] = scoredBowl[pos].slice(0, 75).map(x => x.id);
   });
 
-  try{ const s=store(); s.setItem(TOP50_CACHE_KEY, JSON.stringify(top50ByPos)); s.setItem(TOP50_CACHE_TS, Date.now().toString()); }catch{}
+  try{ const s=store(); s.setItem(TOP50_CACHE_KEY, JSON.stringify({standard:top50ByPosStandard, bowl:top50ByPosBowl})); s.setItem(TOP50_CACHE_TS, Date.now().toString()); }catch{}
 }
 
 // Lokal (nur dieser Browser) ausgeblendete Top-50-Vorschläge — betrifft nie Firestore/andere Nutzer
@@ -637,7 +906,7 @@ function computeDisplayInbox(){
   const realIds = board.inbox || [];
   const tieredSet = new Set(TIERS.filter(t => t !== 'inbox').flatMap(t => board[t] || []));
   const dismissed = new Set(getDismissedSuggestions());
-  const suggestions = (top50ByPos[currentPositionTag] || []).filter(id =>
+  const suggestions = (currentTop50ByPos()[currentPositionTag] || []).filter(id =>
     !tieredSet.has(id) && !realIds.includes(id) && !dismissed.has(id)
   );
   // Alphabetisch statt nach Punkten/Einfügereihenfolge — echte Inbox-Einträge und
@@ -653,6 +922,61 @@ function computeDisplayInbox(){
 }
 let comparisonIds = [];        // max. 3 Spieler-IDs
 let comparisonCache = {};      // sleeper_id -> { loading, pts:{jahr:pts}, lastSeasonStats }
+let radarCache = {};           // sleeper_id -> { loading, data: {posGroup,categories,percentiles,ranks,peerCount,seasonsUsed,yearsLabel} | null }
+
+// Kleiner Retry-Wrapper (siehe Chat: Saisons wurden manchmal unterzählt, z.B.
+// "2 Jahre" statt der tatsächlich 4 vorhandenen) — 5 parallele Sleeper-Requests
+// für denselben Spieler können vereinzelt an einem CORS-Proxy hängen bleiben;
+// ein einzelner Wiederholungsversuch fängt das meistens ab.
+async function fetchSeasonStatsWithRetry(id, yr){
+  let result = await fetchSeasonStats(id, yr).catch(()=>null);
+  if(!result){
+    await new Promise(res => setTimeout(res, 300));
+    result = await fetchSeasonStats(id, yr).catch(()=>null);
+  }
+  return result;
+}
+
+async function loadPlayerRadar(id, p){
+  let bucket = null;
+  try{ bucket = await fetchPffGradePosition(p.team, p.pff_id, p.full_name); }catch{}
+  if(!bucket) bucket = classifyViaSleeperTag(p.positions, p.detail_pos);
+  const categories = RADAR_CATEGORIES[bucket];
+  if(!categories) return null;
+
+  const windowYears = [];
+  for(let y=NOW_YEAR; y>NOW_YEAR-RADAR_CAREER_WINDOW_YEARS; y--) windowYears.push(y);
+  const ownSeasonStats = await Promise.all(windowYears.map(yr => fetchSeasonStatsWithRetry(id, yr)));
+  const ownAgg = aggregateCareerPerGame(ownSeasonStats);
+  if(!ownAgg) return null;
+
+  const peers = await buildRadarPeerGroup(bucket, windowYears);
+  if(!peers.length) return null;
+
+  const percentiles = categories.map(cat => radarPercentile(peers.map(a=>radarCategoryValue(a,cat)), radarCategoryValue(ownAgg,cat)));
+  const ranks = categories.map(cat => radarRank(peers.map(a=>radarCategoryValue(a,cat)), radarCategoryValue(ownAgg,cat)));
+  const yearsLabel = windowYears.length>1 ? `${Math.min(...windowYears)}–${Math.max(...windowYears)}` : `${windowYears[0]}`;
+  return { posGroup: bucket, categories, percentiles, ranks, peerCount: peers.length, seasonsUsed: ownAgg._seasonsUsed, yearsLabel };
+}
+
+function radarBlockHtml(radar){
+  if(!radar) return '';
+  return `<div class="cmp-radar-wrap">
+    <div class="cmp-radar-title">Stärken &amp; Schwächen</div>
+    <div class="cmp-radar-svg-box">${buildRadarSvg(radar.categories, radar.percentiles, radar.ranks)}</div>
+    <div class="cmp-radar-cat-list">
+      ${radar.categories.map((cat,i)=>`
+        <div class="cmp-radar-cat-row">
+          <div>
+            <div class="cmp-radar-cat-label">${cat.label}</div>
+            <div class="cmp-radar-cat-feeds">${cat.feeds}</div>
+          </div>
+          <div class="cmp-radar-cat-score"><span class="cmp-radar-cat-val">${Math.round(radar.percentiles[i])}</span><span class="cmp-radar-cat-rank">(#${radar.ranks[i]})</span></div>
+        </div>`).join('')}
+    </div>
+    <div class="cmp-radar-note">Perzentil (0-100) &amp; Rang gegen ${radar.peerCount+1} ${radar.posGroup}-Spieler · Ø der letzten ${radar.seasonsUsed} Saison${radar.seasonsUsed===1?'':'en'} (${radar.yearsLabel}, pro Spiel) · nur für interne Nutzer sichtbar</div>
+  </div>`;
+}
 
 async function loadPlayerSeasons(id){
   const years = [NOW_YEAR, NOW_YEAR-1, NOW_YEAR-2];
@@ -678,6 +1002,16 @@ function openComparison(id){
       comparisonCache[id] = { loading: false, ...data };
       renderComparePanel();
     });
+  }
+  if(!radarCache[id]){
+    radarCache[id] = { loading: true, data: null };
+    const p = playerMap[id];
+    if(p){
+      loadPlayerRadar(id, p).then(data => {
+        radarCache[id] = { loading: false, data };
+        renderComparePanel();
+      });
+    }
   }
 }
 
@@ -723,6 +1057,11 @@ function renderComparePanel(){
           <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
         </div>`;
     }
+    // Stärken & Schwächen (siehe Chat): nur intern sichtbar, gleicher Platz wie
+    // in compare.html — direkt unter den Punkten der letzten Jahre.
+    const radarEntry = radarCache[id];
+    const radarHtml = (window._isInternalUser && radarEntry && !radarEntry.loading && radarEntry.data)
+      ? radarBlockHtml(radarEntry.data) : '';
     return `<div class="compare-player">
       <button class="cmp-close" data-close="${id}" title="Entfernen">&times;</button>
       <div class="cmp-hdr">
@@ -733,6 +1072,7 @@ function renderComparePanel(){
         </div>
       </div>
       ${ptsHtml}
+      ${radarHtml}
       ${statsHtml}
       <a class="cmp-profile-link" href="player.html?id=${id}" target="_blank" rel="noopener">Zum Spielerprofil →</a>
     </div>`;
@@ -764,16 +1104,6 @@ let viewMode = 'user'; // 'user' | 'overview'
 let unsubBoard = null;
 let saveTimer = null;
 let allRankings = [];
-// Flo pflegt sein Ranking nicht so regelmäßig wie die anderen (siehe Chat) —
-// er bleibt als Account bestehen und kann sich weiterhin einloggen, sein eigenes
-// Ranking pflegen und dabei alle anderen normal sehen. Für ALLE ANDEREN Betrachter
-// (andere eingeloggte Nutzer UND die Community-/Logged-out-Ansicht) bleibt er
-// unsichtbar: kein Avatar-Tab, keine Rater-Spalte, und er fließt nicht in den
-// Konsens ein (sonst sähe man dort ein leeres/verwaistes Ranking).
-const RATER_NAME_HIDDEN_UNLESS_SELF = 'Flo';
-function isHiddenRater(displayName){
-  return (displayName||'').trim().toLowerCase() === RATER_NAME_HIDDEN_UNLESS_SELF.toLowerCase();
-}
 
 function emptyBoard(){ return { inbox:[], t1:[], t2:[], t3:[], t4:[], t5:[], t6:[], t7:[] }; }
 
@@ -954,31 +1284,28 @@ function onCardPointerMove(e){
   }
 }
 
-// Zeigt eine Linie an der Stelle, an der die Karte beim Loslassen eingefügt würde
+// Zeigt eine Linie an der Stelle, an der die Karte beim Loslassen eingefügt würde.
+// Siehe Chat: die vorherige Variante hat die Position manuell in Pixeln berechnet
+// (getBoundingClientRect() + scrollTop) — blieb trotz mehrerer Fixes ungenau.
+// Jetzt wird der Indikator stattdessen als ECHTES Element direkt an die Zielstelle
+// im normalen Flex-Layout verschoben (insertBefore/appendChild) — der Browser
+// übernimmt die exakte Positionierung selbst, keine Pixel-Berechnung mehr nötig.
 function showDropIndicator(colBody, clientY, excludeId){
   const indicator = colBody.querySelector('.drop-indicator');
   if(!indicator) return;
-  const siblings = Array.from(colBody.querySelectorAll('.pcard')).filter(c => c.dataset.id !== excludeId);
-  const bodyRect = colBody.getBoundingClientRect();
-  let y;
-  if(!siblings.length){
-    y = 14; // leere Spalte: Linie knapp unter dem oberen Rand
-  } else {
-    let target = null;
-    for(const s of siblings){
-      const r = s.getBoundingClientRect();
-      if(clientY < r.top + r.height/2){ target = s; break; }
-    }
-    if(target){
-      const r = target.getBoundingClientRect();
-      y = (r.top - bodyRect.top) + colBody.scrollTop - 4;
-    } else {
-      const last = siblings[siblings.length-1].getBoundingClientRect();
-      y = (last.bottom - bodyRect.top) + colBody.scrollTop + 4;
-    }
-  }
-  indicator.style.top = y + 'px';
   indicator.style.display = 'block';
+  const siblings = Array.from(colBody.querySelectorAll('.pcard')).filter(c => c.dataset.id !== excludeId);
+  if(!siblings.length){
+    colBody.appendChild(indicator);
+    return;
+  }
+  let target = null;
+  for(const s of siblings){
+    const r = s.getBoundingClientRect();
+    if(clientY < r.top + r.height/2){ target = s; break; }
+  }
+  if(target) colBody.insertBefore(indicator, target);
+  else colBody.appendChild(indicator);
 }
 
 function onCardPointerUp(e){
@@ -1035,9 +1362,49 @@ function scheduleSave(){
 const searchInput = document.getElementById('player-search');
 const searchRes = document.getElementById('search-res');
 
+// Siehe Chat: im Nur-Ansicht-Modus (Community, fremdes Ranking, Konsens) durchsucht
+// die Suchleiste NUR die aktuell angezeigten Spieler und scrollt zur passenden
+// Karte, statt neue Spieler zum Hinzufügen anzubieten.
+function getCurrentViewPlayerIds(){
+  if(viewMode === 'overview'){
+    try{ return computeOverview().map(r => r.pid); }catch{ return []; }
+  }
+  return TIERS.filter(t => t !== 'inbox').flatMap(t => board[t] || []);
+}
+function scrollToAndHighlightPlayer(id){
+  let el = document.querySelector(`.pcard[data-id="${id}"]`) || document.querySelector(`.ov-list-row[data-id="${id}"]`);
+  if(!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('search-highlight');
+  setTimeout(() => el.classList.remove('search-highlight'), 2000);
+}
+
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim().toLowerCase();
   if(q.length < 2){ searchRes.classList.remove('open'); return; }
+
+  if(!editable){
+    const idsInView = new Set(getCurrentViewPlayerIds());
+    const hits = allPlayers.filter(p => idsInView.has(p.sleeper_id) && (p.full_name||'').toLowerCase().includes(q)).slice(0, 8);
+    if(!hits.length){ searchRes.innerHTML = `<div class="sri"><div class="sri-sub">Kein Treffer in diesem Ranking</div></div>`; searchRes.classList.add('open'); return; }
+    searchRes.innerHTML = hits.map(p => `<div class="sri" data-find="${p.sleeper_id}">
+      ${headshotHtml(p).replace('pcard-hs','sri-hs').replace('pcard-fb','sri-fb')}
+      <div>
+        <div class="sri-name">${p.full_name}</div>
+        <div class="sri-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}</div>
+      </div>
+    </div>`).join('');
+    searchRes.classList.add('open');
+    searchRes.querySelectorAll('.sri[data-find]').forEach(el => {
+      el.addEventListener('click', () => {
+        scrollToAndHighlightPlayer(el.dataset.find);
+        searchInput.value = '';
+        searchRes.classList.remove('open');
+      });
+    });
+    return;
+  }
+
   const allAssigned = new Set(Object.values(board).flat());
   let hits = allPlayers.filter(p => (p.positions||[p.position]).includes(currentPositionTag) && (p.full_name||'').toLowerCase().includes(q));
   if(currentListType === 'rookie'){
@@ -1080,18 +1447,14 @@ document.addEventListener('click', e => {
 const userAvatars = document.getElementById('user-avatars');
 
 async function refreshUserList(){
-  allRankings = await listAllRankings();
+  let rawRankings = await listAllRankings();
   // Falls der eingeloggte Nutzer noch kein sichtbares Ranking-Dokument hat (ganz neuer Account), trotzdem anzeigen
-  if(currentUser && !allRankings.find(r => r.id === currentUser.uid)){
-    allRankings = [{ id: currentUser.uid, displayName: currentUser.displayName || currentUser.email }, ...allRankings];
+  if(currentUser && !rawRankings.find(r => r.id === currentUser.uid)){
+    rawRankings = [{ id: currentUser.uid, displayName: currentUser.displayName || currentUser.email }, ...rawRankings];
   }
-  // Siehe RATER_NAME_HIDDEN_UNLESS_SELF oben: nur wenn Flo SELBST eingeloggt
-  // ist, taucht er in seiner eigenen Liste auf. Für jeden anderen Betrachter
-  // (inkl. Community) wird er komplett rausgefiltert.
-  const viewerIsFlo = currentUser && isHiddenRater(currentUser.displayName);
-  if(!viewerIsFlo){
-    allRankings = allRankings.filter(r => !isHiddenRater(r.displayName));
-  }
+  // Flo hat mittlerweile ein vollständiges Ranking (siehe Chat) — behandelt wie
+  // jeder andere Rater, keine Sonderbehandlung mehr nötig.
+  allRankings = rawRankings;
   allRankings.sort((a,b) => (a.displayName||'').localeCompare(b.displayName||'', 'de', { sensitivity: 'base' }));
 
   if(!allRankings.length){
@@ -1141,11 +1504,13 @@ function switchView(userId){
   editable = !!(currentUser && currentUser.uid === userId);
   document.getElementById('status-pill').textContent = editable ? 'Bearbeiten' : 'Nur Ansicht';
   document.getElementById('status-pill').className = 'status-pill ' + (editable ? 'status-edit' : 'status-view');
-  searchInput.disabled = !editable;
-  searchInput.placeholder = editable ? `${currentPositionTag}-Spieler suchen und zur Inbox hinzufügen…` : 'Nur der Owner kann Spieler hinzufügen';
+  searchInput.disabled = false; // siehe Chat: bleibt immer nutzbar — im Nur-Ansicht-Modus zum Finden statt Hinzufügen
+  searchInput.placeholder = editable
+    ? `${currentPositionTag}-Spieler suchen und zur Inbox hinzufügen…`
+    : `${currentPositionTag}-Spieler im Ranking finden…`;
   document.getElementById('search-hint').textContent = editable
     ? 'Ziehe Spieler per Drag & Drop in die Tiers. Änderungen werden automatisch gespeichert.'
-    : (currentUser ? 'Du siehst das Ranking eines anderen Nutzers (nur Ansicht).' : 'Melde dich an, um dein eigenes Ranking zu bearbeiten.');
+    : (currentUser ? 'Du siehst das Ranking eines anderen Nutzers (nur Ansicht).' : ''); // Community: kein Login-Hinweis mehr (siehe Chat)
   document.getElementById('view-toggle').style.display = 'flex'; // Grid/Liste-Umschalter nur in der individuellen Ansicht, nicht im Konsens (siehe Chat)
 
   unsubBoard = watchBoard(userId, effectiveListKey(), data => {
@@ -1216,8 +1581,8 @@ function switchToOverview(){
   markActiveAvatar('__overview__');
   document.getElementById('status-pill').textContent = 'Konsens';
   document.getElementById('status-pill').className = 'status-pill status-view';
-  searchInput.disabled = true;
-  searchInput.placeholder = 'Konsens-Ansicht – keine Bearbeitung möglich';
+  searchInput.disabled = false;
+  searchInput.placeholder = `${currentPositionTag}-Spieler im Konsens finden…`;
   document.getElementById('search-hint').textContent = 'Automatisch berechneter Konsens aus allen Rankings dieses Formats/dieser Position — rein informativ, nicht editierbar.';
   document.getElementById('view-toggle').style.display = 'none'; // Grid/Liste-Umschalter nur in der individuellen Ansicht (siehe Chat)
 
@@ -1631,6 +1996,7 @@ document.getElementById('login-submit').addEventListener('click', async () => {
 
 watchAuth(async user => {
   currentUser = user;
+  window._isInternalUser = !!user;
   document.getElementById('nav-scouting-link').style.display = user ? '' : 'none';
   document.getElementById('nav-matchups-link').style.display = user ? '' : 'none';
   document.getElementById('nav-coaching-tree-link').style.display = user ? '' : 'none';
@@ -1647,6 +2013,9 @@ watchAuth(async user => {
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
   }
   await refreshUserList();
+  // Stärken & Schwächen (siehe Chat) ist nur intern sichtbar — falls das Compare-
+  // Panel schon offen war, bevor der Auth-Status feststand, hier neu zeichnen.
+  if(typeof renderComparePanel === 'function') renderComparePanel();
 });
 
 // ── INIT ─────────────────────────────────────────────────────────────────

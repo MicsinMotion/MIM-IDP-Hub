@@ -362,28 +362,46 @@ let compareIds = new Set(); // ausgewählte Spieler-IDs für den Vergleich (max.
 // Wird angezeigt, wenn ein Positions-Filter aktiv ist, aber noch kein Suchtext
 // eingegeben wurde — sonst stand da bisher nur der leere "Suche mind. 3 Zeichen"-
 // Hinweis, obwohl schon ein Filter gesetzt war (siehe Chat).
-const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+// ── SCORING (MIM Standard / MIM Bowl, siehe Chat) ───────────────────────────
+// Umschaltbar über einen einzelnen Schalter auf der Startseite — der Modus wird
+// global in localStorage gespeichert, jede Seite liest ihn beim Laden.
+const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
   idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
+  idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+const SCORING_MODE_KEY = 'mim_scoring_mode';
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 // Identisch zu player.html — Sleeper liefert die Körpergröße als reine Zoll-Zahl
 // (z.B. "77"), hier ins übliche US-Format (6'5") umgerechnet.
 function fmtH(h){ if(!h||h==='NA') return '–'; if(String(h).includes("'")) return h; const n=parseInt(h); if(isNaN(n)) return h; return `${Math.floor(n/12)}'${n%12}"`; }
-function calcPts(s){
+function calcPts(s, mode){
   if(!s) return 0;
   let pts = 0;
-  for(const [k,v] of Object.entries(LIGA_SCORING)){ const val = getStat(s,k); if(val && val>0) pts += val*v; }
+  const table = getScoringTable(mode);
+  for(const [k,v] of Object.entries(table)){ const val = getStat(s,k); if(val && val>0) pts += val*v; }
   return Math.round(pts*100)/100;
 }
 const TOP50_SEASON = new Date().getMonth() >= 2 ? new Date().getFullYear()-1 : new Date().getFullYear()-2; // letzte ABGESCHLOSSENE Saison
-const TOP50_CACHE_KEY = `mim_players_top50_v1_${TOP50_SEASON}`, TOP50_CACHE_TS = `mim_players_top50_ts_v1_${TOP50_SEASON}`, TOP50_CACHE_TTL = 23*60*60*1000;
+// Beide Scoring-Modi werden gleichzeitig berechnet und getrennt gecacht (siehe
+// Chat) — Top-50/Top-25 unterscheiden sich ja nicht nur in der Punktzahl, auch
+// WER überhaupt in den Top 50 landet, kann sich zwischen den Modi unterscheiden.
+const TOP50_CACHE_KEY = `mim_players_top50_v2_${TOP50_SEASON}`, TOP50_CACHE_TS = `mim_players_top50_ts_v2_${TOP50_SEASON}`, TOP50_CACHE_TTL = 23*60*60*1000;
 const SL_BULK_SEASON_DIRECT = yr => `https://api.sleeper.com/stats/nfl/${yr}?season_type=regular&position[]=DL&position[]=LB&position[]=DB`;
 const SL_BULK_SEASON_PROXY  = yr => `https://corsproxy.io/?url=${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`;
-let top50ByPos = { DL: [], LB: [], DB: [] }; // sleeper_id-Arrays, schon nach Punkten sortiert & auf 50 gekappt
-let topFAByPos = { DL: [], LB: [], DB: [] }; // dasselbe, aber NUR Free Agents (kein Team), auf 25 gekappt — siehe Chat
-const TOP_FA_CACHE_KEY = `mim_players_top_fa_v1_${TOP50_SEASON}`, TOP_FA_CACHE_TS = `mim_players_top_fa_ts_v1_${TOP50_SEASON}`;
-let seasonPtsMap = new Map(); // sleeper_id -> Fantasy Points der letzten abgeschlossenen Saison (für die Kartenanzeige)
-const SEASON_PTS_CACHE_KEY = `mim_players_season_pts_v1_${TOP50_SEASON}`, SEASON_PTS_CACHE_TS = `mim_players_season_pts_ts_v1_${TOP50_SEASON}`;
+let top50ByPosStandard = { DL: [], LB: [], DB: [] }, top50ByPosBowl = { DL: [], LB: [], DB: [] }; // sleeper_id-Arrays, schon nach Punkten sortiert & auf 50 gekappt
+let topFAByPosStandard = { DL: [], LB: [], DB: [] }, topFAByPosBowl = { DL: [], LB: [], DB: [] }; // dasselbe, aber NUR Free Agents (kein Team), auf 25 gekappt — siehe Chat
+const TOP_FA_CACHE_KEY = `mim_players_top_fa_v2_${TOP50_SEASON}`, TOP_FA_CACHE_TS = `mim_players_top_fa_ts_v2_${TOP50_SEASON}`;
+let seasonPtsMapStandard = new Map(), seasonPtsMapBowl = new Map(); // sleeper_id -> Fantasy Points der letzten abgeschlossenen Saison (für die Kartenanzeige)
+const SEASON_PTS_CACHE_KEY = `mim_players_season_pts_v2_${TOP50_SEASON}`, SEASON_PTS_CACHE_TS = `mim_players_season_pts_ts_v2_${TOP50_SEASON}`;
+// Zugriffs-Helfer, die je nach aktivem Modus die richtige Liste zurückgeben —
+// so bleibt der Rest des Codes unten unverändert und muss den Modus nicht überall selbst prüfen.
+function currentTop50ByPos(){ return getScoringMode()==='bowl' ? top50ByPosBowl : top50ByPosStandard; }
+function currentTopFAByPos(){ return getScoringMode()==='bowl' ? topFAByPosBowl : topFAByPosStandard; }
+function currentSeasonPtsMap(){ return getScoringMode()==='bowl' ? seasonPtsMapBowl : seasonPtsMapStandard; }
 
 async function fetchBulkSeasonStats(yr){
   for(const url of [SL_BULK_SEASON_DIRECT(yr), `${OWN_PROXY}${encodeURIComponent(SL_BULK_SEASON_DIRECT(yr))}`, SL_BULK_SEASON_PROXY(yr)]){
@@ -401,14 +419,14 @@ async function fetchBulkSeasonStats(yr){
 }
 
 async function loadTop50ByPosition(){
-  // seasonPtsMap zuerst aus dem Cache versuchen (unabhängig vom Top50-Cache,
-  // da wir hier ALLE Spieler mit Punkten brauchen, nicht nur die Top 50)
+  // Cache-Objekte enthalten jetzt beide Modi zusammen (siehe Chat) —
+  // {standard:{...}, bowl:{...}} statt eines einzelnen Sets.
   try{
     const s = getStorage();
     const ts = s.getItem(SEASON_PTS_CACHE_TS);
     if(ts && Date.now()-parseInt(ts) < TOP50_CACHE_TTL){
       const cached = s.getItem(SEASON_PTS_CACHE_KEY);
-      if(cached) seasonPtsMap = new Map(Object.entries(JSON.parse(cached)));
+      if(cached){ const parsed = JSON.parse(cached); seasonPtsMapStandard = new Map(Object.entries(parsed.standard||{})); seasonPtsMapBowl = new Map(Object.entries(parsed.bowl||{})); }
     }
   }catch{}
 
@@ -418,7 +436,7 @@ async function loadTop50ByPosition(){
     const ts = s.getItem(TOP50_CACHE_TS);
     if(ts && Date.now()-parseInt(ts) < TOP50_CACHE_TTL){
       const cached = s.getItem(TOP50_CACHE_KEY);
-      if(cached){ top50ByPos = JSON.parse(cached); top50Cached = true; }
+      if(cached){ const parsed = JSON.parse(cached); top50ByPosStandard = parsed.standard; top50ByPosBowl = parsed.bowl; top50Cached = true; }
     }
   }catch{}
   let faCached = false;
@@ -427,46 +445,50 @@ async function loadTop50ByPosition(){
     const ts = s.getItem(TOP_FA_CACHE_TS);
     if(ts && Date.now()-parseInt(ts) < TOP50_CACHE_TTL){
       const cached = s.getItem(TOP_FA_CACHE_KEY);
-      if(cached){ topFAByPos = JSON.parse(cached); faCached = true; }
+      if(cached){ const parsed = JSON.parse(cached); topFAByPosStandard = parsed.standard; topFAByPosBowl = parsed.bowl; faCached = true; }
     }
   }catch{}
-  if(top50Cached && faCached && seasonPtsMap.size) return; // alles schon frisch im Cache — kein Fetch nötig
+  if(top50Cached && faCached && (seasonPtsMapStandard.size || seasonPtsMapBowl.size)) return; // alles schon frisch im Cache — kein Fetch nötig
 
   const entries = await fetchBulkSeasonStats(TOP50_SEASON);
   if(!entries) return; // Bulk-Endpoint down/geblockt → Top-50-Ansicht & Punkte-Anzeige bleiben einfach leer, kein Fehlerfall
 
   const playerById = new Map(players.map(p => [p.sleeper_id, p]));
-  const scored = { DL: [], LB: [], DB: [] };
-  const scoredFA = { DL: [], LB: [], DB: [] };
-  const ptsObj = {};
+  const scoredStandard = { DL: [], LB: [], DB: [] }, scoredBowl = { DL: [], LB: [], DB: [] };
+  const scoredFAStandard = { DL: [], LB: [], DB: [] }, scoredFABowl = { DL: [], LB: [], DB: [] };
+  const ptsObjStandard = {}, ptsObjBowl = {};
   entries.forEach(entry => {
     const pid = entry.player_id != null ? String(entry.player_id) : null;
     if(!pid) return;
     const p = playerById.get(pid);
     if(!p) return;
     const stats = entry.stats || entry;
-    const pts = calcPts(stats);
-    ptsObj[pid] = pts; // auch 0-Punkte-Spieler mit aufnehmen, damit "0.0" statt "keine Daten" angezeigt wird
-    if(pts <= 0) return;
+    const ptsStandard = calcPts(stats, 'standard'), ptsBowl = calcPts(stats, 'bowl');
+    ptsObjStandard[pid] = ptsStandard; ptsObjBowl[pid] = ptsBowl; // auch 0-Punkte-Spieler mit aufnehmen, damit "0.0" statt "keine Daten" angezeigt wird
     (p.positions||[p.position]).forEach(pos => {
-      if(scored[pos]) scored[pos].push({ id: pid, pts });
-      if(scoredFA[pos] && !p.team) scoredFA[pos].push({ id: pid, pts }); // eigene Rangliste NUR unter Free Agents
+      if(ptsStandard > 0 && scoredStandard[pos]){ scoredStandard[pos].push({ id: pid, pts: ptsStandard }); if(scoredFAStandard[pos] && !p.team) scoredFAStandard[pos].push({ id: pid, pts: ptsStandard }); }
+      if(ptsBowl > 0 && scoredBowl[pos]){ scoredBowl[pos].push({ id: pid, pts: ptsBowl }); if(scoredFABowl[pos] && !p.team) scoredFABowl[pos].push({ id: pid, pts: ptsBowl }); }
     });
   });
-  seasonPtsMap = new Map(Object.entries(ptsObj));
+  seasonPtsMapStandard = new Map(Object.entries(ptsObjStandard));
+  seasonPtsMapBowl = new Map(Object.entries(ptsObjBowl));
 
   ['DL','LB','DB'].forEach(pos => {
-    scored[pos].sort((a,b) => b.pts - a.pts);
-    top50ByPos[pos] = scored[pos].slice(0, 50).map(x => x.id);
-    scoredFA[pos].sort((a,b) => b.pts - a.pts);
-    topFAByPos[pos] = scoredFA[pos].slice(0, 25).map(x => x.id);
+    scoredStandard[pos].sort((a,b) => b.pts - a.pts);
+    top50ByPosStandard[pos] = scoredStandard[pos].slice(0, 50).map(x => x.id);
+    scoredBowl[pos].sort((a,b) => b.pts - a.pts);
+    top50ByPosBowl[pos] = scoredBowl[pos].slice(0, 50).map(x => x.id);
+    scoredFAStandard[pos].sort((a,b) => b.pts - a.pts);
+    topFAByPosStandard[pos] = scoredFAStandard[pos].slice(0, 25).map(x => x.id);
+    scoredFABowl[pos].sort((a,b) => b.pts - a.pts);
+    topFAByPosBowl[pos] = scoredFABowl[pos].slice(0, 25).map(x => x.id);
   });
 
   try{
     const s = getStorage();
-    s.setItem(TOP50_CACHE_KEY, JSON.stringify(top50ByPos)); s.setItem(TOP50_CACHE_TS, Date.now().toString());
-    s.setItem(TOP_FA_CACHE_KEY, JSON.stringify(topFAByPos)); s.setItem(TOP_FA_CACHE_TS, Date.now().toString());
-    s.setItem(SEASON_PTS_CACHE_KEY, JSON.stringify(ptsObj)); s.setItem(SEASON_PTS_CACHE_TS, Date.now().toString());
+    s.setItem(TOP50_CACHE_KEY, JSON.stringify({standard:top50ByPosStandard, bowl:top50ByPosBowl})); s.setItem(TOP50_CACHE_TS, Date.now().toString());
+    s.setItem(TOP_FA_CACHE_KEY, JSON.stringify({standard:topFAByPosStandard, bowl:topFAByPosBowl})); s.setItem(TOP_FA_CACHE_TS, Date.now().toString());
+    s.setItem(SEASON_PTS_CACHE_KEY, JSON.stringify({standard:ptsObjStandard, bowl:ptsObjBowl})); s.setItem(SEASON_PTS_CACHE_TS, Date.now().toString());
   }catch{}
 }
 
@@ -779,7 +801,7 @@ function renderResults() {
     // i.d.R. auch unter Vertrag steht — das ließ fast nichts übrig). Stattdessen
     // eine EIGENE Top-25-Rangliste NUR unter Free Agents nutzen (topFAByPos).
     const usingFA = activeStatus === 'FA';
-    const sourceIds = usingFA ? topFAByPos[activePos] : top50ByPos[activePos];
+    const sourceIds = usingFA ? currentTopFAByPos()[activePos] : currentTop50ByPos()[activePos];
     if (activePos && sourceIds && sourceIds.length) {
       const ids = new Set(sourceIds);
       let topResults = players.filter(p => ids.has(p.sleeper_id));
@@ -798,7 +820,7 @@ function renderResults() {
       hint.textContent = `${players.length.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`;
     list.innerHTML = `<div class="state-box">
       <div class="state-icon">🏈</div>
-      <p>Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters, or pick a position to see the Top 50.</p>
+      <p>Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen, oder wähle eine Position für die Top 50.</p>
     </div>`;
     return;
   }
@@ -872,7 +894,7 @@ function playerRow(p) {
 
   // Fantasy Points der letzten abgeschlossenen Saison (aus dem Bulk-Fetch,
   // siehe loadTop50ByPosition) — steht links neben den Positions-/Team-Badges.
-  const pts = seasonPtsMap.get(p.sleeper_id);
+  const pts = currentSeasonPtsMap().get(p.sleeper_id);
   const ptsDisp = pts != null
     ? `<span class="pr-pts" title="Fantasy Points ${TOP50_SEASON}">${pts.toFixed(1)}<small>PTS ${TOP50_SEASON}</small></span>`
     : '';

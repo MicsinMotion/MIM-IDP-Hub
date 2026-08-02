@@ -96,7 +96,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 @media(max-width:1050px){ .rk-header-box{display:none;} }
 
 /* INJURY BOX — rechte Ecke des Headers (Sleeper-Facts + optionaler ESPN-Kurztext) */
-.inj-header-box{margin-left:auto;align-self:center;min-width:230px;max-width:260px;}
+.inj-header-box{margin-left:auto;align-self:center;min-width:230px;max-width:260px;position:relative;}
 .inj-hb-status{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:12px;}
 .inj-hb-status.fit{color:#2ea043;}
 .inj-hb-status.hurt{color:var(--red);}
@@ -106,6 +106,9 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .inj-hb-val{color:var(--text);font-weight:600;text-align:right;}
 .inj-hb-note{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.45;}
 .inj-hb-note b{color:var(--text);}
+.inj-hb-loading-overlay{position:absolute;inset:0;background:rgba(13,17,23,.95);border-radius:10px;display:flex;align-items:center;justify-content:center;z-index:5;}
+.inj-hb-spinner{width:34px;height:34px;border:4px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:injSpin .8s linear infinite;}
+@keyframes injSpin{to{transform:rotate(360deg);}}
 @media(max-width:1300px){ .inj-header-box{display:none;} }
 .sec-badge.live{color:var(--green-light);background:rgba(46,160,67,.08);border-color:rgba(46,160,67,.2);}
 .sec-badge.pending{color:var(--muted);}
@@ -117,6 +120,20 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .stats-ph{background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);padding:40px;text-align:center;}
 
 .stats-ph p{color:var(--muted);font-size:13px;margin-top:8px;}
+.section-split{display:flex;gap:24px;flex-wrap:wrap;}
+.section-split>.section{flex:1;min-width:320px;margin-bottom:0;}
+.radar-content{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.radar-svg-box{flex:2 1 260px;min-width:260px;display:flex;justify-content:center;padding:8px 0 4px;}
+.radar-cat-list{flex:1 1 200px;min-width:200px;display:flex;flex-direction:column;margin-top:8px;}
+.radar-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dashed var(--border);}
+.radar-cat-row:last-child{border-bottom:none;}
+.radar-cat-main{min-width:0;}
+.radar-cat-label{font-size:13px;font-weight:600;color:var(--text);}
+.radar-cat-feeds{font-size:11px;color:var(--muted);margin-top:2px;}
+.radar-cat-score{flex-shrink:0;text-align:right;}
+.radar-cat-val{font-size:16px;font-weight:700;color:var(--orange);}
+.radar-cat-rank{font-size:11px;font-weight:500;color:var(--muted);margin-left:3px;}
+@media(max-width:800px){ .section-split{flex-direction:column;} .section-split>.section{min-width:0;} }
 .cum-bar{display:flex;background:rgba(196,114,42,.07);border:1px solid rgba(196,114,42,.18);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;flex-wrap:wrap;}
 .cum-s{flex:1;min-width:70px;padding:14px 10px;text-align:center;border-right:1px solid rgba(196,114,42,.1);}
 .cum-s:last-child{border-right:none;}
@@ -127,8 +144,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .hist-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);overflow:auto;}
 .hist-table{width:100%;border-collapse:collapse;}
 .hist-table th{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:13px 12px;text-align:right;border-bottom:2px solid var(--border);white-space:nowrap;background:var(--bg4);overflow:hidden;}
+.hist-table th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)){padding-right:calc(12px - 1.5px);}
 .hist-table th:first-child,.hist-table th:nth-child(2),.hist-table th:nth-child(3){text-align:left;}
 .hist-table td{padding:13px 12px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;overflow:hidden;}
+.hist-table td:first-child,.hist-table td:nth-child(2),.hist-table td:nth-child(3){text-align:left;}
 .hist-table tr:last-child td{border-bottom:none;}
 .hist-table tr.cur td{background:rgba(196,114,42,.04);}
 .hist-table tr.cur td:first-child{border-left:3px solid var(--orange);}
@@ -144,6 +163,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .weekly-table-wrap{background:var(--bg2);border-top:1px solid var(--border);}
 .weekly-table{width:100%;border-collapse:collapse;}
 .weekly-table th{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:9px 12px;text-align:right;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);white-space:nowrap;overflow:hidden;}
+.weekly-table th:not(:first-child):not(:nth-child(2)){padding-right:calc(12px - 1.2px);}
 .weekly-table th:first-child,.weekly-table th:nth-child(2){text-align:left;}
 .weekly-table td{padding:9px 12px;border-bottom:1px solid rgba(33,38,45,.5);text-align:right;vertical-align:middle;overflow:hidden;}
 .weekly-table td:first-child,.weekly-table td:nth-child(2){text-align:left;}
@@ -157,7 +177,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .team-cell{display:flex;align-items:center;gap:8px;}
 .tl{width:24px;height:24px;object-fit:contain;}
 /* Season table stat values */
-.sv{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--text);}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--text);}
 /* Stat column widths — shared between season and weekly tables */
 .col-w{width:55px;min-width:55px;}
 .col-pts{width:65px;min-width:65px;}
@@ -170,7 +190,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .col-gp{width:45px;min-width:45px;}
 .sv.ch{color:var(--orange);}    /* career high */
 .sv.pts{color:var(--orange);}   /* fantasy pts always orange */
-.sv.z{font-size:16px;color:var(--muted);}  /* zero / no data */
+.sv.z{font-size:18px;color:var(--muted);}  /* zero / no data */
 /* Weekly table stat values (slightly smaller but still readable) */
 .wv{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted2);}
 .wv.z{color:var(--muted);font-size:14px;}
@@ -257,6 +277,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       <div class="rk-hb-grid" id="rk-hb-grid"></div>
     </div>
     <div class="inj-header-box" id="inj-header-box" style="display:none;">
+      <div class="inj-hb-loading-overlay" id="inj-hb-loading-overlay" style="display:none;"><div class="inj-hb-spinner"></div></div>
       <div class="inj-hb-status" id="inj-hb-status">FIT</div>
       <div class="inj-hb-row"><span class="inj-hb-label">Start Date</span><span class="inj-hb-val" id="inj-hb-startdate">–</span></div>
       <div class="inj-hb-row"><span class="inj-hb-label">Body Part</span><span class="inj-hb-val" id="inj-hb-bodypart">–</span></div>
@@ -266,12 +287,21 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   </div>
 </div>
 <div class="main" id="main" style="display:none">
-  <div class="section">
-    <div class="sec-hdr">
-      <div class="sec-title" id="cs-title">2026 Stats</div>
-      <div class="sec-badge pending" id="cs-badge">Loading…</div>
+  <div class="section-split">
+    <div class="section" id="radar-section" style="display:none;">
+      <div class="sec-hdr">
+        <div class="sec-title">Stärken &amp; Schwächen</div>
+        <div class="sec-badge">Intern</div>
+      </div>
+      <div id="radar-wrap"><div class="stats-ph"><p>Lade Positionsvergleich…</p></div></div>
     </div>
-    <div id="cs-wrap"><div class="stats-ph"><p>Loading stats…</p></div></div>
+    <div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title" id="cs-title">2026 Stats</div>
+        <div class="sec-badge pending" id="cs-badge">Loading…</div>
+      </div>
+      <div id="cs-wrap"><div class="stats-ph"><p>Loading stats…</p></div></div>
+    </div>
   </div>
   <div class="section">
     <div class="sec-hdr">
@@ -283,6 +313,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       <table class="hist-table">
         <thead><tr>
           <th style="width:110px">Season</th><th style="width:90px">Team</th><th style="width:75px">Pos</th>
+          <th style="width:70px" title="Positions-Rang laut Sleeper Fantasy Points dieser Saison">RK</th>
           <th style="width:60px">Avg</th><th style="width:70px">Pts</th><th style="width:45px">GP</th><th style="width:65px">Snp%</th><th style="width:60px">Snaps</th>
           <th style="width:55px">Solo</th><th style="width:55px">Ast</th><th style="width:55px">TKL</th>
           <th style="width:55px">TFL</th><th style="width:55px">SK</th><th style="width:60px">QBH</th><th style="width:60px">PBU</th>
@@ -350,7 +381,11 @@ const CACHE_KEY='mim_player_search_index_v1',CACHE_TS='mim_player_search_index_t
 // da hierfür (anders als beim Such-Index oben) noch kein localStorage-Cache existierte.
 // Eigener Key-PREFIX pro Spieler (nicht ein gemeinsamer Key), damit jeder Spieler
 // seinen eigenen 23h-Cache-Eintrag bekommt und sich Spieler nicht gegenseitig überschreiben.
-const PSTATS_CACHE_PREFIX='mim_pstats_v1_';
+// "v2" (siehe Chat: Team-Auflösung in enrichTeams wurde mehrfach nachgebessert
+// — alte "v1"-Cache-Einträge könnten noch falsche Team-Werte aus früheren
+// Testläufen enthalten. Version hochgezählt, damit JEDER Besucher automatisch
+// frisch neu lädt, statt dass jeder Einzelne manuell seinen Cache löschen muss.)
+const PSTATS_CACHE_PREFIX='mim_pstats_v2_';
 const CUR_YEAR=new Date().getFullYear();
 
 const ESPN_A={ARI:'ari',ATL:'atl',BAL:'bal',BUF:'buf',CAR:'car',CHI:'chi',CIN:'cin',CLE:'cle',DAL:'dal',DEN:'den',DET:'det',GB:'gb',HOU:'hou',IND:'ind',JAX:'jax',KC:'kc',LAC:'lac',LAR:'lar',LA:'lar',LV:'lv',MIA:'mia',MIN:'min',NE:'ne',NO:'no',NYG:'nyg',NYJ:'nyj',PHI:'phi',PIT:'pit',SF:'sf',SEA:'sea',TB:'tb',TEN:'ten',WAS:'wsh'};
@@ -370,11 +405,11 @@ async function fetchEspnInjuryNote(teamAbbr, espnId){
   if(!teamId || !espnId) return null;
   try{
     const listUrl = `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/teams/${teamId}/injuries?limit=100`;
-    const list = await fetch(listUrl).then(r => r.json());
+    const list = await fetch(listUrl,{cache:'no-store'}).then(r => r.json());
     const items = list.items || [];
     const matches = items.filter(it => (it.$ref||'').includes(`/athletes/${espnId}/`));
     if(!matches.length) return null;
-    const details = await Promise.all(matches.map(it => fetch(it.$ref.replace('http://','https://')).then(r=>r.json()).catch(()=>null)));
+    const details = await Promise.all(matches.map(it => fetch(it.$ref.replace('http://','https://'),{cache:'no-store'}).then(r=>r.json()).catch(()=>null)));
     const valid = details.filter(Boolean).sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
     return valid[0] || null;
   }catch(e){
@@ -437,6 +472,11 @@ function renderInjuryBox(p){
   // und die nflverse-Injuries-CSV geladen ist (siehe unten).
   applyInjuryBoxFields(p);
   fetchAndShowEspnNote(p);
+  // Ladehinweis (siehe Chat): der Status kann sich nach dem nflverse-Abgleich
+  // noch ändern — Hinweis anzeigen, bis refineInjuryBoxFromNflverse() fertig ist,
+  // damit ein späterer Wechsel (z.B. FIT → Questionable) nicht verwirrt.
+  const checkingEl = document.getElementById('inj-hb-loading-overlay');
+  if(checkingEl) checkingEl.style.display = 'flex';
 }
 
 // ── NFLVERSE INJURIES: strukturierter Status (report_status/practice_status) ────
@@ -488,25 +528,33 @@ function fetchNvInjuryMap(yr){
 }
 
 async function refineInjuryBoxFromNflverse(p){
-  if(!p.gsis_id) return; // nichts zum Nachschlagen ohne gsis_id
-  for(const yr of [CUR_YEAR, CUR_YEAR-1]){
-    const map = await fetchNvInjuryMap(yr);
-    if(!map) continue; // Fetch fehlgeschlagen (z.B. Saison-Release noch nicht da) → nächstes Jahr/Sleeper-Fallback bleibt stehen
-    const hit = map.get(p.gsis_id);
-    if(hit && hit.report_status){
-      p.injury = hit.report_status;
-      p.injury_body_part = hit.report_primary_injury || p.injury_body_part;
-      p.practice_participation = hit.practice_status || p.practice_participation;
-      p.injury_src = `nflverse ${yr}`;
-      applyInjuryBoxFields(p);
-      fetchAndShowEspnNote(p); // Status kann sich geändert haben (fit→hurt) → Notiz neu prüfen
-      return;
+  try{
+    if(!p.gsis_id) return; // nichts zum Nachschlagen ohne gsis_id
+    for(const yr of [CUR_YEAR, CUR_YEAR-1]){
+      const map = await fetchNvInjuryMap(yr);
+      if(!map) continue; // Fetch fehlgeschlagen (z.B. Saison-Release noch nicht da) → nächstes Jahr/Sleeper-Fallback bleibt stehen
+      const hit = map.get(p.gsis_id);
+      if(hit && hit.report_status){
+        p.injury = hit.report_status;
+        p.injury_body_part = hit.report_primary_injury || p.injury_body_part;
+        p.practice_participation = hit.practice_status || p.practice_participation;
+        p.injury_src = `nflverse ${yr}`;
+        applyInjuryBoxFields(p);
+        fetchAndShowEspnNote(p); // Status kann sich geändert haben (fit→hurt) → Notiz neu prüfen
+        return;
+      }
+      if(map.size){
+        // Datei kam an, Spieler steht einfach nicht im Report (= kein aktueller Injury-Eintrag).
+        // Das ist der Normalfall für fitte Spieler — Sleeper-Fallback (meist auch "kein Status") bleibt gültig.
+        return;
+      }
     }
-    if(map.size){
-      // Datei kam an, Spieler steht einfach nicht im Report (= kein aktueller Injury-Eintrag).
-      // Das ist der Normalfall für fitte Spieler — Sleeper-Fallback (meist auch "kein Status") bleibt gültig.
-      return;
-    }
+  } finally {
+    // Ladehinweis (siehe Chat) IMMER ausblenden, sobald der Abgleich fertig ist —
+    // egal über welchen Pfad die Funktion endet (try/finally statt an jedem
+    // einzelnen return-Punkt, damit hier künftig nichts vergessen wird).
+    const checkingEl = document.getElementById('inj-hb-loading-overlay');
+    if(checkingEl) checkingEl.style.display = 'none';
   }
 }
 
@@ -661,6 +709,14 @@ function readStatsCache(sleeperId){
 function writeStatsCache(sleeperId,data){
   try{store().setItem(PSTATS_CACHE_PREFIX+sleeperId,JSON.stringify({ts:Date.now(),data},statsCacheReplacer));}catch{}
 }
+// Für den geteilten Firestore-Cache (siehe Chat, "Mittelweg" statt Night Job):
+// Map-Objekte (snapMap[yr].byWeek) müssen VOR dem Speichern in eine reine
+// JSON-Form gebracht werden (Firestore kennt keine JS-Maps), und beim Lesen
+// wieder zurückgebaut werden — dieselbe Replacer/Reviver-Logik wie beim
+// lokalen Cache, nur über den Umweg stringify→parse auf ein bereits
+// bestehendes Objekt angewendet statt auf rohen JSON-Text.
+function toPlainForShared(data){ return JSON.parse(JSON.stringify(data,statsCacheReplacer)); }
+function reviveSharedStatsData(data){ return JSON.parse(JSON.stringify(data),statsCacheReviver); }
 function idpG(pos,dc){const p=(pos||'').toUpperCase(),d=(dc||'').toUpperCase();const DL=new Set(['DE','DT','NT','EDGE','IDL','DL']),LB=new Set(['LB','ILB','MLB','OLB']),DB=new Set(['CB','FS','SS','S','DB','SAF']);if(p==='OLB')return DB.has(d)?'DB':(DL.has(d)?'DL':'LB');if(DL.has(p)&&!LB.has(p))return'DL';if(LB.has(p))return'LB';if(DB.has(p))return'DB';if(DL.has(d))return'DL';if(LB.has(d))return'LB';if(DB.has(d))return'DB';return pos||'DEF';}
 // Mehrfach-Positionen (z.B. T.J. Watt, Micah Parsons: LB + DL) — identisch zu players.html/rankings.html,
 // liest Sleepers eigenes fantasy_positions[]-Array statt nur der einzelnen position.
@@ -689,13 +745,23 @@ function sc(val,isCareerHigh){
 }
 // Stat cell for weekly table
 // ── LIGA SCORING ──────────────────────────────────────────────────────────────
-const LIGA_SCORING={idp_tkl_solo:1.5,idp_tkl_ast:0.5,idp_sack:4,idp_qb_hit:1,
+// ── SCORING (MIM Standard / MIM Bowl, siehe Chat) ───────────────────────────
+// Umschaltbar über einen einzelnen Schalter auf der Startseite — der Modus wird
+// global in localStorage gespeichert, jede Seite liest ihn beim Laden.
+const SCORING_STANDARD={idp_tkl_solo:1.5,idp_tkl_ast:0.5,idp_sack:4,idp_qb_hit:1,
   idp_tkl_loss:2,idp_pass_def:3,idp_int:6,idp_fum_rec:2,idp_ff:4,idp_td:6,
   idp_safe:10,idp_blk_kick:6};
-function calcPts(s){
+const SCORING_BOWL={idp_tkl_solo:1.5,idp_tkl_ast:0.75,idp_sack:5,idp_qb_hit:2,
+  idp_tkl_loss:3,idp_pass_def:5,idp_int:5,idp_fum_rec:2,idp_ff:4,idp_td:6,
+  idp_safe:10,idp_blk_kick:6};
+const SCORING_MODE_KEY='mim_scoring_mode';
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function calcPts(s,mode){
   if(!s)return 0;
   let pts=0;
-  for(const[k,v]of Object.entries(LIGA_SCORING)){const val=getStat(s,k);if(val&&val>0)pts+=val*v;}
+  const table=getScoringTable(mode);
+  for(const[k,v]of Object.entries(table)){const val=getStat(s,k);if(val&&val>0)pts+=val*v;}
   return Math.round(pts*100)/100;
 }
 function wc(val){
@@ -920,6 +986,435 @@ async function fetchPffGradePosition(teamAbbr, pffId, fullName){
   }
 }
 
+// ── STRENGTHS & WEAKNESSES RADAR (siehe Chat) ───────────────────────────────
+// Baut für die PFF-Positionsgruppe des Spielers (DT/ED/LB/CB/S) ein Netzdiagramm
+// aus 6 Kategorien, die sich aus den vorhandenen Box-Score-Stats zusammensetzen
+// (kein PFF-Grade-Zugriff in dieser ersten Version, siehe Chat). Jede Achse ist
+// ein PERZENTIL (0-100) gegen andere Spieler derselben Position mit Snaps in
+// derselben Saison — NUR für interne Nutzer sichtbar (window._isInternalUser).
+//
+// "concepts" pro Kategorie sind Fallback-Gruppen (z.B. ['idp_int','def_int'] =
+// "der INT-Wert, welches Feld auch immer vorhanden ist") — werden über getStat()
+// aufgelöst und dann SUMMIERT, damit unabhängige Stats sich addieren, aber
+// dieselbe Stat unter zwei Feldnamen nicht doppelt gezählt wird.
+const RADAR_CATEGORIES = {
+  DT: [
+    { label:'Pass Rush',    feeds:'Sacks', concepts:[['idp_sack']] },
+    { label:'Pressure',     feeds:'QB Hits', concepts:[['idp_qb_hit']] },
+    { label:'Run Defense',  feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',     feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Takeaways',    feeds:'Forced Fum. + Fum. Rec. + INT', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_int','def_int']] },
+    { label:'Splash Plays', feeds:'TD + Safety + PBU', concepts:[['idp_td','def_td'],['idp_safe'],['idp_pass_def']] },
+  ],
+  ED: [
+    { label:'Pass Rush',        feeds:'Sacks', concepts:[['idp_sack']] },
+    { label:'Pressure',         feeds:'QB Hits', concepts:[['idp_qb_hit']] },
+    { label:'Run Def. (Contain)', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',         feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Takeaways',        feeds:'Forced Fum. + Fum. Rec.', concepts:[['idp_ff','def_ff'],['idp_fum_rec']] },
+    { label:'Coverage/Splash',  feeds:'PBU + INT + TD + Safety', concepts:[['idp_pass_def'],['idp_int','def_int'],['idp_td','def_td'],['idp_safe']] },
+  ],
+  LB: [
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+  ],
+  CB: [
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+  ],
+  S: [
+    { label:'Coverage',    feeds:'PBU', concepts:[['idp_pass_def']] },
+    { label:'Ball Skills', feeds:'INT', concepts:[['idp_int','def_int']] },
+    { label:'Tackling',    feeds:'Solo + Assist Tackles', concepts:[['idp_tkl_solo'],['idp_tkl_ast']] },
+    { label:'Run Defense', feeds:'TFL', concepts:[['idp_tkl_loss']] },
+    { label:'Playmaking',  feeds:'Forced Fum. + Fum. Rec. + TD + Safety', concepts:[['idp_ff','def_ff'],['idp_fum_rec'],['idp_td','def_td'],['idp_safe']] },
+    { label:'Pass Rush',   feeds:'Sacks + QB Hits', concepts:[['idp_sack'],['idp_qb_hit']] },
+  ],
+};
+
+function radarCategoryValue(stats, category){
+  return category.concepts.reduce((sum, keys) => sum + (getStat(stats, ...keys) || 0), 0);
+}
+
+// Perzentil mit "Mean Rank" bei Gleichstand (gibt gleiche Werte fair zur Hälfte
+// dazwischen, statt immer nur "mindestens so gut wie" zu zählen).
+function radarPercentile(peerValues, ownValue){
+  if(!peerValues.length) return 50;
+  let below=0, equal=0;
+  peerValues.forEach(v => { if(v<ownValue) below++; else if(v===ownValue) equal++; });
+  return Math.round(((below + equal*0.5) / peerValues.length) * 1000) / 10;
+}
+
+// Rang (1 = bester Wert in der Vergleichsgruppe INKLUSIVE des Spielers selbst) —
+// siehe Chat: soll neben dem Perzentil-Wert als "(#Rang)" angezeigt werden.
+function radarRank(peerValues, ownValue){
+  const better = peerValues.filter(v => v > ownValue).length;
+  return better + 1;
+}
+
+// Karriere-Fenster (siehe Chat): statt nur der letzten Saison, ein Pro-Spiel-
+// Schnitt über die letzten N Saisons — Summe aller Rohwerte ÷ Summe aller GP in
+// diesem Fenster. Normalisiert automatisch für Verletzungsjahre (ein 8-von-17-
+// Spiele-Jahr zieht den Schnitt nicht künstlich runter wie eine reine
+// Saison-Summe das täte), ohne das separat modellieren zu müssen. Rookies mit
+// nur 1 Saison bleiben unverändert bei dieser einen Saison — lässt sich bei
+// unterschiedlich langen Karrieren nicht vermeiden.
+const RADAR_CAREER_WINDOW_YEARS = 5;
+const ALL_RADAR_STAT_KEYS = [...new Set(
+  Object.values(RADAR_CATEGORIES).flatMap(cats => cats.flatMap(cat => cat.concepts.flatMap(keys => keys)))
+)];
+
+function aggregateCareerPerGame(seasonStatsList){
+  let totalGp=0, seasonsUsed=0;
+  const sums={};
+  (seasonStatsList||[]).forEach(s => {
+    if(!s) return;
+    const gp=getStat(s,'gp')||0;
+    if(gp<=0) return;
+    totalGp+=gp; seasonsUsed++;
+    ALL_RADAR_STAT_KEYS.forEach(k => {
+      const v=getStat(s,k);
+      if(v) sums[k]=(sums[k]||0)+v;
+    });
+  });
+  if(totalGp<=0) return null;
+  const perGame={};
+  ALL_RADAR_STAT_KEYS.forEach(k => { if(sums[k]!==undefined) perGame[k]=sums[k]/totalGp; });
+  perGame._seasonsUsed=seasonsUsed;
+  perGame._totalGp=totalGp;
+  return perGame;
+}
+
+const RADAR_PEER_CACHE_PREFIX = 'mim_radar_peers_v1_';
+
+// ── SAISON-RANG NACH FANTASY POINTS (siehe Chat) ────────────────────────────
+// Anders als beim Netzdiagramm: hier zählt der BREITE Sleeper-Tag (DL/LB/DB,
+// nicht die PFF-Feinauflösung DT/ED/CB/S) und die reine SUMME der Fantasy Points
+// EINER Saison (kein Pro-Spiel-Schnitt, kein Karrierefenster) — genau das, was
+// in der Career-History-Zeile für dieses eine Jahr auch als "Pts" angezeigt wird.
+const SEASON_RANK_CACHE_PREFIX = 'mim_szn_rank_v2_';
+const SEASON_RANK_CACHE_TTL = 23*60*60*1000;
+
+async function buildSeasonRankGroup(tag, year){
+  const cacheKey = SEASON_RANK_CACHE_PREFIX + tag + '_' + year;
+  const sharedKey = `season_rank_v2_${tag}_${year}`;
+  try{
+    const raw = store().getItem(cacheKey);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.ts && Date.now()-parsed.ts < SEASON_RANK_CACHE_TTL && Array.isArray(parsed.data) && parsed.data.length){
+        return parsed.data;
+      }
+    }
+  }catch{}
+  if(window.loadSharedCache){
+    try{
+      const shared = await window.loadSharedCache(sharedKey);
+      if(shared && shared.ts && Date.now()-shared.ts < SEASON_RANK_CACHE_TTL && Array.isArray(shared.data) && shared.data.length){
+        try{ store().setItem(cacheKey, JSON.stringify({ts:shared.ts, data:shared.data})); }catch{}
+        return shared.data;
+      }
+    }catch(e){ console.warn('[SznRank] Geteilter Cache konnte nicht gelesen werden:', e); }
+  }
+
+  const candidates = (allPlayers||[]).filter(x => (x.positions||[x.position]).includes(tag) && x.team);
+  const BATCH = 12;
+  const results = [];
+  for(let i=0;i<candidates.length;i+=BATCH){
+    const batch = candidates.slice(i,i+BATCH);
+    const batchResults = await Promise.all(batch.map(async c => {
+      try{
+        const data = await fetchFB(SL_S_D(c.sleeper_id,year), SL_S_P(c.sleeper_id,year));
+        const s = data ? (data.stats||data) : null;
+        if(!s || !Object.keys(s).length) return null;
+        if((getStat(s,'gp')||0) < 1) return null;
+        // Beide Scoring-Modi gleichzeitig berechnen und cachen (siehe Chat) —
+        // sonst würde ein Wechsel MIM Standard/Bowl den Rang erst nach Ablauf
+        // des 23h-Caches korrekt zeigen.
+        return { sleeper_id: c.sleeper_id, ptsStandard: calcPts(s,'standard'), ptsBowl: calcPts(s,'bowl') };
+      }catch{ return null; }
+    }));
+    batchResults.forEach(r => { if(r) results.push(r); });
+  }
+  results.sort((a,b) => b.ptsStandard - a.ptsStandard);
+  if(results.length){
+    const payload = { ts: Date.now(), data: results };
+    try{ store().setItem(cacheKey, JSON.stringify(payload)); }catch{}
+    if(window.saveSharedCache) window.saveSharedCache(sharedKey, payload).then(ok=>{ if(ok) console.log(`[SznRank] Geteilter Cache für ${tag}/${year} geschrieben (${results.length} Spieler).`); });
+  }
+  return results;
+}
+
+// Rang wird über einen Wertvergleich ermittelt (nicht über die Array-Position) —
+// funktioniert dadurch korrekt für BEIDE Scoring-Modi, unabhängig davon, wie das
+// Array beim Cachen sortiert wurde.
+function findRankInGroup(group, sleeperId, mode){
+  const field = (mode||getScoringMode())==='bowl' ? 'ptsBowl' : 'ptsStandard';
+  const target = group.find(r => r.sleeper_id === sleeperId);
+  if(!target) return null;
+  const better = group.filter(r => r[field] > target[field]).length;
+  return better + 1;
+}
+
+// Befüllt die RK-Zellen der Career History im Hintergrund, NACHDEM die Tabelle
+// schon steht (die Zellen #szn-rk-<jahr> existieren also bereits). "eligibleYears"
+// enthält nur Saisons, in denen der Spieler selbst gp>0 hatte (matcht dieselbe
+// Bedingung, die auch die Pts/Avg-Spalten schon nutzen) — spart unnötige Peer-
+// Gruppen-Aufbauten für Saisons ohne echte Daten (z.B. die laufende Saison).
+async function loadSeasonRanks(p, eligibleYears){
+  const tags = (p.positions && p.positions.length) ? p.positions : [p.position];
+  for(const yr of eligibleYears){
+    const cell = document.getElementById(`szn-rk-${yr}`);
+    if(!cell) continue;
+    try{
+      const ranks = await Promise.all(tags.map(tag => buildSeasonRankGroup(tag, yr).then(group => findRankInGroup(group, p.sleeper_id))));
+      const display = ranks.map(r => r!=null ? `#${r}` : '–').join(' / ');
+      if(ranks.some(r => r!=null)){
+        cell.textContent = display;
+        cell.classList.remove('z');
+        cell.style.color = 'var(--text)';
+        cell.style.fontWeight = '600';
+      } else {
+        cell.textContent = '–';
+      }
+    }catch(e){
+      console.warn(`[SznRank] Rang für ${yr} konnte nicht berechnet werden:`, e);
+      cell.textContent = '–';
+    }
+  }
+}
+
+const RADAR_PEER_CACHE_TTL = 23*60*60*1000;
+
+// Baut die Vergleichsgruppe (bereits zu Pro-Spiel-Werten AGGREGIERT über
+// windowYears) für eine Positionsgruppe. Nutzt fetchPffGradePosition() wieder —
+// das cacht pro TEAM (nicht pro Spieler), es entstehen also nur 32 tatsächliche
+// PFF-Requests egal wie viele Kandidaten wir durchlaufen. 23h-Cache pro
+// Position+Jahresfenster — jetzt ZWEISTUFIG (siehe Chat, jetzt für alle
+// Community-Besucher sichtbar): 1) lokaler localStorage-Cache (schnellster
+// Pfad), 2) geteilter Firestore-Cache (verhindert, dass jeder einzelne Browser
+// erneut 32 PFF-Team-Abrufe + bis zu 5 Sleeper-Requests PRO Peer auslöst — nur
+// der jeweils ERSTE Besucher pro Tag baut das wirklich neu auf).
+async function buildRadarPeerGroup(posGroup, windowYears){
+  const yearsKey = windowYears.slice().sort((a,b)=>a-b).join('-');
+  const cacheKey = RADAR_PEER_CACHE_PREFIX + posGroup + '_' + yearsKey;
+  const sharedKey = `radar_peers_v1_${posGroup}_${yearsKey}`;
+  try{
+    const raw = store().getItem(cacheKey);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      // Ein leeres Ergebnis wird NICHT vertraut, egal wie frisch — sonst friert ein
+      // einmaliger Fehlschlag (z.B. PFF-Fetch-Hänger) das Ergebnis für 23h auf "leer"
+      // ein, obwohl ein erneuter Versuch funktioniert hätte (siehe Chat).
+      if(parsed && parsed.ts && Date.now()-parsed.ts < RADAR_PEER_CACHE_TTL && Array.isArray(parsed.data) && parsed.data.length){
+        console.log(`[Radar] Peer-Gruppe ${posGroup}/${yearsKey} aus lokalem Cache: ${parsed.data.length} Spieler.`);
+        return parsed.data;
+      }
+    }
+  }catch{}
+
+  if(window.loadSharedCache){
+    try{
+      const shared = await window.loadSharedCache(sharedKey);
+      if(shared && shared.ts && Date.now()-shared.ts < RADAR_PEER_CACHE_TTL && Array.isArray(shared.data) && shared.data.length){
+        console.log(`[Radar] Peer-Gruppe ${posGroup}/${yearsKey} aus geteiltem Firestore-Cache: ${shared.data.length} Spieler.`);
+        try{ store().setItem(cacheKey, JSON.stringify({ts:shared.ts, data:shared.data})); }catch{}
+        return shared.data;
+      }
+    }catch(e){ console.warn('[Radar] Geteilter Cache konnte nicht gelesen werden:', e); }
+  }
+
+  const broadTag = (posGroup==='DT'||posGroup==='ED') ? 'DL' : (posGroup==='LB' ? 'LB' : 'DB');
+  const candidates = (allPlayers||[]).filter(x => x.team && (x.positions||[x.position]).includes(broadTag));
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${candidates.length} Kandidaten mit Sleeper-Tag "${broadTag}" und Team gefunden (aus ${(allPlayers||[]).length} allPlayers insgesamt).`);
+  if(!candidates.length){
+    console.warn('[Radar] Keine Kandidaten — ist allPlayers zu diesem Zeitpunkt schon befüllt?', (allPlayers||[]).length);
+  }
+
+  const resolved = [];
+  let pffErrors = 0, pffHits = 0, sleeperFallbackHits = 0;
+  for(const c of candidates){
+    let bucket = null;
+    // Echter ID-Abgleich statt Namensabgleich (siehe Chat): c.pff_id kommt direkt
+    // aus Sleepers eigenem Rohdatensatz (dieselbe Quelle wie in compare.html /
+    // injury-feed.js) — falls vorhanden, nutzt fetchPffGradePosition() intern den
+    // präzisen ID-Match statt der fehleranfälligeren Namens-Fallback-Logik.
+    try{ bucket = await fetchPffGradePosition(c.team, c.pff_id, c.full_name); }
+    catch(e){ pffErrors++; console.warn('[Radar] fetchPffGradePosition Fehler für', c.full_name, e); }
+    if(bucket) pffHits++;
+    // Fallback (siehe Chat): findet PFF nichts (weder per ID noch per Namens-
+    // Fallback), nicht direkt ausschließen, sondern denselben Sleeper-Tag-
+    // Fallback nutzen wie bei der einzeln betrachteten Spielerseite
+    // (classifyViaSleeperTag) — sonst fallen Peers unnötig aus der
+    // Vergleichsgruppe, obwohl sie sich korrekt zuordnen ließen.
+    if(!bucket){
+      bucket = classifyViaSleeperTag(c.positions, c.detail_pos);
+      if(bucket) sleeperFallbackHits++;
+    }
+    if(bucket === posGroup) resolved.push(c);
+  }
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${resolved.length} von ${candidates.length} Kandidaten haben Position "${posGroup}" (${pffHits} via PFF [ID- oder Namensabgleich], ${sleeperFallbackHits} via Sleeper-Tag-Fallback, ${pffErrors} PFF-Fehler).`);
+
+  // Batch-Größe niedriger als vorher (war 12) — jetzt holt jeder Peer bis zu
+  // RADAR_CAREER_WINDOW_YEARS Saisons parallel, macht pro Batch schnell viele
+  // gleichzeitige Requests.
+  const BATCH = 6;
+  const peerAggs = [];
+  for(let i=0;i<resolved.length;i+=BATCH){
+    const batch = resolved.slice(i,i+BATCH);
+    const results = await Promise.all(batch.map(async c => {
+      try{
+        const seasonStats = await Promise.all(windowYears.map(async yr => {
+          try{
+            const data = await fetchFB(SL_S_D(c.sleeper_id,yr), SL_S_P(c.sleeper_id,yr));
+            return data ? (data.stats||data) : null;
+          }catch{ return null; }
+        }));
+        return aggregateCareerPerGame(seasonStats);
+      }catch(e){ console.warn('[Radar] Stats-Fetch Fehler für', c.full_name, e); return null; }
+    }));
+    results.forEach(r => { if(r) peerAggs.push(r); });
+  }
+  console.log(`[Radar] ${posGroup}/${yearsKey}: ${peerAggs.length} von ${resolved.length} Positions-Treffern hatten auch Season-Stats mit Snaps im Fenster.`);
+
+  if(peerAggs.length){
+    const payload = {ts:Date.now(), data:peerAggs};
+    try{ store().setItem(cacheKey, JSON.stringify(payload)); }catch{}
+    if(window.saveSharedCache){
+      window.saveSharedCache(sharedKey, payload).then(ok=>{ if(ok) console.log(`[Radar] Geteilter Cache für ${posGroup}/${yearsKey} geschrieben (${peerAggs.length} Spieler).`); });
+    }
+  }
+  return peerAggs;
+}
+
+// Kurzform NUR noch für "Run Def. (Contain)" — mit den verbreiterten Rändern
+// (siehe letzter Fix) passen alle anderen Labels jetzt schon in voller Länge.
+const RADAR_SHORT_LABEL = {
+  'Run Def. (Contain)':'Run Defense',
+};
+function radarShortLabel(label){ return RADAR_SHORT_LABEL[label] || label; }
+
+// Kompaktes Netzdiagramm fürs Header (siehe Chat): Wert + Rang stehen direkt an
+// der jeweiligen Achse, keine separate Balkenliste mehr nötig.
+function buildRadarSvg(categories, percentiles, ranks){
+  const cx=210, cy=155, maxR=72, n=categories.length;
+  const angleFor = i => (Math.PI*2*i/n) - Math.PI/2;
+  const ringPoly = level => categories.map((_,i) => {
+    const r=maxR*level/100, a=angleFor(i);
+    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+  const grid = [25,50,75,100].map(level =>
+    `<polygon points="${ringPoly(level)}" fill="none" stroke="var(--border2)" stroke-width="1"/>`
+  ).join('');
+  const axes = categories.map((_,i) => {
+    const a=angleFor(i), x2=cx+maxR*Math.cos(a), y2=cy+maxR*Math.sin(a);
+    return `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--border2)" stroke-width="1"/>`;
+  }).join('');
+  const dataPts = percentiles.map((v,i) => {
+    const r=maxR*Math.max(0,Math.min(100,v))/100, a=angleFor(i);
+    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+  const dots = percentiles.map((v,i) => {
+    const r=maxR*Math.max(0,Math.min(100,v))/100, a=angleFor(i);
+    return `<circle cx="${(cx+r*Math.cos(a)).toFixed(1)}" cy="${(cy+r*Math.sin(a)).toFixed(1)}" r="3" fill="var(--orange)"/>`;
+  }).join('');
+  // Labels bekommen jetzt deutlich mehr seitlichen Spielraum (viewBox 400 statt
+  // 300 breit, cx mittig bei 200) — vorher wurden lange Labels wie "Cov/Splash"
+  // oder "Takeaways" auf der linken Seite (text-anchor="end") abgeschnitten,
+  // weil dort schlicht nicht genug Platz zwischen Text-Ankerpunkt und dem
+  // linken viewBox-Rand war (siehe Chat). overflow:visible zusätzlich als
+  // Sicherheitsnetz, falls ein Label trotzdem mal über den Rand hinausragt.
+  const labels = categories.map((cat,i) => {
+    const a=angleFor(i), lr=maxR+26, x=cx+lr*Math.cos(a), y=cy+lr*Math.sin(a);
+    const anchor = Math.abs(Math.cos(a))<0.25 ? 'middle' : (Math.cos(a)>0 ? 'start' : 'end');
+    return `<text x="${x.toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="${anchor}" fill="var(--muted)" font-size="10.5" font-family="Inter,sans-serif" font-weight="600">${radarShortLabel(cat.label)}</text>
+    <text x="${x.toFixed(1)}" y="${(y+10).toFixed(1)}" text-anchor="${anchor}" font-size="12" font-family="Inter,sans-serif" font-weight="700"><tspan fill="var(--orange)">${Math.round(percentiles[i])}</tspan><tspan fill="var(--muted)" font-size="9.5" font-weight="500"> (#${ranks[i]})</tspan></text>`;
+  }).join('');
+  return `<svg viewBox="0 0 400 320" width="100%" style="max-width:600px;display:block;margin:0 auto;overflow:visible;">
+    ${grid}${axes}
+    <polygon points="${dataPts}" fill="var(--orange-glow)" stroke="var(--orange)" stroke-width="2"/>
+    ${dots}${labels}
+  </svg>`;
+}
+
+async function renderRadarSection(p){
+  const section=document.getElementById('radar-section'), wrap=document.getElementById('radar-wrap');
+  if(!section||!wrap) return;
+  // Community-Freigabe erstmal wieder zurückgenommen (siehe Chat, noch nicht
+  // final entschieden). Da "2026 Stats" der einzige verbleibende sichtbare
+  // Flex-Child in .section-split ist, sobald diese Sektion display:none hat,
+  // streckt sich "2026 Stats" via flex:1 automatisch wieder auf die volle
+  // Breite — kein zusätzliches CSS nötig.
+  if(!window._isInternalUser){ section.style.display='none'; return; }
+  section.style.display='block';
+
+  const posGroup = p.nv_position;
+  const categories = RADAR_CATEGORIES[posGroup];
+  if(!categories){
+    wrap.innerHTML='<div class="stats-ph"><p>Position (DT/ED/LB/CB/S) konnte noch nicht sicher bestimmt werden.</p></div>';
+    return;
+  }
+
+  const statsMap = window._statsMapForRadar || {};
+  const seasons = (window._S||[]).filter(y=>y<=CUR_YEAR).slice().sort((a,b)=>b-a);
+  const windowYears = seasons.slice(0, RADAR_CAREER_WINDOW_YEARS);
+  if(!windowYears.length){
+    wrap.innerHTML='<div class="stats-ph"><p>Keine Saison-Historie gefunden.</p></div>';
+    return;
+  }
+
+  const ownAgg = aggregateCareerPerGame(windowYears.map(y=>statsMap[y]));
+  if(!ownAgg){
+    wrap.innerHTML='<div class="stats-ph"><p>Keine Saison mit gespielten Snaps im Betrachtungsfenster gefunden.</p></div>';
+    return;
+  }
+
+  const yearsLabel = windowYears.length>1 ? `${Math.min(...windowYears)}–${Math.max(...windowYears)}` : `${windowYears[0]}`;
+  wrap.innerHTML=`<div class="stats-ph"><p>Lade Positionsvergleich (${posGroup}, ${yearsLabel})…</p></div>`;
+  const peers = await buildRadarPeerGroup(posGroup, windowYears);
+  if(!peers.length){
+    wrap.innerHTML='<div class="stats-ph"><p>Keine Vergleichsdaten für diese Position im Betrachtungsfenster verfügbar.</p></div>';
+    return;
+  }
+
+  const percentiles = categories.map(cat => {
+    const own = radarCategoryValue(ownAgg, cat);
+    const peerVals = peers.map(agg => radarCategoryValue(agg, cat));
+    return radarPercentile(peerVals, own);
+  });
+  const ranks = categories.map(cat => {
+    const own = radarCategoryValue(ownAgg, cat);
+    const peerVals = peers.map(agg => radarCategoryValue(agg, cat));
+    return radarRank(peerVals, own);
+  });
+
+  wrap.innerHTML = `
+    <div class="radar-content">
+      <div class="radar-svg-box">${buildRadarSvg(categories, percentiles, ranks)}</div>
+      <div class="radar-cat-list">
+        ${categories.map((cat,i)=>`
+          <div class="radar-cat-row">
+            <div class="radar-cat-main">
+              <div class="radar-cat-label">${cat.label}</div>
+              <div class="radar-cat-feeds">${cat.feeds}</div>
+            </div>
+            <div class="radar-cat-score">
+              <span class="radar-cat-val">${Math.round(percentiles[i])}</span><span class="radar-cat-rank">(#${ranks[i]})</span>
+            </div>
+          </div>`).join('')}
+        <div class="hist-note" style="margin-top:12px;">Perzentil (0-100) &amp; Rang gegen ${peers.length+1} ${posGroup}-Spieler · Basis: Ø der letzten ${ownAgg._seasonsUsed} Saison${ownAgg._seasonsUsed===1?'':'en'} mit Snaps (${yearsLabel}, pro Spiel gerechnet — max. letzte ${RADAR_CAREER_WINDOW_YEARS} Jahre) · Position via ${p.pos_src||'–'}</div>
+      </div>
+    </div>`;
+}
+
 async function nvFetch(p,yr){
   if(nvCache[yr]!==undefined)return nvCache[yr];
   nvCache[yr]=null;
@@ -1051,7 +1546,11 @@ async function loadPlayer(){
   if(!TARGET_ID){sub('No player ID');return;}
   sub('Checking cache…');
   let p=null;
-  const cached=(()=>{try{const s=store(),ts=s.getItem(CACHE_TS);if(ts&&Date.now()-parseInt(ts)<CACHE_TTL){const r=s.getItem(CACHE_KEY);return r?JSON.parse(r):null;}}catch{}return null;})();
+  let cached=(()=>{try{const s=store(),ts=s.getItem(CACHE_TS);if(ts&&Date.now()-parseInt(ts)<CACHE_TTL){const r=s.getItem(CACHE_KEY);return r?JSON.parse(r):null;}}catch{}return null;})();
+  // Formprüfung (siehe Chat): ein älterer Cache-Eintrag ohne "detail_pos" (neu
+  // für den Sleeper-Tag-Fallback in der Radar-Peer-Gruppe) wird verworfen statt
+  // 23h lang ohne dieses Feld weiterverwendet zu werden.
+  if(cached && cached.length && (!('detail_pos' in cached[0]) || !('pff_id' in cached[0]))) cached = null;
   // WICHTIG: der Cache enthält nur die SCHLANKE Such-Index-Version (sleeper_id,
   // full_name, position, team, espn_id) für die Suchleiste — NICHT die vollen
   // Detail-Felder (height/weight/age/years_exp/gsis_id/...), die buildP() braucht.
@@ -1063,12 +1562,12 @@ async function loadPlayer(){
   if(!p){
     sub('Fetching Sleeper…');
     try{
-      const r=await fetch(SLEEPER_ALL);if(!r.ok)throw new Error('HTTP '+r.status);
+      const r=await fetch(SLEEPER_ALL,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
       const data=await r.json();
       if(!cached){
         allPlayers=Object.entries(data).map(([id,x])=>{
           const groups=idpGroups(x);
-          return{sleeper_id:id,full_name:x.full_name||`${x.first_name||''} ${x.last_name||''}`.trim(),position:groups[0],positions:groups,team:x.team||'',espn_id:x.espn_id||''};
+          return{sleeper_id:id,full_name:x.full_name||`${x.first_name||''} ${x.last_name||''}`.trim(),position:groups[0],positions:groups,team:x.team||'',espn_id:x.espn_id||'',detail_pos:x.depth_chart_position||x.position||'',pff_id:x.pff_id||x.stats_id||''};
         }).filter(x=>x.positions&&x.positions.length);
         try{const s=store();s.setItem(CACHE_KEY,JSON.stringify(allPlayers));s.setItem(CACHE_TS,Date.now().toString());}catch{}
       }
@@ -1079,11 +1578,20 @@ async function loadPlayer(){
   renderPlayer(p);
   // Start league chain + stats loading in parallel, IDs in background
   // enrichIds runs after a short delay so render completes first
-  setTimeout(()=>{ enrichIds(p).then(()=>refineInjuryBoxFromNflverse(p)); },200);
+  const enrichIdsDone = new Promise(resolve => {
+    setTimeout(()=>{ enrichIds(p).then(()=>{ refineInjuryBoxFromNflverse(p); resolve(); }); },200);
+  });
   // Build league chain and load stats simultaneously
   // loadAllStats will await leagueChainReady before pts scan
   window._leagueChainReady = buildLeagueChain();
-  loadAllStats(p);
+  const statsDone = loadAllStats(p);
+  // Stärken/Schwächen-Netzdiagramm (siehe Chat) braucht sowohl die aufgelöste
+  // PFF-Position (aus enrichIds → p.nv_position) als auch die eigenen Season-
+  // Stats (aus loadAllStats → window._statsMapForRadar) — erst starten, wenn
+  // BEIDE fertig sind. window._lastLoadedPlayerForRadar erlaubt außerdem ein
+  // Neu-Rendern, falls sich der Login-Status währenddessen noch ändert.
+  window._lastLoadedPlayerForRadar = p;
+  Promise.all([enrichIdsDone, statsDone]).then(()=>renderRadarSection(p));
 }
 
 function buildP(id,r){
@@ -1269,6 +1777,7 @@ function renderHistRows(seasons,p,statsMap,ptsMap,teamMap,snapMap){
   }).filter(v=>v!==null&&v>0);
   const snapHigh = snapValsForHigh.length?Math.max(...snapValsForHigh):undefined;
   let html='';
+  const eligibleRankYears=[];
   for(const yr of seasons){
     const isCur=yr===CUR_YEAR;
     const s=statsMap[yr]||{};
@@ -1294,17 +1803,19 @@ function renderHistRows(seasons,p,statsMap,ptsMap,teamMap,snapMap){
     const intt=getStat(s,'idp_int','def_int'),ff=getStat(s,'idp_ff','def_ff'),td=getStat(s,'idp_td','def_td');
     // Never show pts for seasons with no games played
     const ptsCell=(pts!==null&&gp&&gp>0)?`<td class="sv pts">${parseFloat(pts).toFixed(1)}</td>`:`<td class="sv z">–</td>`;
+    if(pts!==null&&gp&&gp>0) eligibleRankYears.push(yr);
     // Avg pts per game
     const avgPts=(pts!==null&&gp&&gp>0)?(parseFloat(pts)/gp).toFixed(1):null;
-    const avgCell=avgPts!==null?`<td class="sv" style="color:var(--muted2);font-size:15px">${avgPts}</td>`:`<td class="sv z">–</td>`;
+    const avgCell=avgPts!==null?`<td class="sv" style="color:var(--muted2);font-size:18px">${avgPts}</td>`:`<td class="sv z">–</td>`;
     const snapIsCh = snaps>0 && snapHigh!==undefined && snaps>=snapHigh;
     html+=`<tr class="season-row${isCur?' cur':''}" onclick="toggleWeekly(${yr})">
       <td class="yr"><span class="expand-arrow" id="arrow-${yr}">▶</span>${yr}${isCur?`<span class="now-badge">NOW</span>`:''}</td>
       <td><div class="team-cell">${logo}<span style="font-size:15px;font-weight:500">${teamLabel}</span></div></td>
       <td><span class="badge bp" style="font-size:10px">${p.position}${detail}</span></td>
+      <td class="sv z" id="szn-rk-${yr}" style="font-size:18px;color:var(--muted2)">–</td>
       ${avgCell}${ptsCell}
       ${sc(gp,isCH(gp,'gp'))}
-      ${snapPct!=null?`<td class="sv" style="color:var(--muted2);font-size:15px">${snapPct}%</td>`:`<td class="sv z">–</td>`}
+      ${snapPct!=null?`<td class="sv" style="color:var(--muted2);font-size:18px">${snapPct}%</td>`:`<td class="sv z">–</td>`}
       ${sc(snaps,snapIsCh)}
       ${sc(solo,isCH(solo,'idp_tkl_solo'))}${sc(ast,isCH(ast,'idp_tkl_ast'))}${sc(tkl,isCH(tkl,'idp_tkl'))}
       ${sc(tfl,isCH(tfl,'idp_tkl_loss'))}${sc(sk,isCH(sk,'idp_sack'))}
@@ -1316,7 +1827,7 @@ function renderHistRows(seasons,p,statsMap,ptsMap,teamMap,snapMap){
       ${sc(td,isCH(td,'idp_td','def_td'))}
     </tr>
     <tr class="weekly-row" id="weekly-${yr}">
-      <td colspan="20" style="padding:0">
+      <td colspan="21" style="padding:0">
         <div class="weekly-table-wrap">
           <div class="weekly-loading" id="wl-${yr}">Loading…</div>
           <table class="weekly-table" id="wt-${yr}" style="display:none">
@@ -1334,6 +1845,9 @@ function renderHistRows(seasons,p,statsMap,ptsMap,teamMap,snapMap){
     </tr>`;
   }
   document.getElementById('hist-body').innerHTML=html;
+  // Positions-Rang je Saison (siehe Chat) — läuft bewusst NACH dem Setzen von
+  // innerHTML im Hintergrund, damit die Zellen (#szn-rk-<jahr>) schon existieren.
+  if(eligibleRankYears.length) loadSeasonRanks(p, eligibleRankYears);
   // Die Tabelle wurde gerade komplett neu gebaut (frisches DOM ohne 'open'-Klassen
   // und ohne bereits geladene Weekly-Inhalte) — weeklyLoaded ist jetzt bezogen auf
   // das ALTE DOM wertlos und muss zurückgesetzt werden, sonst hält toggleWeekly()
@@ -1520,10 +2034,27 @@ async function loadAllStats(p){
   // Punkte-Scan unten pro Saison Woche für Woche sequenziell die Matchups abfragt,
   // das war der Haupttreiber der 10-15s Ladezeit). Bei einem gültigen, <23h alten
   // Treffer werden ALLE Netzwerk-Requests dieser Funktion übersprungen.
-  const cached=readStatsCache(p.sleeper_id);
+  let cached=readStatsCache(p.sleeper_id), fromShared=false;
+
+  // Geteilter Cache (siehe Chat, "Mittelweg" statt kompletter Night Job für alle
+  // ~5.500 Spieler): der erste Besucher, der einen Spieler an einem Tag öffnet,
+  // lädt weiterhin live wie bisher — aber das Ergebnis landet zusätzlich in
+  // Firestore. Jeder danach (unabhängig vom eigenen Browser) bekommt es von hier,
+  // ohne selbst laden zu müssen. Kein Cron-Job, kein Hintergrundprozess — rein
+  // bedarfsgesteuert durch tatsächliche Besuche.
+  if(!cached && window.loadSharedCache){
+    try{
+      const shared = await window.loadSharedCache(`player_core_v1_${p.sleeper_id}`);
+      if(shared && shared.ts && Date.now()-shared.ts<CACHE_TTL && isValidStatsCacheShape(shared.data)){
+        cached = reviveSharedStatsData(shared.data);
+        fromShared = true;
+        writeStatsCache(p.sleeper_id,cached); // gleich auch lokal ablegen, für den nächsten Aufruf noch schneller
+      }
+    }catch(e){ console.warn('[Stats] Geteilter Cache konnte nicht gelesen werden:', e); }
+  }
 
   if(cached){
-    sub('Loading cached stats…');
+    sub(fromShared ? 'Loading shared stats…' : 'Loading cached stats…');
     ({statsMap,ptsMap,teamMap,snapMap,cum,anyStats}=cached);
     if(!window._teamMap)window._teamMap={};
     Object.assign(window._teamMap,teamMap);
@@ -1633,6 +2164,10 @@ async function loadAllStats(p){
     // vergangenen Team-Namen — das ist unkritisch, enrichTeams löst das bei einem
     // späteren Cache-Treffer einfach selbst nach (siehe unten).
     writeStatsCache(p.sleeper_id,{statsMap,ptsMap,teamMap,snapMap,cum,anyStats});
+    if(window.saveSharedCache){
+      const payload=toPlainForShared({statsMap,ptsMap,teamMap,snapMap,cum,anyStats});
+      window.saveSharedCache(`player_core_v1_${p.sleeper_id}`,{ts:Date.now(),data:payload}).catch(()=>{});
+    }
   }
 
   // Current season card
@@ -1677,6 +2212,15 @@ async function loadAllStats(p){
     return sum+(v||0);
   },0);
 
+  // Punkte werden bewusst NICHT aus dem Cache übernommen, sondern hier live aus
+  // den (ohnehin gecachten) ROHEN Stats neu berechnet — siehe Chat: dadurch wirkt
+  // ein Wechsel zwischen MIM Standard/Bowl sofort, ohne auf den 23h-Cache warten
+  // zu müssen, der ja nur die statsMap (nicht das Scoring) betreffen soll.
+  Object.keys(statsMap).forEach(yr=>{
+    const p=calcPts(statsMap[yr]);
+    if(p>0) ptsMap[yr]=p; else delete ptsMap[yr];
+  });
+
   // Career bar
   if(anyStats){
     const cumBar=document.getElementById('cum-bar');cumBar.style.display='flex';
@@ -1707,10 +2251,17 @@ async function loadAllStats(p){
     enrichTeams(p,seasons,statsMap,ptsMap,teamMap); // Cache bereits vollständig, hier nur Formsache
   }else{
     enrichTeams(p,seasons,statsMap,ptsMap,teamMap)
-      .then(()=>writeStatsCache(p.sleeper_id,{statsMap,ptsMap,teamMap,snapMap,cum,anyStats}))
+      .then(()=>{
+        writeStatsCache(p.sleeper_id,{statsMap,ptsMap,teamMap,snapMap,cum,anyStats});
+        if(window.saveSharedCache){
+          const payload=toPlainForShared({statsMap,ptsMap,teamMap,snapMap,cum,anyStats});
+          window.saveSharedCache(`player_core_v1_${p.sleeper_id}`,{ts:Date.now(),data:payload}).catch(()=>{});
+        }
+      })
       .catch(e=>console.warn('[MIM] enrichTeams/cache-update fehlgeschlagen:',e));
   }
   window._snapMap = snapMap; // für toggleWeekly (weekly Snap-Daten) verfügbar machen
+  window._statsMapForRadar = statsMap; // für das Stärken/Schwächen-Netzdiagramm (kein doppelter Fetch nötig)
 }
 
 // Background: get past team from Sleeper weekly stats (team field on week objects)
@@ -1728,6 +2279,7 @@ async function enrichTeams(p,seasons,statsMap,ptsMap,teamMap){
         // weekly grouping returns array of week objects, each may have 'team'
         const raw=wData.stats||wData;
         const weeks=Array.isArray(raw)?raw:Object.values(raw).filter(v=>v&&typeof v==='object');
+        console.log(`[Team] ${yr}: ${weeks.length} Wochen-Einträge von Sleeper, Beispiel-Team-Feld:`, weeks[0]?.team, weeks[0]);
         for(const w of weeks){
           // Sleeper weekly stat objects have a 'team' field
           if(w.team&&typeof w.team==='string'&&w.team.length===2||w.team?.length===3){
@@ -1736,15 +2288,20 @@ async function enrichTeams(p,seasons,statsMap,ptsMap,teamMap){
         }
         // Also check top-level team field
         if(!team&&wData.team)team=wData.team;
+      } else {
+        console.warn(`[Team] ${yr}: Sleeper-Weekly-Fetch lieferte gar keine Daten (wData ist leer).`);
       }
     }catch(e){console.warn(`enrichTeams ${yr} Sleeper:`,e.message);}
 
     // Fallback: nflverse CSV
     if(!team){
+      console.log(`[Team] ${yr}: kein Team via Sleeper gefunden, versuche nflverse-Fallback…`);
       const nv=await nvFetch(p,yr);
+      console.log(`[Team] ${yr}: nflverse-Antwort:`, nv);
       if(nv?.team)team=nv.team;
     }
 
+    if(!team) console.warn(`[Team] ${yr}: WEDER Sleeper NOCH nflverse hatten ein Team — fällt auf "FA" zurück, obwohl evtl. echte Stats vorhanden sind.`);
       // Show FA if nflverse couldn't find team either
     teamMap[yr]=team||'FA';
     if(!window._teamMap)window._teamMap={};
@@ -1790,7 +2347,14 @@ loadPlayer();
 </script>
 
 <script type="module">
-import { listAllRankings, loadListDoc, avatarFor, watchAuth } from './firebase-init.js';
+import { listAllRankings, loadListDoc, avatarFor, watchAuth, loadSharedCache, saveSharedCache } from './firebase-init.js';
+// Für den Radar-Peer-Cache (siehe Chat) — buildRadarPeerGroup() lebt im
+// klassischen <script>-Block, kann also nicht direkt aus diesem ES-Modul
+// importieren. Deshalb hier explizit auf window legen, genau wie renderIds/
+// renderRadarSection umgekehrt schon über window aus dem klassischen Script
+// heraus für dieses Modul sichtbar sind.
+window.loadSharedCache = loadSharedCache;
+window.saveSharedCache = saveSharedCache;
 
 watchAuth(user => {
   const link = document.getElementById('nav-scouting-link');
@@ -1805,6 +2369,8 @@ watchAuth(user => {
     : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
   window._isInternalUser = !!user;
   if(window._lastLoadedPlayerForIds && typeof renderIds === 'function') renderIds(window._lastLoadedPlayerForIds);
+  if(window._lastLoadedPlayerForRadar && typeof renderRadarSection === 'function') renderRadarSection(window._lastLoadedPlayerForRadar);
+  loadRankingsBox();
 });
 
 const urlP = new URLSearchParams(location.search);
@@ -1844,43 +2410,57 @@ function avatarHtml(user){
     : `<div class="rk-hb-avatar-fb">${initial}</div>`;
 }
 
-async function loadRankingsBox(){
-  if(!TARGET_ID) return;
-  try{
-    const users = await listAllRankings();
-    if(!users.length) return;
-    users.sort((a,b) => (a.displayName||'').localeCompare(b.displayName||'', 'de', { sensitivity: 'base' }));
+async function loadRankingsBoxAttempt(){
+  let users = await listAllRankings();
+  if(!users.length) return false;
+  users.sort((a,b) => (a.displayName||'').localeCompare(b.displayName||'', 'de', { sensitivity: 'base' }));
 
-    // Für jedes Format × jeden Nutzer die Platzierung ermitteln
-    const cellsByFormat = await Promise.all(FORMATS.map(async fmt => {
-      return Promise.all(users.map(async user => {
-        const listDoc = await loadListDoc(user.id, fmt.key);
-        const p = findPlacement(listDoc, TARGET_ID);
-        const val = p ? `T${p.tier} R${p.rankInTier} (#${p.overall})` : '–';
-        return `<a class="rk-hb-user" href="rankings.html" title="${user.displayName||''}">
-          ${avatarHtml(user)}
-          <span class="rk-hb-val${p?'':' rk-none'}">${val}</span>
-        </a>`;
-      }));
+  // Für jedes Format × jeden Nutzer die Platzierung ermitteln
+  const cellsByFormat = await Promise.all(FORMATS.map(async fmt => {
+    return Promise.all(users.map(async user => {
+      const listDoc = await loadListDoc(user.id, fmt.key);
+      const p = findPlacement(listDoc, TARGET_ID);
+      const val = p ? `T${p.tier} R${p.rankInTier} (#${p.overall})` : '–';
+      return `<a class="rk-hb-user" href="rankings.html" title="${user.displayName||''}">
+        ${avatarHtml(user)}
+        <span class="rk-hb-val${p?'':' rk-none'}">${val}</span>
+      </a>`;
     }));
+  }));
 
-    // Grid: 1 Spalte für das Format-Label + 1 Spalte pro Nutzer
-    const grid = document.getElementById('rk-hb-grid');
-    grid.style.gridTemplateColumns = `auto repeat(${users.length}, 76px)`;
-    let cellsHtml = '';
-    FORMATS.forEach((fmt, i) => {
-      cellsHtml += `<div class="rk-hb-fmt">${fmt.label}</div>`;
-      cellsHtml += cellsByFormat[i].join('');
-    });
-    grid.innerHTML = cellsHtml;
+  // Grid: 1 Spalte für das Format-Label + 1 Spalte pro Nutzer
+  const grid = document.getElementById('rk-hb-grid');
+  grid.style.gridTemplateColumns = `auto repeat(${users.length}, 76px)`;
+  let cellsHtml = '';
+  FORMATS.forEach((fmt, i) => {
+    cellsHtml += `<div class="rk-hb-fmt">${fmt.label}</div>`;
+    cellsHtml += cellsByFormat[i].join('');
+  });
+  grid.innerHTML = cellsHtml;
 
-    document.getElementById('rk-header-box').style.display = 'block';
-  }catch(e){
-    console.warn('IDP Rankings box konnte nicht geladen werden', e);
-  }
+  document.getElementById('rk-header-box').style.display = 'block';
+  return true;
 }
 
-loadRankingsBox();
+// Wrapper mit automatischem Retry (siehe Chat: die Box blieb manchmal leer,
+// erst ein manueller Refresh half — Firestore-Reads brauchen laut Security
+// Rules keine Auth, ein Timing-Problem beim (kalten) Verbindungsaufbau ist
+// wahrscheinlicher). Bis zu 2 Wiederholungen mit kurzer Pause, bevor aufgegeben wird.
+async function loadRankingsBox(retriesLeft){
+  if(retriesLeft===undefined) retriesLeft=2;
+  if(!TARGET_ID) return;
+  try{
+    const ok = await loadRankingsBoxAttempt();
+    if(!ok && retriesLeft>0){
+      setTimeout(()=>loadRankingsBox(retriesLeft-1), 1200);
+    }
+  }catch(e){
+    console.warn(`IDP Rankings box konnte nicht geladen werden (Versuch ${3-retriesLeft}/3)`, e);
+    if(retriesLeft>0){
+      setTimeout(()=>loadRankingsBox(retriesLeft-1), 1200);
+    }
+  }
+}
 </script>
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>

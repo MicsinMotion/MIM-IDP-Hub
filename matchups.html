@@ -708,11 +708,18 @@ async function loadPlayerDb(){
 }
 
 // ─── SEASON PTS (identisch zu compare.html) ─────────────────────────────────
-const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+// ── SCORING (MIM Standard / MIM Bowl, siehe Chat) — Umschaltbar über Schalter auf der Startseite, Modus global in localStorage ──
+const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
   idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
+  idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+const SCORING_MODE_KEY = 'mim_scoring_mode';
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
-function calcPts(s){ if(!s) return 0; let pts=0; for(const [k,v] of Object.entries(LIGA_SCORING)){ const val=getStat(s,k); if(val && val>0) pts += val*v; } return Math.round(pts*100)/100; }
+function calcPts(s, mode){ if(!s) return 0; let pts=0; const table=getScoringTable(mode); for(const [k,v] of Object.entries(table)){ const val=getStat(s,k); if(val && val>0) pts += val*v; } return Math.round(pts*100)/100; }
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonPts(id, yr){

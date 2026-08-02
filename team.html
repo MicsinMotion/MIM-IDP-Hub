@@ -2003,14 +2003,27 @@ function computeSeasonSnaps(pfrId, abbr, snapData){
 
 // ── SLEEPER: Weekly Stats je Spieler (→ Season Stats & Fantasy Points, wie in
 // player.html/rankings.html) ──
-const LIGA_SCORING = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
+// ── SCORING (MIM Standard / MIM Bowl, siehe Chat) ───────────────────────────
+// Umschaltbar über einen einzelnen Schalter auf der Startseite — der Modus wird
+// global in localStorage gespeichert, jede Seite liest ihn beim Laden.
+// team.html cacht ohnehin die ROHEN Wochen-Stats (statsById) — die Punkte werden
+// hier schon bei jedem Rendern live neu berechnet, ein Moduswechsel wirkt also
+// sofort, ohne dass der Roster-Cache selbst angefasst werden muss.
+const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_hit:1,
   idp_tkl_loss:2, idp_pass_def:3, idp_int:6, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
+  idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
+  idp_safe:10, idp_blk_kick:6};
+const SCORING_MODE_KEY = 'mim_scoring_mode';
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
-function calcPts(s){
+function calcPts(s, mode){
   if(!s) return 0;
   let pts = 0;
-  for(const [key, weight] of Object.entries(LIGA_SCORING)){ const v = getStat(s, key); if(v) pts += v*weight; }
+  const table = getScoringTable(mode);
+  for(const [key, weight] of Object.entries(table)){ const v = getStat(s, key); if(v) pts += v*weight; }
   return pts;
 }
 // Proxy-Kette für api.sleeper.com — ACHTUNG: euer eigener Worker hat aktuell eine
