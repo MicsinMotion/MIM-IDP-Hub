@@ -1568,8 +1568,13 @@ async function refreshUserList(){
     });
   });
 
-  const defaultUid = currentUser ? currentUser.uid : allRankings[0].id;
-  switchView(defaultUid);
+  if(currentUser){
+    switchView(currentUser.uid);
+  } else {
+    // Community (nicht eingeloggt): auf dem Konsens-Blatt starten statt beim
+    // alphabetisch ersten Rater zu landen (siehe Chat — das war zufällig immer Flo).
+    switchToOverview();
+  }
 }
 
 function markActiveAvatar(userId){

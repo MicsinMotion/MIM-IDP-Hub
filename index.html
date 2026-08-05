@@ -694,6 +694,11 @@ footer {
   <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 
+<div id="view-tracker" style="display:none;text-align:center;padding:10px 20px 24px;font-size:11px;color:var(--muted);">
+  👀 <span id="view-tracker-label" data-i18n="view_tracker_label">Seitenaufrufe insgesamt</span>: <b id="view-tracker-count" style="color:var(--orange);">–</b>
+  <span style="opacity:.6;" data-i18n="view_tracker_only_you"> · nur für dich sichtbar</span>
+</div>
+
 <div class="modal-overlay" id="bugreport-overlay">
   <div class="modal" style="max-width:440px;">
     <button class="modal-close" id="bugreport-close-btn">&times;</button>
@@ -715,7 +720,7 @@ footer {
 </div>
 
 <script type="module">
-import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
 
 // ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
 // Globaler Schalter, nur auf der Startseite sichtbar — der Modus wird in
@@ -767,6 +772,7 @@ const I18N = {
     footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
     footer_bugreport: 'Bug melden',
     footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+    view_tracker_label: 'Seitenaufrufe insgesamt', view_tracker_only_you: ' · nur für dich sichtbar',
     bugmodal_title: 'Bug melden',
     bugmodal_title_label: 'Titel',
     bugmodal_title_placeholder: 'Kurze Zusammenfassung',
@@ -822,6 +828,7 @@ const I18N = {
     footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
     footer_bugreport: 'Report a bug',
     footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+    view_tracker_label: 'Total page views', view_tracker_only_you: ' · visible only to you',
     bugmodal_title: 'Report a Bug',
     bugmodal_title_label: 'Title',
     bugmodal_title_placeholder: 'Brief summary',
@@ -898,7 +905,23 @@ function updateAuthDependentText(user){
   document.getElementById('footer-text').textContent = user ? t('footer_internal') : t('footer_community');
 }
 
-watchAuth(user => {
+// ── VIEW-TRACKER (siehe Chat, nur für Tarik sichtbar) ────────────────────────
+// Zählt JEDEN Seitenaufruf (unabhängig vom Login-Status) — bewusst einfach
+// gehalten (lesen, +1, schreiben statt eines atomaren Firestore-Increments).
+// Bei zeitgleichen Aufrufen kann das in seltenen Fällen einen Zähler-Tick
+// verlieren — für einen reinen "wie oft wurde die Seite aufgerufen"-Zähler
+// unkritisch, kein Anspruch auf exakte Präzision.
+async function incrementAndGetPageViews(){
+  try{
+    const current = await loadSharedCache('site_page_views');
+    const newCount = (current && typeof current.count === 'number' ? current.count : 0) + 1;
+    await saveSharedCache('site_page_views', { count: newCount, lastUpdated: Date.now() });
+    return newCount;
+  }catch(e){ console.warn('[PageViews] Zähler konnte nicht aktualisiert werden:', e); return null; }
+}
+const pageViewsPromise = incrementAndGetPageViews(); // sofort anstoßen, nicht auf Auth-Klärung warten
+
+watchAuth(async user => {
   window._isInternalUser = !!user;
   window._lastAuthUser = user; // damit refreshDynamicI18n() bei Sprachwechsel Zugriff hat
   document.getElementById('scouting-card').style.display = user ? '' : 'none';
@@ -906,6 +929,17 @@ watchAuth(user => {
   document.getElementById('matchups-card').style.display = user ? '' : 'none';
   updateAuthDependentText(user);
   if(window.refreshComparePanel) window.refreshComparePanel();
+  const trackerEl = document.getElementById('view-tracker');
+  if(trackerEl){
+    if(user && user.displayName === 'Tarik'){
+      const count = await pageViewsPromise;
+      const countEl = document.getElementById('view-tracker-count');
+      if(countEl) countEl.textContent = count != null ? count.toLocaleString(getLang()==='en'?'en-US':'de-DE') : '–';
+      trackerEl.style.display = 'block';
+    } else {
+      trackerEl.style.display = 'none';
+    }
+  }
   if (user) {
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
     authWrap.innerHTML = `
