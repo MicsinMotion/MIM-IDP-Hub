@@ -202,77 +202,14 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 <script type="module">
   import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
 
-  // ── SPRACHE (DE/EN, siehe Chat) ────────────────────────────────────────────
-  // Kein eigener Schalter auf dieser Seite — liest nur den auf der Startseite
-  // gesetzten Modus aus demselben localStorage-Schlüssel.
-  const LANG_KEY = 'mim_lang';
-  function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
-  const I18N = {
-    de: {
-      login: 'Login', logout: 'Logout',
-      login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
-      login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
-      init_cache: 'Lade aus Cache…', init_api: 'Lade von Sleeper API…',
-      init_nflverse: 'Lade nflverse- & PFF-Daten…', init_merge: 'Verarbeite & merge Spieler…',
-      init_loaded: n => `${n.toLocaleString()} IDP-Spieler geladen`, init_error: msg => `Fehler: ${msg}`,
-      search_placeholder: 'Spielername suchen…',
-      search_hint: 'Mindestens 3 Zeichen eingeben, um zu suchen',
-      pos_all: 'Alle IDP', status_all: 'Alle', status_active: 'Aktiv',
-      hint_browse: n => `${n.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`,
-      state_browse: 'Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen, oder wähle eine Position für die Top 50.',
-      state_noresults: q => `Keine Spieler gefunden für <strong>"${q}"</strong>.`,
-      count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} nach Punkten (${season}) · alphabetisch`,
-      count_results: n => `<strong>${n.toLocaleString()}</strong> Ergebnis${n!==1?'se':''}`,
-      count_top50_suffix: ' · zeigt Top 50',
-      age_suffix: ' J.', add_to_compare: 'Zum Vergleich hinzufügen',
-      compare_selected_suffix: '/3 Spieler ausgewählt',
-      compare_open: 'Vergleich öffnen (neuer Tab)', compare_reset: 'Auswahl zurücksetzen',
-      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
-      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
-      footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
-      footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
-    },
-    en: {
-      login: 'Login', logout: 'Logout',
-      login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
-      login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
-      init_cache: 'Loading from cache…', init_api: 'Loading from Sleeper API…',
-      init_nflverse: 'Loading nflverse & PFF data…', init_merge: 'Processing & merging players…',
-      init_loaded: n => `${n.toLocaleString()} IDP players loaded`, init_error: msg => `Error: ${msg}`,
-      search_placeholder: 'Search player name…',
-      search_hint: 'Enter at least 3 characters to search',
-      pos_all: 'All IDP', status_all: 'All', status_active: 'Active',
-      hint_browse: n => `${n.toLocaleString()} IDP players · enter at least 3 characters or pick a position`,
-      state_browse: 'Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters, or pick a position for the Top 50.',
-      state_noresults: q => `No players found for <strong>"${q}"</strong>.`,
-      count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} by points (${season}) · alphabetical`,
-      count_results: n => `<strong>${n.toLocaleString()}</strong> result${n!==1?'s':''}`,
-      count_top50_suffix: ' · showing Top 50',
-      age_suffix: ' yo', add_to_compare: 'Add to comparison',
-      compare_selected_suffix: '/3 players selected',
-      compare_open: 'Open comparison (new tab)', compare_reset: 'Clear selection',
-      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
-      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
-      footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
-      footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
-    }
-  };
-  function t(key, ...args){
-    const lang = getLang();
-    const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
-    return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
-  }
-  function applyI18n(){
-    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
-    document.documentElement.lang = getLang();
-  }
-  window.getLang = getLang;
-  window.t = t;
-  window.applyI18n = applyI18n;
-  applyI18n();
+// Sprache/Übersetzung (siehe Chat) wird jetzt im UNTEREN klassischen <script>
+// definiert, nicht hier — dieses <script type="module"> wird vom Browser
+// verzögert ausgeführt, das klassische Script darunter sofort/synchron. Würde
+// window.t() hier definiert, wäre es beim ersten Zugriff aus dem klassischen
+// Script (init() etc.) noch gar nicht vorhanden — genau das hat die Seite
+// vorhin zum Hängen gebracht. Ab hier daher überall window.t(...) statt t(...).
 
-  const authWrap = document.getElementById('auth-wrap');
+const authWrap = document.getElementById('auth-wrap');
   const overlay = document.getElementById('modal-overlay');
   const errEl = document.getElementById('modal-error');
   document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
@@ -281,8 +218,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
   function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
   function mapAuthError(e){
     const c = e.code || '';
-    if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
-    return t('login_error_generic') + (e.message || 'unknown');
+    if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return window.t('login_error_credentials');
+    return window.t('login_error_generic') + (e.message || 'unknown');
   }
   document.getElementById('login-submit').addEventListener('click', async () => {
     errEl.classList.remove('show');
@@ -298,13 +235,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
     const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
     if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
     const footerText = document.getElementById('footer-text');
-    if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
+    if(footerText) footerText.textContent = user ? window.t('footer_internal') : window.t('footer_community');
     if(user){
       const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-      authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
+      authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${window.t('logout')}</button></div></div>`;
       document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
     } else {
-      authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
+      authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${window.t('login')}</button>`;
       document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
     }
   });
@@ -352,6 +289,80 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 </div>
 
 <script>
+// ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
+// WICHTIG: Das lebt jetzt hier (klassisches Script, läuft sofort/synchron),
+// nicht im <script type="module"> oben (das wird vom Browser verzögert
+// ausgeführt und wäre erst NACH diesem Script hier fertig — window.t() wäre
+// beim ersten Zugriff durch init() unten noch undefined gewesen, das hat die
+// Seite hängen lassen). Kein eigener Schalter auf dieser Seite — liest nur den
+// auf der Startseite gesetzten Modus aus demselben localStorage-Schlüssel.
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+    login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+    init_cache: 'Lade aus Cache…', init_api: 'Lade von Sleeper API…',
+    init_nflverse: 'Lade nflverse- & PFF-Daten…', init_merge: 'Verarbeite & merge Spieler…',
+    init_loaded: n => `${n.toLocaleString()} IDP-Spieler geladen`, init_error: msg => `Fehler: ${msg}`,
+    search_placeholder: 'Spielername suchen…',
+    search_hint: 'Mindestens 3 Zeichen eingeben, um zu suchen',
+    pos_all: 'Alle IDP', status_all: 'Alle', status_active: 'Aktiv',
+    hint_browse: n => `${n.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`,
+    state_browse: 'Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen, oder wähle eine Position für die Top 50.',
+    state_noresults: q => `Keine Spieler gefunden für <strong>"${q}"</strong>.`,
+    count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} nach Punkten (${season}) · alphabetisch`,
+    count_results: n => `<strong>${n.toLocaleString()}</strong> Ergebnis${n!==1?'se':''}`,
+    count_top50_suffix: ' · zeigt Top 50',
+    age_suffix: ' J.', add_to_compare: 'Zum Vergleich hinzufügen',
+    compare_selected_suffix: '/3 Spieler ausgewählt',
+    compare_open: 'Vergleich öffnen (neuer Tab)', compare_reset: 'Auswahl zurücksetzen',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+    login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+    init_cache: 'Loading from cache…', init_api: 'Loading from Sleeper API…',
+    init_nflverse: 'Loading nflverse & PFF data…', init_merge: 'Processing & merging players…',
+    init_loaded: n => `${n.toLocaleString()} IDP players loaded`, init_error: msg => `Error: ${msg}`,
+    search_placeholder: 'Search player name…',
+    search_hint: 'Enter at least 3 characters to search',
+    pos_all: 'All IDP', status_all: 'All', status_active: 'Active',
+    hint_browse: n => `${n.toLocaleString()} IDP players · enter at least 3 characters or pick a position`,
+    state_browse: 'Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters, or pick a position for the Top 50.',
+    state_noresults: q => `No players found for <strong>"${q}"</strong>.`,
+    count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} by points (${season}) · alphabetical`,
+    count_results: n => `<strong>${n.toLocaleString()}</strong> result${n!==1?'s':''}`,
+    count_top50_suffix: ' · showing Top 50',
+    age_suffix: ' yo', add_to_compare: 'Add to comparison',
+    compare_selected_suffix: '/3 players selected',
+    compare_open: 'Open comparison (new tab)', compare_reset: 'Clear selection',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  document.documentElement.lang = getLang();
+}
+window.getLang = getLang;
+window.t = t;
+window.applyI18n = applyI18n;
+applyI18n();
+
 // ── CONFIG ──
 const SLEEPER_URL = 'https://api.sleeper.app/v1/players/nfl';
 

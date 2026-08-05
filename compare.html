@@ -99,6 +99,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       empty_title: 'Keine Spieler ausgewählt', empty_body: 'Wähle in der Player DB bis zu 3 Spieler zum Vergleich aus.',
       notfound_title: 'Spieler nicht gefunden', notfound_body: 'Die übergebenen Spieler-IDs konnten nicht aufgelöst werden.',
       radar_title: 'Stärken & Schwächen',
+      compare_profile: 'Zum Spielerprofil →', age_suffix: ' J.',
       radar_note: (peerCount, posGroup, seasonsUsed) => `Perzentil (0-100) &amp; Rang gegen ${peerCount} ${posGroup}-Spieler · Ø der letzten ${seasonsUsed} Saison${seasonsUsed===1?'':'en'} (pro Spiel)`,
       footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
       footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
@@ -111,6 +112,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       empty_title: 'No players selected', empty_body: 'Select up to 3 players in the Player DB to compare.',
       notfound_title: 'Players not found', notfound_body: 'The provided player IDs could not be resolved.',
       radar_title: 'Strengths & Weaknesses',
+      compare_profile: 'View Player Profile →', age_suffix: ' yo',
       radar_note: (peerCount, posGroup, seasonsUsed) => `Percentile (0-100) &amp; rank vs. ${peerCount} ${posGroup} players · Avg. of the last ${seasonsUsed} season${seasonsUsed===1?'':'s'} (per game)`,
       footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
       footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
@@ -535,7 +537,7 @@ function cardHtml(id, p){
       ${headshotHtml(p, id)}
       <div>
         <div class="cmp-name">${p.full_name}</div>
-        <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+' J.' : ''}</div>
+        <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+window.t('age_suffix') : ''}</div>
       </div>
     </div>
     <div class="cmp-loading">${window.t('loading_stats')}</div>
@@ -557,7 +559,7 @@ function fillCard(id, data){
       <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
     </div>`;
   const loadingEl = card.querySelector('.cmp-loading');
-  if(loadingEl) loadingEl.outerHTML = ptsHtml + statsHtml + `<a class="cmp-profile-link" href="player.html?id=${id}" target="_blank" rel="noopener">Zum Spielerprofil →</a>`;
+  if(loadingEl) loadingEl.outerHTML = ptsHtml + statsHtml + `<a class="cmp-profile-link" href="player.html?id=${id}" target="_blank" rel="noopener">${window.t('compare_profile')}</a>`;
 }
 
 // Stärken & Schwächen pro Karte (siehe Chat: unter den Punkten der vergangenen

@@ -398,7 +398,8 @@ const I18N = {
     col_empty_inbox: 'Spieler per Suche hinzufügen', col_empty: 'Leer',
     no_rankings_title: 'Noch keine Rankings', no_rankings_body: 'Melde dich an, um das erste Ranking zu erstellen.',
     loading_players: 'Lade Spielerdaten…',
-    compare_title: 'Vergleich', compare_closeall: 'Alle schließen',
+    compare_title: 'Vergleich', compare_closeall: 'Alle schließen', compare_profile: 'Zum Spielerprofil →',
+    age_suffix: ' J.',
     radar_title: 'Stärken & Schwächen',
     radar_note: (peerCount, posGroup, seasonsUsed, yearsLabel) => `Perzentil (0-100) &amp; Rang gegen ${peerCount} ${posGroup}-Spieler · Ø der letzten ${seasonsUsed} Saison${seasonsUsed===1?'':'en'} (${yearsLabel}, pro Spiel)`,
     tip_best: 'Bester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters',
@@ -427,7 +428,8 @@ const I18N = {
     col_empty_inbox: 'Add players via search', col_empty: 'Empty',
     no_rankings_title: 'No rankings yet', no_rankings_body: 'Sign in to create the first ranking.',
     loading_players: 'Loading player data…',
-    compare_title: 'Compare', compare_closeall: 'Close all',
+    compare_title: 'Compare', compare_closeall: 'Close all', compare_profile: 'View Player Profile →',
+    age_suffix: ' yo',
     radar_title: 'Strengths & Weaknesses',
     radar_note: (peerCount, posGroup, seasonsUsed, yearsLabel) => `Percentile (0-100) &amp; rank vs. ${peerCount} ${posGroup} players · Avg. of the last ${seasonsUsed} season${seasonsUsed===1?'':'s'} (${yearsLabel}, per game)`,
     tip_best: 'Best rank given by a single rater, with that rater\u2019s corresponding tier',
@@ -1150,13 +1152,13 @@ function renderComparePanel(){
         ${compareHeadshotHtml(p, id)}
         <div>
           <div class="cmp-name">${p.full_name}</div>
-          <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+' J.' : ''}</div>
+          <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+t('age_suffix') : ''}</div>
         </div>
       </div>
       ${ptsHtml}
       ${radarHtml}
       ${statsHtml}
-      <a class="cmp-profile-link" href="player.html?id=${id}" target="_blank" rel="noopener">Zum Spielerprofil →</a>
+      <a class="cmp-profile-link" href="player.html?id=${id}" target="_blank" rel="noopener">${t('compare_profile')}</a>
     </div>`;
   }).join('');
 
@@ -1770,7 +1772,7 @@ function buildRaterListHtml(results, opts){
     }
     const initials = (p.full_name||'??').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
     const posTeam = `${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}`;
-    const ageStr = p.age ? `${p.age} J. · ` : '';
+    const ageStr = p.age ? `${p.age}${t('age_suffix')} · ` : '';
 
     const raterCells = allRankings.map(u => {
       const rec = r.records.find(x => x.userId === u.id);
