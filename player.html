@@ -290,10 +290,9 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   <div class="section-split">
     <div class="section" id="radar-section" style="display:none;">
       <div class="sec-hdr">
-        <div class="sec-title">Stärken &amp; Schwächen</div>
-        <div class="sec-badge">Intern</div>
+        <div class="sec-title" data-i18n="radar_title">Stärken &amp; Schwächen</div>
       </div>
-      <div id="radar-wrap"><div class="stats-ph"><p>Lade Positionsvergleich…</p></div></div>
+      <div id="radar-wrap"><div class="stats-ph"><p data-i18n="radar_loading_full">Lade Positionsvergleich…</p></div></div>
     </div>
     <div class="section">
       <div class="sec-hdr">
@@ -334,6 +333,58 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 </div>
 
 <script>
+// ── SPRACHE (DE/EN, siehe Chat) ────────────────────────────────────────────
+// Kein eigener Schalter auf dieser Seite — liest nur den auf der Startseite
+// gesetzten Modus aus demselben localStorage-Schlüssel. Die meisten Begriffe
+// hier (Stats-Spalten, Positionen) sind ohnehin schon Englisch — betroffen
+// sind nur die Fließtexte/Hinweise. Die interne Player-IDs-Box bleibt bewusst
+// unübersetzt (nur für die Crew sichtbar).
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    radar_title: 'Stärken & Schwächen',
+    radar_loading: 'Lade Positionsvergleich',
+    radar_loading_full: 'Lade Positionsvergleich…',
+    radar_empty_snaps: 'Keine Saison mit gespielten Snaps im Betrachtungsfenster gefunden.',
+    radar_empty_peers: 'Keine Vergleichsdaten für diese Position im Betrachtungsfenster verfügbar.',
+    hist_empty: 'Keine Saison-Historie gefunden.',
+    injury_return: date => `Rückkehr: ${date}`,
+    injury_no_espn: 'Keine ESPN-Kurzinfo verfügbar.',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    radar_title: 'Strengths & Weaknesses',
+    radar_loading: 'Loading position comparison',
+    radar_loading_full: 'Loading position comparison…',
+    radar_empty_snaps: 'No season with played snaps found in this window.',
+    radar_empty_peers: 'No comparison data available for this position in this window.',
+    hist_empty: 'No season history found.',
+    injury_return: date => `Return: ${date}`,
+    injury_no_espn: 'No ESPN note available.',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.documentElement.lang = getLang();
+}
+window.getLang = getLang;
+window.t = t;
+window.applyI18n = applyI18n;
+applyI18n();
+
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const SLEEPER_ALL = 'https://api.sleeper.app/v1/players/nfl';
 const SL_S_D  = (id,yr)=>`https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
@@ -447,7 +498,7 @@ function fetchAndShowEspnNote(p){
   fetchEspnInjuryNote(p.team, p.espn_id).then(injury => {
     if(!injury){
       console.warn(`[MIM] ESPN liefert keinen Injury-Eintrag für team="${p.team}" espn_id="${p.espn_id}" (Status: ${p.injury})`);
-      noteEl.textContent = 'Keine ESPN-Kurzinfo verfügbar.';
+      noteEl.textContent = t('injury_no_espn');
       noteEl.style.color = 'var(--muted)';
       noteEl.style.display = 'block';
       return;
@@ -455,13 +506,13 @@ function fetchAndShowEspnNote(p){
     const text = injury.shortComment || injury.longComment || '';
     const returnDate = injury.details && injury.details.returnDate;
     if(!text && !returnDate){
-      noteEl.textContent = 'Keine ESPN-Kurzinfo verfügbar.';
+      noteEl.textContent = t('injury_no_espn');
       noteEl.style.color = 'var(--muted)';
       noteEl.style.display = 'block';
       return;
     }
     noteEl.style.color = '';
-    noteEl.innerHTML = `${text}${returnDate ? ` <b>Rückkehr: ${new Date(returnDate).toLocaleDateString('de-DE')}</b>` : ''}`;
+    noteEl.innerHTML = `${text}${returnDate ? ` <b>${t('injury_return', new Date(returnDate).toLocaleDateString(getLang()==='en'?'en-US':'de-DE'))}</b>` : ''}`;
     noteEl.style.display = 'block';
   });
 }
@@ -1348,12 +1399,7 @@ function buildRadarSvg(categories, percentiles, ranks){
 async function renderRadarSection(p){
   const section=document.getElementById('radar-section'), wrap=document.getElementById('radar-wrap');
   if(!section||!wrap) return;
-  // Community-Freigabe erstmal wieder zurückgenommen (siehe Chat, noch nicht
-  // final entschieden). Da "2026 Stats" der einzige verbleibende sichtbare
-  // Flex-Child in .section-split ist, sobald diese Sektion display:none hat,
-  // streckt sich "2026 Stats" via flex:1 automatisch wieder auf die volle
-  // Breite — kein zusätzliches CSS nötig.
-  if(!window._isInternalUser){ section.style.display='none'; return; }
+  // Community-Freigabe (siehe Chat) — jetzt für alle sichtbar, keine Sperre mehr.
   section.style.display='block';
 
   const posGroup = p.nv_position;
@@ -1367,21 +1413,21 @@ async function renderRadarSection(p){
   const seasons = (window._S||[]).filter(y=>y<=CUR_YEAR).slice().sort((a,b)=>b-a);
   const windowYears = seasons.slice(0, RADAR_CAREER_WINDOW_YEARS);
   if(!windowYears.length){
-    wrap.innerHTML='<div class="stats-ph"><p>Keine Saison-Historie gefunden.</p></div>';
+    wrap.innerHTML=`<div class="stats-ph"><p>${t('hist_empty')}</p></div>`;
     return;
   }
 
   const ownAgg = aggregateCareerPerGame(windowYears.map(y=>statsMap[y]));
   if(!ownAgg){
-    wrap.innerHTML='<div class="stats-ph"><p>Keine Saison mit gespielten Snaps im Betrachtungsfenster gefunden.</p></div>';
+    wrap.innerHTML=`<div class="stats-ph"><p>${t('radar_empty_snaps')}</p></div>`;
     return;
   }
 
   const yearsLabel = windowYears.length>1 ? `${Math.min(...windowYears)}–${Math.max(...windowYears)}` : `${windowYears[0]}`;
-  wrap.innerHTML=`<div class="stats-ph"><p>Lade Positionsvergleich (${posGroup}, ${yearsLabel})…</p></div>`;
+  wrap.innerHTML=`<div class="stats-ph"><p>${t('radar_loading')} (${posGroup}, ${yearsLabel})…</p></div>`;
   const peers = await buildRadarPeerGroup(posGroup, windowYears);
   if(!peers.length){
-    wrap.innerHTML='<div class="stats-ph"><p>Keine Vergleichsdaten für diese Position im Betrachtungsfenster verfügbar.</p></div>';
+    wrap.innerHTML=`<div class="stats-ph"><p>${t('radar_empty_peers')}</p></div>`;
     return;
   }
 
@@ -2364,9 +2410,7 @@ watchAuth(user => {
   const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
   if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
-  if(footerText) footerText.textContent = user
-    ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-    : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+  if(footerText) footerText.textContent = user ? window.t('footer_internal') : window.t('footer_community');
   window._isInternalUser = !!user;
   if(window._lastLoadedPlayerForIds && typeof renderIds === 'function') renderIds(window._lastLoadedPlayerForIds);
   if(window._lastLoadedPlayerForRadar && typeof renderRadarSection === 'function') renderRadarSection(window._lastLoadedPlayerForRadar);
@@ -2464,8 +2508,8 @@ async function loadRankingsBox(retriesLeft){
 </script>
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>

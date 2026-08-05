@@ -119,10 +119,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close-btn">&times;</button>
-    <div class="modal-title">Login</div>
-    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
-    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
-    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-title" data-i18n="login">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label data-i18n="login_username">Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label data-i18n="login_password">Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit" data-i18n="login_submit">Anmelden</button>
     <div class="modal-error" id="modal-error"></div>
   </div>
 </div>
@@ -130,9 +130,9 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="toolbar">
   <div class="tb-title">TEAM <span>HUB</span></div>
   <div class="tb-group">
-    <label>Conference</label>
+    <label data-i18n="conference">Conference</label>
     <div class="conf-tabs" id="conf-tabs">
-      <button class="conf-tab active" data-conf="">Alle</button>
+      <button class="conf-tab active" data-conf="" data-i18n="all">Alle</button>
       <button class="conf-tab" data-conf="AFC">AFC</button>
       <button class="conf-tab" data-conf="NFC">NFC</button>
     </div>
@@ -145,13 +145,54 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <div class="grid-wrap" id="nfl-league-wrap" style="display:none;margin-top:20px;">
   <a class="division-card" href="league.html" style="display:block;text-decoration:none;text-align:center;padding:24px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
-    <div class="division-title" style="border-bottom:none;margin-bottom:4px;font-size:20px;letter-spacing:2px;">🏈 NFL — LIGA-ÜBERSICHT</div>
-    <div style="font-size:12px;color:var(--muted);">Team Stats aller 32 Teams &amp; Lineup-Entwicklung nach Jahr — nur für internen Gebrauch</div>
+    <div class="division-title" style="border-bottom:none;margin-bottom:4px;font-size:20px;letter-spacing:2px;" data-i18n="league_overview_title">🏈 NFL — LIGA-ÜBERSICHT</div>
+    <div style="font-size:12px;color:var(--muted);" data-i18n-html="league_overview_desc">Team Stats aller 32 Teams &amp; Lineup-Entwicklung nach Jahr — nur für internen Gebrauch</div>
   </a>
 </div>
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+
+// ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+    login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+    conference: 'Conference', all: 'Alle',
+    league_overview_title: '🏈 NFL — LIGA-ÜBERSICHT',
+    league_overview_desc: 'Team Stats aller 32 Teams &amp; Lineup-Entwicklung nach Jahr — nur für internen Gebrauch',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+    login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+    conference: 'Conference', all: 'All',
+    league_overview_title: '🏈 NFL — LEAGUE OVERVIEW',
+    league_overview_desc: 'Team stats for all 32 teams &amp; lineup development by year — internal use only',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.documentElement.lang = getLang();
+}
+applyI18n();
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -162,8 +203,8 @@ overlay.addEventListener('click', e => { if (e.target === overlay) overlay.class
 function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
 function mapAuthError(e){
   const c = e.code || '';
-  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
-  return 'Fehler: ' + (e.message || 'unbekannt');
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
+  return t('login_error_generic') + (e.message || 'unknown');
 }
 document.getElementById('login-submit').addEventListener('click', async () => {
   errEl.classList.remove('show');
@@ -180,15 +221,13 @@ watchAuth(user => {
   const nflWrap = document.getElementById('nfl-league-wrap');
   if(nflWrap) nflWrap.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
-  if(footerText) footerText.textContent = user
-    ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-    : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+  if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
   if(user){
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
     document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
   } else {
-    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
   }
 });
@@ -274,8 +313,8 @@ renderTeams('');
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>

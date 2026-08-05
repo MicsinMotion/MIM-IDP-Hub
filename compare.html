@@ -88,6 +88,55 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <script type="module">
   import { watchAuth } from './firebase-init.js';
+
+  // ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────
+  const LANG_KEY = 'mim_lang';
+  function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+  const I18N = {
+    de: {
+      page_title_1: 'SPIELER', page_title_2: 'VERGLEICH', back_link: '← Zurück zur Player DB',
+      loading: 'Lade…', loading_stats: 'Lade Statistiken…',
+      empty_title: 'Keine Spieler ausgewählt', empty_body: 'Wähle in der Player DB bis zu 3 Spieler zum Vergleich aus.',
+      notfound_title: 'Spieler nicht gefunden', notfound_body: 'Die übergebenen Spieler-IDs konnten nicht aufgelöst werden.',
+      radar_title: 'Stärken & Schwächen',
+      radar_note: (peerCount, posGroup, seasonsUsed) => `Perzentil (0-100) &amp; Rang gegen ${peerCount} ${posGroup}-Spieler · Ø der letzten ${seasonsUsed} Saison${seasonsUsed===1?'':'en'} (pro Spiel)`,
+      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+      footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+      footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+    },
+    en: {
+      page_title_1: 'PLAYER', page_title_2: 'COMPARE', back_link: '← Back to Player DB',
+      loading: 'Loading…', loading_stats: 'Loading stats…',
+      empty_title: 'No players selected', empty_body: 'Select up to 3 players in the Player DB to compare.',
+      notfound_title: 'Players not found', notfound_body: 'The provided player IDs could not be resolved.',
+      radar_title: 'Strengths & Weaknesses',
+      radar_note: (peerCount, posGroup, seasonsUsed) => `Percentile (0-100) &amp; rank vs. ${peerCount} ${posGroup} players · Avg. of the last ${seasonsUsed} season${seasonsUsed===1?'':'s'} (per game)`,
+      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+      footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+      footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+    }
+  };
+  function t(key, ...args){
+    const lang = getLang();
+    const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+    return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+  }
+  function applyI18n(){
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const lang = getLang();
+      const entry = (I18N[lang] && I18N[lang][el.dataset.i18n] !== undefined) ? I18N[lang][el.dataset.i18n] : I18N.de[el.dataset.i18n];
+      if(typeof entry === 'function') return;
+      el.textContent = entry !== undefined ? entry : el.dataset.i18n;
+    });
+    document.documentElement.lang = getLang();
+  }
+  window.getLang = getLang;
+  window.t = t;
+  window.applyI18n = applyI18n;
+  applyI18n();
+
   watchAuth(user => {
     window._isInternalUser = !!user;
     const link = document.getElementById('nav-scouting-link');
@@ -97,9 +146,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
     if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
     const footerText = document.getElementById('footer-text');
-    if(footerText) footerText.textContent = user
-      ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-      : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+    if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
     // Stärken & Schwächen (siehe Chat) ist wie auf player.html nur intern sichtbar.
     // Falls die Auth-Auflösung erst NACH dem ersten Karten-Aufbau durchkommt,
     // hier erneut anstoßen.
@@ -108,11 +155,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 </script>
 
 <div class="page-hdr">
-  <div class="page-title">SPIELER <span>VERGLEICH</span></div>
-  <a class="back-link" href="players.html">← Zurück zur Player DB</a>
+  <div class="page-title"><span data-i18n="page_title_1" style="color:#fff;">SPIELER</span> <span data-i18n="page_title_2">VERGLEICH</span></div>
+  <a class="back-link" href="players.html" data-i18n="back_link">← Zurück zur Player DB</a>
 </div>
 
-<div id="content"><div class="empty-state"><h3>Lade…</h3></div></div>
+<div id="content"><div class="empty-state"><h3 data-i18n="loading">Lade…</h3></div></div>
 
 <script type="module">
 import { loadSharedCache, saveSharedCache } from './firebase-init.js';
@@ -491,7 +538,7 @@ function cardHtml(id, p){
         <div class="cmp-sub">${(p.positions||[p.position]).join('/')} · ${p.team||'FA'}${p.age ? ' · '+p.age+' J.' : ''}</div>
       </div>
     </div>
-    <div class="cmp-loading">Lade Statistiken…</div>
+    <div class="cmp-loading">${window.t('loading_stats')}</div>
   </div>`;
 }
 
@@ -532,7 +579,6 @@ async function renderCompareRadar(id, p){
   const card = document.getElementById(`card-${id}`);
   if(!card) return;
   const existing = card.querySelector('.cmp-radar-wrap');
-  if(!window._isInternalUser){ if(existing) existing.remove(); return; }
   if(existing || radarRenderInProgress.has(id)) return; // schon aufgebaut ODER gerade im Aufbau
   radarRenderInProgress.add(id);
 
@@ -556,7 +602,7 @@ async function renderCompareRadar(id, p){
   const ranks = categories.map(cat => radarRank(peers.map(a=>radarCategoryValue(a,cat)), radarCategoryValue(ownAgg,cat)));
 
   const html = `<div class="cmp-radar-wrap">
-    <div class="cmp-radar-title">Stärken &amp; Schwächen</div>
+    <div class="cmp-radar-title">${window.t('radar_title')}</div>
     <div class="cmp-radar-svg-box">${buildRadarSvg(categories, percentiles, ranks)}</div>
     <div class="cmp-radar-cat-list">
       ${categories.map((cat,i)=>`
@@ -568,7 +614,7 @@ async function renderCompareRadar(id, p){
           <div class="cmp-radar-cat-score"><span class="cmp-radar-cat-val">${Math.round(percentiles[i])}</span><span class="cmp-radar-cat-rank">(#${ranks[i]})</span></div>
         </div>`).join('')}
     </div>
-    <div class="cmp-radar-note">Perzentil (0-100) &amp; Rang gegen ${peers.length+1} ${bucket}-Spieler · Ø der letzten ${ownAgg._seasonsUsed} Saison${ownAgg._seasonsUsed===1?'':'en'} (pro Spiel) · nur für interne Nutzer sichtbar</div>
+    <div class="cmp-radar-note">${window.t('radar_note', peers.length+1, bucket, ownAgg._seasonsUsed)}</div>
   </div>`;
 
   const ptsRow = card.querySelector('.cmp-pts-row');
@@ -590,14 +636,14 @@ async function init(){
   const content = document.getElementById('content');
 
   if(!ids.length){
-    content.innerHTML = `<div class="empty-state"><h3>Keine Spieler ausgewählt</h3><p>Wähle in der Player DB bis zu 3 Spieler zum Vergleich aus.</p></div>`;
+    content.innerHTML = `<div class="empty-state"><h3>${window.t('empty_title')}</h3><p>${window.t('empty_body')}</p></div>`;
     return;
   }
 
   await loadAllPlayers();
   const validIds = ids.filter(id => playerMap[id]);
   if(!validIds.length){
-    content.innerHTML = `<div class="empty-state"><h3>Spieler nicht gefunden</h3><p>Die übergebenen Spieler-IDs konnten nicht aufgelöst werden.</p></div>`;
+    content.innerHTML = `<div class="empty-state"><h3>${window.t('notfound_title')}</h3><p>${window.t('notfound_body')}</p></div>`;
     return;
   }
 
@@ -616,8 +662,8 @@ init();
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>

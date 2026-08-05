@@ -317,23 +317,23 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close-btn">&times;</button>
-    <div class="modal-title">Login</div>
-    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
-    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
-    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-title" data-i18n="login">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label data-i18n="login_username">Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label data-i18n="login_password">Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit" data-i18n="login_submit">Anmelden</button>
     <div class="modal-error" id="modal-error"></div>
   </div>
 </div>
 
 <div class="team-body" id="team-body" style="padding-top:32px;">
-  <div class="dc-heading" style="font-size:28px;">NFL <span style="color:var(--orange);">LIGA-ÜBERSICHT</span></div>
-  <div class="dc-subline">Alle 32 Teams im Vergleich — nur für internen Gebrauch</div>
+  <div class="dc-heading" style="font-size:28px;">NFL <span style="color:var(--orange);" data-i18n="league_overview">LIGA-ÜBERSICHT</span></div>
+  <div class="dc-subline" data-i18n="league_subline">Alle 32 Teams im Vergleich — nur für internen Gebrauch</div>
 
   <div id="community-locked">
     <div style="text-align:center;padding:100px 20px;color:var(--muted);">
       <div style="font-size:44px;margin-bottom:16px;">🔒</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:1px;margin-bottom:10px;">Nur für internen Gebrauch</div>
-      <div style="font-size:13px;max-width:420px;margin:0 auto;">Dieser Bereich (Liga-weite Team Stats &amp; Lineup-Entwicklung) ist ausschließlich eingeloggten Mitgliedern vorbehalten.</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:1px;margin-bottom:10px;" data-i18n="internal_only">Nur für internen Gebrauch</div>
+      <div style="font-size:13px;max-width:420px;margin:0 auto;" data-i18n-html="internal_only_body">Dieser Bereich (Liga-weite Team Stats &amp; Lineup-Entwicklung) ist ausschließlich eingeloggten Mitgliedern vorbehalten.</div>
     </div>
   </div>
 
@@ -345,20 +345,20 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     </div>
     <div id="tsg-body">
       <div style="display:flex;align-items:center;gap:12px;margin:14px 0;">
-        <label style="font-size:12px;color:var(--muted);">Saison</label>
+        <label style="font-size:12px;color:var(--muted);" data-i18n="season_label">Saison</label>
         <select class="season-select" id="tsg-year-select" style="width:auto;"></select>
       </div>
-      <div class="dc-loading" id="tsg-status">Lade Team Stats für alle 32 Teams…</div>
+      <div class="dc-loading" id="tsg-status" data-i18n="loading_teamstats32">Lade Team Stats für alle 32 Teams…</div>
       <div id="tsg-container" style="overflow-x:auto;"></div>
     </div>
 
     <div class="dc-heading section-toggle-hdr" id="lgd-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
-      Lineup-Entwicklung — NFL-Durchschnitt nach Jahr
+      <span data-i18n="lineup_dev_title">Lineup-Entwicklung — NFL-Durchschnitt nach Jahr</span>
       <span class="ts-toggle-chevron" id="lgd-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
     </div>
     <div id="lgd-body">
-      <div class="dc-subline">Vergleich der Liga-weiten Ø-Werte je Saison (Front/LB/Secondary) — kein Jahr-Dropdown, alle Jahre nebeneinander</div>
-      <div class="dc-loading" id="lgd-status">Lade Lineup-Entwicklung (kann bei erstmaligem Aufruf pro Jahr dauern)…</div>
+      <div class="dc-subline" data-i18n="lineup_dev_subline">Vergleich der Liga-weiten Ø-Werte je Saison (Front/LB/Secondary) — kein Jahr-Dropdown, alle Jahre nebeneinander</div>
+      <div class="dc-loading" id="lgd-status" data-i18n="loading_lineup_dev">Lade Lineup-Entwicklung (kann bei erstmaligem Aufruf pro Jahr dauern)…</div>
       <div id="lgd-container"></div>
     </div>
 
@@ -367,11 +367,62 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 <script type="module">
 import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
+
+// ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+    login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+    league_overview: 'LIGA-ÜBERSICHT', league_subline: 'Alle 32 Teams im Vergleich — nur für internen Gebrauch',
+    internal_only: 'Nur für internen Gebrauch',
+    internal_only_body: 'Dieser Bereich (Liga-weite Team Stats &amp; Lineup-Entwicklung) ist ausschließlich eingeloggten Mitgliedern vorbehalten.',
+    season_label: 'Saison', loading_teamstats32: 'Lade Team Stats für alle 32 Teams…',
+    loading_lineup_dev: 'Lade Lineup-Entwicklung (kann bei erstmaligem Aufruf pro Jahr dauern)…',
+    no_lineup_any_season: 'Für keine Saison sind Lineup-Daten verfügbar.',
+    lineup_dev_title: 'Lineup-Entwicklung — NFL-Durchschnitt nach Jahr',
+    lineup_dev_subline: 'Vergleich der Liga-weiten Ø-Werte je Saison (Front/LB/Secondary) — kein Jahr-Dropdown, alle Jahre nebeneinander',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+    login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+    league_overview: 'LEAGUE OVERVIEW', league_subline: 'All 32 teams compared — internal use only',
+    internal_only: 'Internal use only',
+    internal_only_body: 'This section (league-wide team stats &amp; lineup development) is reserved exclusively for logged-in members.',
+    season_label: 'Season', loading_teamstats32: 'Loading team stats for all 32 teams…',
+    loading_lineup_dev: 'Loading lineup development (first call per year can take a while)…',
+    no_lineup_any_season: 'No lineup data available for any season.',
+    lineup_dev_title: 'Lineup Development — NFL Average by Year',
+    lineup_dev_subline: 'Comparison of league-wide averages per season (Front/LB/Secondary) — no year dropdown, all years side by side',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.documentElement.lang = getLang();
+}
+applyI18n();
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -382,8 +433,8 @@ overlay.addEventListener('click', e => { if (e.target === overlay) overlay.class
 function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
 function mapAuthError(e){
   const c = e.code || '';
-  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
-  return 'Fehler: ' + (e.message || 'unbekannt');
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
+  return t('login_error_generic') + (e.message || 'unknown');
 }
 document.getElementById('login-submit').addEventListener('click', async () => {
   errEl.classList.remove('show');
@@ -405,15 +456,13 @@ watchAuth(user => {
   const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
   if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
-  if(footerText) footerText.textContent = user
-    ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-    : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+  if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
   if(user){
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
     document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
   } else {
-    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
   }
   isInternalUser = !!user;
@@ -1531,7 +1580,7 @@ async function loadLineupEntwicklung(){
   statusEl.style.display = 'none';
   const yearsWithData = years.filter(yr => avgByYear[yr]);
   if(!yearsWithData.length){
-    container.innerHTML = `<div class="lu-unavailable">Für keine Saison sind Lineup-Daten verfügbar.</div>`;
+    container.innerHTML = `<div class="lu-unavailable">${t('no_lineup_any_season')}</div>`;
     return;
   }
 

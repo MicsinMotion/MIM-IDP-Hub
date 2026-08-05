@@ -289,10 +289,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close-btn">&times;</button>
-    <div class="modal-title">Login</div>
-    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
-    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
-    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-title" data-i18n="login">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label data-i18n="login_username">Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label data-i18n="login_password">Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit" data-i18n="login_submit">Anmelden</button>
     <div class="modal-error" id="modal-error"></div>
   </div>
 </div>
@@ -305,23 +305,23 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <div class="team-hdr-id">
       <div class="team-hdr-name" id="team-hdr-name">–</div>
       <div class="team-hdr-div" id="team-hdr-div">–</div>
-      <div class="team-hdr-record" id="team-hdr-record">Record: <b>–</b></div>
+      <div class="team-hdr-record" id="team-hdr-record"><span data-i18n="record">Record</span>: <b>–</b></div>
     </div>
     <div class="team-hdr-divrank" id="team-hdr-divrank">
-      <div class="divrank-title" id="divrank-title">Division</div>
+      <div class="divrank-title" id="divrank-title" data-i18n="division">Division</div>
       <div class="divrank-list" id="divrank-list"></div>
     </div>
     <div class="team-hdr-season">
-      <label>Team</label>
+      <label data-i18n="team_label">Team</label>
       <select class="season-select" id="team-switcher"></select>
     </div>
     <div class="team-hdr-staff">
-      <div class="staff-row"><span class="staff-role">Head Coach</span><span class="staff-name" id="staff-hc">–</span></div>
-      <div class="staff-row"><span class="staff-role">Def. Coordinator</span><span class="staff-name" id="staff-dc">–</span></div>
-      <div class="staff-row"><span class="staff-role">Off. Coordinator</span><span class="staff-name" id="staff-oc">–</span></div>
+      <div class="staff-row"><span class="staff-role" data-i18n="head_coach">Head Coach</span><span class="staff-name" id="staff-hc">–</span></div>
+      <div class="staff-row"><span class="staff-role" data-i18n="def_coordinator">Def. Coordinator</span><span class="staff-name" id="staff-dc">–</span></div>
+      <div class="staff-row"><span class="staff-role" data-i18n="off_coordinator">Off. Coordinator</span><span class="staff-name" id="staff-oc">–</span></div>
     </div>
     <div class="team-hdr-season">
-      <label>Season</label>
+      <label data-i18n="season_label">Season</label>
       <select class="season-select" id="season-select"></select>
     </div>
   </div>
@@ -330,15 +330,15 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="team-body" id="team-body">
   <div id="depthchart-section">
     <div class="dc-heading section-toggle-hdr" id="dc-toggle-hdr" style="cursor:pointer;user-select:none;">
-      Depth Chart
+      <span data-i18n="depth_chart">Depth Chart</span>
       <span class="ts-toggle-chevron" id="dc-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
     </div>
     <div id="dc-body">
       <div class="dc-subline" id="dc-subline"></div>
-      <div class="dc-loading" id="dc-status">Lade Depth Chart…</div>
+      <div class="dc-loading" id="dc-status" data-i18n="loading_depthchart">Lade Depth Chart…</div>
       <div id="dc-container"></div>
       <div class="dc-glossary" id="dc-glossary" style="display:none;">
-        <div class="dc-glossary-title">Positions-Glossar</div>
+        <div class="dc-glossary-title" data-i18n="pos_glossary">Positions-Glossar</div>
         <div class="dc-glossary-grid" id="dc-glossary-grid"></div>
       </div>
     </div>
@@ -346,18 +346,18 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
   <div id="full-team-stats-section" style="display:none;">
     <div class="dc-heading section-toggle-hdr" id="ts-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
-      Team Stats
+      <span data-i18n="team_stats">Team Stats</span>
       <span class="ts-toggle-chevron" id="ts-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
     </div>
     <div id="ts-body">
-      <div class="dc-subline">Defense Team Stats</div>
-      <div class="dc-loading" id="ts-status">Lade Team Stats…</div>
+      <div class="dc-subline" data-i18n="defense_team_stats">Defense Team Stats</div>
+      <div class="dc-loading" id="ts-status" data-i18n="loading_teamstats">Lade Team Stats…</div>
       <div id="ts-container"></div>
       <div class="ts-glossary">
-        <div class="ts-glossary-item"><b>Explosive Play Rate Allowed</b> — Anteil der gegnerischen Spielzüge, die zu einem "großen Play" wurden (Lauf 10+ Yards oder Pass 20+ Yards). Niedriger ist besser für die Defense.</div>
-        <div class="ts-glossary-item"><b>EPA Allowed/Play</b> — Expected Points Added, die die gegnerische Offense im Schnitt pro Spielzug erzielt hat. Misst die Wertigkeit jedes Plays für die Gesamtsituation (Down/Distance/Feldposition), nicht nur reine Yards. Niedriger (bzw. negativer) ist besser für die Defense.</div>
-        <div class="ts-glossary-item"><b>Success Rate Allowed</b> — Anteil der gegnerischen Spielzüge, die als "erfolgreich" gelten (grobe Faustregel: 1st Down ≥40% des nötigen Raums, 2nd Down ≥60%, 3rd/4th Down = Conversion). Niedriger ist besser für die Defense.</div>
-        <div class="ts-glossary-item"><b>Havoc Rate</b> — Anteil aller Defensiv-Snaps, die zu einem "störenden" Play führten (Forced Fumble, INT, Pass Defended oder gestoppter Lauf bei 0 oder weniger Yards). Höher ist besser für die Defense — zeigt, wie oft eure IDP-Spieler den Spielzug aktiv zerstören.</div>
+        <div class="ts-glossary-item"><b>Explosive Play Rate Allowed</b> — <span data-i18n="ts_glossary_explosive">Anteil der gegnerischen Spielzüge, die zu einem "großen Play" wurden (Lauf 10+ Yards oder Pass 20+ Yards). Niedriger ist besser für die Defense.</span></div>
+        <div class="ts-glossary-item"><b>EPA Allowed/Play</b> — <span data-i18n="ts_glossary_epa">Expected Points Added, die die gegnerische Offense im Schnitt pro Spielzug erzielt hat. Misst die Wertigkeit jedes Plays für die Gesamtsituation (Down/Distance/Feldposition), nicht nur reine Yards. Niedriger (bzw. negativer) ist besser für die Defense.</span></div>
+        <div class="ts-glossary-item"><b>Success Rate Allowed</b> — <span data-i18n="ts_glossary_success">Anteil der gegnerischen Spielzüge, die als "erfolgreich" gelten (grobe Faustregel: 1st Down ≥40% des nötigen Raums, 2nd Down ≥60%, 3rd/4th Down = Conversion). Niedriger ist besser für die Defense.</span></div>
+        <div class="ts-glossary-item"><b>Havoc Rate</b> — <span data-i18n="ts_glossary_havoc">Anteil aller Defensiv-Snaps, die zu einem "störenden" Play führten (Forced Fumble, INT, Pass Defended oder gestoppter Lauf bei 0 oder weniger Yards). Höher ist besser für die Defense — zeigt, wie oft eure IDP-Spieler den Spielzug aktiv zerstören.</span></div>
       </div>
     </div>
   </div>
@@ -365,11 +365,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   <div class="team-two-col" style="margin-top:36px;">
     <div class="team-col-left">
       <div class="dc-heading section-toggle-hdr" id="sched-toggle-hdr" style="cursor:pointer;user-select:none;">
-        Schedule &amp; Standings
+        <span data-i18n="schedule_standings">Schedule &amp; Standings</span>
         <span class="ts-toggle-chevron" id="sched-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
       </div>
       <div id="sched-body">
-        <div class="dc-loading" id="sched-status">Lade Schedule &amp; Standings…</div>
+        <div class="dc-loading" id="sched-status" data-i18n-html="loading_schedule">Lade Schedule &amp; Standings…</div>
         <div id="sched-container"></div>
         <div id="most-used-schemes-anchor" style="display:none;">
           <div id="most-used-schemes-container"></div>
@@ -380,7 +380,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <div class="team-col-right">
       <div id="lineup-section" style="display:none;">
         <div class="dc-heading section-toggle-hdr" id="lineup-toggle-hdr" style="cursor:pointer;user-select:none;">
-          Lineup Details
+          <span data-i18n="lineup_details">Lineup Details</span>
           <span class="ts-toggle-chevron" id="lineup-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
         </div>
         <div id="lineup-body">
@@ -390,11 +390,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
       <div id="community-stats-section">
         <div class="dc-heading section-toggle-hdr" id="community-stats-toggle-hdr" style="cursor:pointer;user-select:none;">
-          Team Stats
+          <span data-i18n="team_stats">Team Stats</span>
           <span class="ts-toggle-chevron" id="community-stats-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
         </div>
         <div id="community-stats-body">
-          <div class="dc-loading" id="community-stats-status">Lade Team Stats…</div>
+          <div class="dc-loading" id="community-stats-status" data-i18n="loading_teamstats">Lade Team Stats…</div>
           <div id="community-stats-container"></div>
         </div>
       </div>
@@ -402,12 +402,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   </div>
 
   <div class="dc-heading section-toggle-hdr" id="roster-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
-    Team Roster
+    <span data-i18n="team_roster">Team Roster</span>
     <span class="ts-toggle-chevron" id="roster-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
   </div>
   <div id="roster-body">
     <div class="dc-subline" id="roster-subline"></div>
-    <div class="dc-loading" id="roster-status">Lade Team Roster…</div>
+    <div class="dc-loading" id="roster-status" data-i18n="loading_roster">Lade Team Roster…</div>
     <div id="roster-container"></div>
   </div>
 </div>
@@ -416,6 +416,88 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
+
+// ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+    login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+    record: 'Record', division: 'Division', team_label: 'Team', season_label: 'Season',
+    head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
+    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule &amp; Standings',
+    lineup_details: 'Lineup Details', team_roster: 'Team Roster',
+    pos_glossary: 'Positions-Glossar', defense_team_stats: 'Defense Team Stats',
+    loading_depthchart: 'Lade Depth Chart…', loading_teamstats: 'Lade Team Stats…',
+    loading_schedule: 'Lade Schedule &amp; Standings…', loading_roster: 'Lade Team Roster…',
+    loading_lineup: 'Lade Lineup-Auswertung…', loading_generic: 'Lädt…',
+    no_schedule: 'Kein Schedule verfügbar.', no_standings: 'Keine Standings verfügbar.',
+    no_players: 'Keine Spieler', afc_standing: 'AFC Standing', nfc_standing: 'NFC Standing',
+    col_date: 'Datum', col_opponent: 'Gegner', col_result: 'Ergebnis',
+    most_used_schemes: 'Most used Schemes', snaps_per_week: 'Snaps pro Woche',
+    joined_mid_season: 'Joined Mid Season', open_profile: 'Spielerprofil öffnen →',
+    team_not_found_title: 'Team nicht gefunden',
+    team_not_found_body: 'Bitte über den <a href="team-hub.html" style="color:var(--orange)">Team Hub</a> ein Team auswählen.',
+    lineup_unavailable_year: y => `Lineup-Auswertung erst ab Saison ${y} verfügbar.`,
+    lineup_unavailable_data: y => `Noch keine Lineup-Daten für ${y} verfügbar (participation-Daten werden erst nach Saisonende inkl. Playoffs von FTN bereitgestellt).`,
+    ts_glossary_explosive: 'Anteil der gegnerischen Spielzüge, die zu einem "großen Play" wurden (Lauf 10+ Yards oder Pass 20+ Yards). Niedriger ist besser für die Defense.',
+    ts_glossary_epa: 'Expected Points Added, die die gegnerische Offense im Schnitt pro Spielzug erzielt hat. Misst die Wertigkeit jedes Plays für die Gesamtsituation (Down/Distance/Feldposition), nicht nur reine Yards. Niedriger (bzw. negativer) ist besser für die Defense.',
+    ts_glossary_success: 'Anteil der gegnerischen Spielzüge, die als "erfolgreich" gelten (grobe Faustregel: 1st Down ≥40% des nötigen Raums, 2nd Down ≥60%, 3rd/4th Down = Conversion). Niedriger ist besser für die Defense.',
+    ts_glossary_havoc: 'Anteil aller Defensiv-Snaps, die zu einem "störenden" Play führten (Forced Fumble, INT, Pass Defended oder gestoppter Lauf bei 0 oder weniger Yards). Höher ist besser für die Defense — zeigt, wie oft eure IDP-Spieler den Spielzug aktiv zerstören.',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+    login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+    record: 'Record', division: 'Division', team_label: 'Team', season_label: 'Season',
+    head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
+    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule &amp; Standings',
+    lineup_details: 'Lineup Details', team_roster: 'Team Roster',
+    pos_glossary: 'Position Glossary', defense_team_stats: 'Defense Team Stats',
+    loading_depthchart: 'Loading depth chart…', loading_teamstats: 'Loading team stats…',
+    loading_schedule: 'Loading schedule &amp; standings…', loading_roster: 'Loading team roster…',
+    loading_lineup: 'Loading lineup breakdown…', loading_generic: 'Loading…',
+    no_schedule: 'No schedule available.', no_standings: 'No standings available.',
+    no_players: 'No players', afc_standing: 'AFC Standing', nfc_standing: 'NFC Standing',
+    col_date: 'Date', col_opponent: 'Opponent', col_result: 'Result',
+    most_used_schemes: 'Most used Schemes', snaps_per_week: 'Snaps per Week',
+    joined_mid_season: 'Joined Mid Season', open_profile: 'Open player profile →',
+    team_not_found_title: 'Team not found',
+    team_not_found_body: 'Please select a team via the <a href="team-hub.html" style="color:var(--orange)">Team Hub</a>.',
+    lineup_unavailable_year: y => `Lineup breakdown only available from season ${y} onward.`,
+    lineup_unavailable_data: y => `No lineup data available yet for ${y} (participation data from FTN is only provided after the season, including playoffs, has ended).`,
+    ts_glossary_explosive: 'Share of opponent plays that became a "big play" (10+ yard run or 20+ yard pass). Lower is better for the defense.',
+    ts_glossary_epa: 'Expected Points Added the opponent offense generated per play on average. Measures the value of each play for the overall situation (down/distance/field position), not just raw yards. Lower (or more negative) is better for the defense.',
+    ts_glossary_success: 'Share of opponent plays considered "successful" (rule of thumb: 1st down ≥40% of yards needed, 2nd down ≥60%, 3rd/4th down = conversion). Lower is better for the defense.',
+    ts_glossary_havoc: 'Share of all defensive snaps that resulted in a "disruptive" play (forced fumble, INT, pass defended, or a stopped run for 0 or negative yards). Higher is better for the defense — shows how often your IDP players actively wreck the play.',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const lang = getLang();
+    const entry = (I18N[lang] && I18N[lang][el.dataset.i18n] !== undefined) ? I18N[lang][el.dataset.i18n] : I18N.de[el.dataset.i18n];
+    if(typeof entry === 'function') return;
+    el.textContent = entry !== undefined ? entry : el.dataset.i18n;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.documentElement.lang = getLang();
+}
+applyI18n();
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -426,8 +508,8 @@ overlay.addEventListener('click', e => { if (e.target === overlay) overlay.class
 function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
 function mapAuthError(e){
   const c = e.code || '';
-  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
-  return 'Fehler: ' + (e.message || 'unbekannt');
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
+  return t('login_error_generic') + (e.message || 'unknown');
 }
 document.getElementById('login-submit').addEventListener('click', async () => {
   errEl.classList.remove('show');
@@ -442,15 +524,13 @@ watchAuth(user => {
   const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
   if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
-  if(footerText) footerText.textContent = user
-    ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-    : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+  if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
   if(user){
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
     document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
   } else {
-    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
   }
 });
@@ -1552,7 +1632,7 @@ function renderTopSchemesBox(codes, total){
   }).join('');
   return `<div class="lu-subbox">
     <div class="lu-subhdr" id="mus-toggle-hdr" style="cursor:pointer;user-select:none;">
-      <span class="lu-subhdr-title">Most used Schemes</span>
+      <span class="lu-subhdr-title">${t('most_used_schemes')}</span>
       <span class="mus-chevron" id="mus-chevron" style="transition:transform .2s;">▾</span>
     </div>
     <div class="mus-body" id="mus-body">
@@ -1568,7 +1648,7 @@ let lineupRequestId = 0;
 
 function lineupLoadingHtml(){
   return `<div class="lu-loading-wrap">
-    <div class="lu-loading-label" id="lineup-progress-label">Lade Lineup-Auswertung…</div>
+    <div class="lu-loading-label" id="lineup-progress-label">${t('loading_lineup')}</div>
     <div class="lu-progress-track"><div class="lu-progress-fill" id="lineup-progress-bar" style="width:0%"></div></div>
   </div>`;
 }
@@ -1579,7 +1659,7 @@ async function renderLineupSection(abbr, year, includeDetails){
   const schemesContainer = document.getElementById('most-used-schemes-container');
   if(year < LINEUP_MIN_YEAR){
     if(myRequestId === lineupRequestId){
-      if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">Lineup-Auswertung erst ab Saison ${LINEUP_MIN_YEAR} verfügbar.</div>`;
+      if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">${t('lineup_unavailable_year', LINEUP_MIN_YEAR)}</div>`;
       schemesContainer.innerHTML = '';
     }
     return;
@@ -1617,13 +1697,13 @@ async function renderLineupSection(abbr, year, includeDetails){
     if(myRequestId !== lineupRequestId) return; // inzwischen ist ein neuerer Request gestartet worden
     if(teams) saveLineupCache(year, teams, abbr);
   } else if(myRequestId === lineupRequestId){
-    if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">Lade Lineup-Auswertung…</div>`;
+    if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">${t('loading_lineup')}</div>`;
     schemesContainer.innerHTML = '';
   }
   if(myRequestId !== lineupRequestId) return;
 
   if(!teams || !teams[abbr]){
-    if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">Noch keine Lineup-Daten für ${year} verfügbar (participation-Daten werden erst nach Saisonende inkl. Playoffs von FTN bereitgestellt).</div>`;
+    if(includeDetails) lineupContainer.innerHTML = `<div class="lu-unavailable">${t('lineup_unavailable_data', year)}</div>`;
     return;
   }
 
@@ -2115,7 +2195,7 @@ function renderSnapChart(byWeek){
     </div>`);
     labels.push(`<div class="roster-snap-wk-lbl">${wk}</div>`);
   }
-  return `<div class="roster-snap-chart-title">Snaps pro Woche</div>
+  return `<div class="roster-snap-chart-title">${t('snaps_per_week')}</div>
     <div class="roster-snap-chart">${bars.join('')}</div>
     <div class="roster-snap-wk-row">${labels.join('')}</div>`;
 }
@@ -2141,7 +2221,7 @@ function computeSnapTrend(byWeek){
 
 function renderRosterPlayerRow(p, snapInfo, summary, prevSummary){
   const subParts = [p.jersey_number?`#${p.jersey_number}`:'', p.status||''].filter(Boolean).join(' · ');
-  const midSeasonTag = snapInfo.joinedMidSeason ? ` · <span class="roster-mid-season-tag">Joined Mid Season</span>` : '';
+  const midSeasonTag = snapInfo.joinedMidSeason ? ` · <span class="roster-mid-season-tag">${t('joined_mid_season')}</span>` : '';
   const sub = subParts + midSeasonTag;
   const avgPtsNum = (summary.gp && summary.pts!=null) ? (summary.pts/summary.gp) : null;
   const avgPts = avgPtsNum!=null ? avgPtsNum.toFixed(1) : '–';
@@ -2180,7 +2260,7 @@ function renderRosterPlayerRow(p, snapInfo, summary, prevSummary){
       <div class="roster-total-snaps">Total Snaps: <b>${snapInfo.seasonSnaps!=null?snapInfo.seasonSnaps:'–'}</b></div>
       ${renderSnapChart(snapInfo.byWeek)}
       <div class="roster-season-grid">${seasonStats}</div>
-      <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}">Spielerprofil öffnen →</a>
+      <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}">${t('open_profile')}</a>
     </div>`;
 }
 
@@ -2306,7 +2386,7 @@ function renderRosterSections(container, grouped, statsById, snapData, abbr, pre
         <div class="dc-section-title">${label}<span class="dc-badge">${players.length}</span></div>
         <span class="dc-chevron">▾</span>
       </div>
-      <div class="dc-section-body">${rows || '<div class="dc-empty">Keine Spieler</div>'}</div>
+      <div class="dc-section-body">${rows || `<div class="dc-empty">${t('no_players')}</div>`}</div>
     </div>`;
   }).join('');
 
@@ -3090,7 +3170,7 @@ function formatGameDate(iso){
 }
 
 function renderScheduleTable(games){
-  if(!games || !games.length) return '<div class="dc-empty">Kein Schedule verfügbar.</div>';
+  if(!games || !games.length) return `<div class="dc-empty">${t('no_schedule')}</div>`;
   const rows = games.map(g => {
     let cls = 'upcoming', txt = '–';
     if(g.completed && g.myScore != null && g.oppScore != null){
@@ -3104,7 +3184,7 @@ function renderScheduleTable(games){
       <td class="sched-result">${txt}</td>
     </tr>`;
   }).join('');
-  return `<table class="sched-table"><thead><tr><th>Datum</th><th>Gegner</th><th>Ergebnis</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="sched-table"><thead><tr><th>${t('col_date')}</th><th>${t('col_opponent')}</th><th>${t('col_result')}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function formatRecord(r){
@@ -3113,10 +3193,10 @@ function formatRecord(r){
 }
 
 function renderStandingsTable(rows, myAbbr){
-  if(!rows || !rows.length) return '<div class="dc-empty">Keine Standings verfügbar.</div>';
+  if(!rows || !rows.length) return `<div class="dc-empty">${t('no_standings')}</div>`;
   const sorted = rows.slice().sort((a,b) => (parseFloat(b.wins)||0) - (parseFloat(a.wins)||0));
   const body = sorted.map(r => `<tr class="${r.abbr===myAbbr?'me-row':''}"><td>${r.abbr}</td><td>${formatRecord(r)}</td></tr>`).join('');
-  return `<table class="standings-table"><thead><tr><th>Team</th><th>Rec.</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table class="standings-table"><thead><tr><th>${t('team_label')}</th><th>Rec.</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 function renderDivisionRanking(abbr, team, divRows){
@@ -3161,11 +3241,11 @@ async function renderScheduleStandings(abbr, year){
       <div class="sched-standings-col" id="standings-col">
         <div class="sched-standings-row">
           <div class="dc-section open" data-key="afc">
-            <div class="dc-section-hdr"><div class="dc-section-title">AFC Standing</div><span class="dc-chevron">▾</span></div>
+            <div class="dc-section-hdr"><div class="dc-section-title">${t('afc_standing')}</div><span class="dc-chevron">▾</span></div>
             <div class="dc-section-body">${renderStandingsTable(afcRows, abbr)}</div>
           </div>
           <div class="dc-section open" data-key="nfc">
-            <div class="dc-section-hdr"><div class="dc-section-title">NFC Standing</div><span class="dc-chevron">▾</span></div>
+            <div class="dc-section-hdr"><div class="dc-section-title">${t('nfc_standing')}</div><span class="dc-chevron">▾</span></div>
             <div class="dc-section-body">${renderStandingsTable(nfcRows, abbr)}</div>
           </div>
         </div>
@@ -3236,9 +3316,9 @@ if(team){
     // siehe fetchHeadCoach) dient nur als Fallback für den Head Coach, falls Ourlads
     // für die jeweilige Season nichts liefert. TEAM_SEASON_DATA bleibt als letzte,
     // manuell gepflegte Ergänzung bestehen.
-    document.getElementById('staff-hc').textContent = 'Lädt…';
-    document.getElementById('staff-dc').textContent = 'Lädt…';
-    document.getElementById('staff-oc').textContent = 'Lädt…';
+    document.getElementById('staff-hc').textContent = t('loading_generic');
+    document.getElementById('staff-dc').textContent = t('loading_generic');
+    document.getElementById('staff-oc').textContent = t('loading_generic');
     const manual = getCoachData(abbr, year);
     Promise.all([fetchOurladsCoachingStaff(abbr, year), fetchHeadCoach(abbr, year)]).then(([ourlads, espnHc]) => {
       document.getElementById('staff-hc').textContent = (ourlads && ourlads.HC) || espnHc || manual.hc || '–';
@@ -3247,9 +3327,9 @@ if(team){
     });
 
     // Record (live)
-    document.getElementById('team-hdr-record').innerHTML = `Record: <b>Lädt…</b>`;
+    document.getElementById('team-hdr-record').innerHTML = `${t('record')}: <b>${t('loading_generic')}</b>`;
     fetchLiveRecord(abbr, year).then(record => {
-      document.getElementById('team-hdr-record').innerHTML = `Record: <b>${record || '–'}</b>`;
+      document.getElementById('team-hdr-record').innerHTML = `${t('record')}: <b>${record || '–'}</b>`;
     });
 
     // Depth Chart (live)
@@ -3276,14 +3356,14 @@ if(team){
   yearSelect.addEventListener('change', () => renderSeason(parseInt(yearSelect.value, 10)));
   renderSeason(initialYear);
 } else {
-  document.getElementById('team-body').innerHTML = `<h3>Team nicht gefunden</h3><p>Bitte über den <a href="team-hub.html" style="color:var(--orange)">Team Hub</a> ein Team auswählen.</p>`;
+  document.getElementById('team-body').innerHTML = `<h3>${t('team_not_found_title')}</h3><p>${t('team_not_found_body')}</p>`;
 }
 </script>
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>

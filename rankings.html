@@ -300,10 +300,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close-btn">&times;</button>
-    <div class="modal-title">Login</div>
-    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
-    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
-    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-title" data-i18n="login">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label data-i18n="login_username">Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label data-i18n="login_password">Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit" data-i18n="login_submit">Anmelden</button>
     <div class="modal-error" id="modal-error"></div>
   </div>
 </div>
@@ -331,11 +331,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       </div>
     </div>
     <div class="tb-group" id="year-group" style="display:none;">
-      <label>Jahrgang</label>
+      <label data-i18n="year_label">Jahrgang</label>
       <select class="tb-select" id="year-select" style="min-width:100px;"></select>
     </div>
     <div class="tb-group">
-      <label>Ranking ansehen von</label>
+      <label data-i18n="viewing_from">Ranking ansehen von</label>
       <div class="avatar-row" id="user-avatars"></div>
     </div>
   </div>
@@ -343,10 +343,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   <div class="tb-right">
     <div class="view-toggle" id="view-toggle">
       <button class="view-toggle-btn active" data-mode="grid">Grid</button>
-      <button class="view-toggle-btn" data-mode="list">Liste</button>
+      <button class="view-toggle-btn" data-mode="list" data-i18n="list_view">Liste</button>
     </div>
-    <span class="status-pill status-view" id="status-pill">Nur Ansicht</span>
-    <span class="save-indicator" id="save-indicator">Gespeichert ✓</span>
+    <span class="status-pill status-view" id="status-pill" data-i18n="status_view">Nur Ansicht</span>
+    <span class="save-indicator" id="save-indicator" data-i18n="saved">Gespeichert ✓</span>
     <button class="export-btn" id="export-btn">⬇ Excel Export</button>
     <button class="export-btn" id="export-csv-btn">⬇ CSV Export (ZIP)</button>
   </div>
@@ -362,19 +362,101 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 </div>
 
 <div class="board-wrap" id="board-wrap">
-  <div class="empty-state" id="loading-state"><h3>Lade Spielerdaten…</h3></div>
+  <div class="empty-state" id="loading-state"><h3 data-i18n="loading_players">Lade Spielerdaten…</h3></div>
 </div>
 
 <aside class="compare-panel" id="compare-panel">
   <div class="compare-hdr">
-    <div class="compare-title">Vergleich</div>
-    <button class="compare-close-all" id="compare-close-all">Alle schließen</button>
+    <div class="compare-title" data-i18n="compare_title">Vergleich</div>
+    <button class="compare-close-all" id="compare-close-all" data-i18n="compare_closeall">Alle schließen</button>
   </div>
   <div class="compare-body" id="compare-body"></div>
 </aside>
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser, loadBoard, saveBoard, listAllRankings, watchBoard, avatarFor, loadSharedCache, saveSharedCache } from './firebase-init.js';
+
+// ── SPRACHE (DE/EN, siehe Chat) ────────────────────────────────────────────
+// Kein eigener Schalter auf dieser Seite — liest nur den auf der Startseite
+// gesetzten Modus. Tier-Namen, Position/Format-Labels sind schon Englisch.
+const LANG_KEY = 'mim_lang';
+function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+const I18N = {
+  de: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+    login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+    year_label: 'Jahrgang', viewing_from: 'Ranking ansehen von',
+    list_view: 'Liste', status_view: 'Nur Ansicht', status_edit: 'Bearbeiten', status_consensus: 'Konsens', saved: 'Gespeichert ✓',
+    ph_edit: tag => `${tag}-Spieler suchen und zur Inbox hinzufügen…`,
+    ph_find: tag => `${tag}-Spieler im Ranking finden…`,
+    ph_find_consensus: tag => `${tag}-Spieler im Konsens finden…`,
+    hint_edit: 'Ziehe Spieler per Drag & Drop in die Tiers. Änderungen werden automatisch gespeichert.',
+    hint_viewing_other: 'Du siehst das Ranking eines anderen Nutzers (nur Ansicht).',
+    hint_consensus: 'Automatisch berechneter Konsens aus allen Rankings dieses Formats/dieser Position — rein informativ, nicht editierbar.',
+    no_match: 'Kein Treffer in diesem Ranking',
+    col_empty_inbox: 'Spieler per Suche hinzufügen', col_empty: 'Leer',
+    no_rankings_title: 'Noch keine Rankings', no_rankings_body: 'Melde dich an, um das erste Ranking zu erstellen.',
+    loading_players: 'Lade Spielerdaten…',
+    compare_title: 'Vergleich', compare_closeall: 'Alle schließen',
+    radar_title: 'Stärken & Schwächen',
+    radar_note: (peerCount, posGroup, seasonsUsed, yearsLabel) => `Perzentil (0-100) &amp; Rang gegen ${peerCount} ${posGroup}-Spieler · Ø der letzten ${seasonsUsed} Saison${seasonsUsed===1?'':'en'} (${yearsLabel}, pro Spiel)`,
+    tip_best: 'Bester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters',
+    tip_worst: 'Schlechtester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters',
+    tip_avg: 'Durchschnittlicher Rang über alle Rater, die diesen Spieler bewertet haben',
+    tip_stddev: 'Standardabweichung — wie einig sich die Rater sind (niedrig = Einigkeit, hoch = Uneinigkeit)',
+    player_header: 'Spieler',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+    footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+    footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+  },
+  en: {
+    login: 'Login', logout: 'Logout',
+    login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+    login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+    year_label: 'Draft Class', viewing_from: 'Viewing rankings from',
+    list_view: 'List', status_view: 'View Only', status_edit: 'Editing', status_consensus: 'Consensus', saved: 'Saved ✓',
+    ph_edit: tag => `Search ${tag} players and add to inbox…`,
+    ph_find: tag => `Find a ${tag} player in this ranking…`,
+    ph_find_consensus: tag => `Find a ${tag} player in the consensus…`,
+    hint_edit: 'Drag & drop players into the tiers. Changes save automatically.',
+    hint_viewing_other: "You're viewing another user's ranking (view only).",
+    hint_consensus: 'Automatically calculated consensus across all rankings for this format/position — informational only, not editable.',
+    no_match: 'No match found in this ranking',
+    col_empty_inbox: 'Add players via search', col_empty: 'Empty',
+    no_rankings_title: 'No rankings yet', no_rankings_body: 'Sign in to create the first ranking.',
+    loading_players: 'Loading player data…',
+    compare_title: 'Compare', compare_closeall: 'Close all',
+    radar_title: 'Strengths & Weaknesses',
+    radar_note: (peerCount, posGroup, seasonsUsed, yearsLabel) => `Percentile (0-100) &amp; rank vs. ${peerCount} ${posGroup} players · Avg. of the last ${seasonsUsed} season${seasonsUsed===1?'':'s'} (${yearsLabel}, per game)`,
+    tip_best: 'Best rank given by a single rater, with that rater\u2019s corresponding tier',
+    tip_worst: 'Worst rank given by a single rater, with that rater\u2019s corresponding tier',
+    tip_avg: 'Average rank across all raters who ranked this player',
+    tip_stddev: 'Standard deviation — how much raters agree (low = agreement, high = disagreement)',
+    player_header: 'Player',
+    footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+    footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+    footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+    footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+  }
+};
+function t(key, ...args){
+  const lang = getLang();
+  const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+  return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const lang = getLang();
+    const entry = (I18N[lang] && I18N[lang][el.dataset.i18n] !== undefined) ? I18N[lang][el.dataset.i18n] : I18N.de[el.dataset.i18n];
+    if(typeof entry === 'function') return; // braucht Parameter — wird woanders dynamisch gesetzt
+    el.textContent = entry !== undefined ? entry : el.dataset.i18n;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.documentElement.lang = getLang();
+}
+applyI18n();
 
 // ── SLEEPER PLAYER CACHE (wie player.html / players.html) ──────────────────
 const SLEEPER_ALL = 'https://api.sleeper.app/v1/players/nfl';
@@ -962,7 +1044,7 @@ async function loadPlayerRadar(id, p){
 function radarBlockHtml(radar){
   if(!radar) return '';
   return `<div class="cmp-radar-wrap">
-    <div class="cmp-radar-title">Stärken &amp; Schwächen</div>
+    <div class="cmp-radar-title">${t('radar_title')}</div>
     <div class="cmp-radar-svg-box">${buildRadarSvg(radar.categories, radar.percentiles, radar.ranks)}</div>
     <div class="cmp-radar-cat-list">
       ${radar.categories.map((cat,i)=>`
@@ -974,7 +1056,7 @@ function radarBlockHtml(radar){
           <div class="cmp-radar-cat-score"><span class="cmp-radar-cat-val">${Math.round(radar.percentiles[i])}</span><span class="cmp-radar-cat-rank">(#${radar.ranks[i]})</span></div>
         </div>`).join('')}
     </div>
-    <div class="cmp-radar-note">Perzentil (0-100) &amp; Rang gegen ${radar.peerCount+1} ${radar.posGroup}-Spieler · Ø der letzten ${radar.seasonsUsed} Saison${radar.seasonsUsed===1?'':'en'} (${radar.yearsLabel}, pro Spiel) · nur für interne Nutzer sichtbar</div>
+    <div class="cmp-radar-note">${t('radar_note', radar.peerCount+1, radar.posGroup, radar.seasonsUsed, radar.yearsLabel)}</div>
   </div>`;
 }
 
@@ -1060,7 +1142,7 @@ function renderComparePanel(){
     // Stärken & Schwächen (siehe Chat): nur intern sichtbar, gleicher Platz wie
     // in compare.html — direkt unter den Punkten der letzten Jahre.
     const radarEntry = radarCache[id];
-    const radarHtml = (window._isInternalUser && radarEntry && !radarEntry.loading && radarEntry.data)
+    const radarHtml = (radarEntry && !radarEntry.loading && radarEntry.data)
       ? radarBlockHtml(radarEntry.data) : '';
     return `<div class="compare-player">
       <button class="cmp-close" data-close="${id}" title="Entfernen">&times;</button>
@@ -1185,7 +1267,7 @@ function renderBoard(){
       </div>
       <div class="col-body" data-tier="${tierKey}">
         <div class="drop-indicator"></div>
-        ${cards || `<div class="col-empty">${tierKey==='inbox'?'Spieler per Suche hinzufügen':'Leer'}</div>`}
+        ${cards || `<div class="col-empty">${tierKey==='inbox'?t('col_empty_inbox'):t('col_empty')}</div>`}
       </div>
     </div>`;
   }).join('');
@@ -1386,7 +1468,7 @@ searchInput.addEventListener('input', () => {
   if(!editable){
     const idsInView = new Set(getCurrentViewPlayerIds());
     const hits = allPlayers.filter(p => idsInView.has(p.sleeper_id) && (p.full_name||'').toLowerCase().includes(q)).slice(0, 8);
-    if(!hits.length){ searchRes.innerHTML = `<div class="sri"><div class="sri-sub">Kein Treffer in diesem Ranking</div></div>`; searchRes.classList.add('open'); return; }
+    if(!hits.length){ searchRes.innerHTML = `<div class="sri"><div class="sri-sub">${t('no_match')}</div></div>`; searchRes.classList.add('open'); return; }
     searchRes.innerHTML = hits.map(p => `<div class="sri" data-find="${p.sleeper_id}">
       ${headshotHtml(p).replace('pcard-hs','sri-hs').replace('pcard-fb','sri-fb')}
       <div>
@@ -1458,8 +1540,8 @@ async function refreshUserList(){
   allRankings.sort((a,b) => (a.displayName||'').localeCompare(b.displayName||'', 'de', { sensitivity: 'base' }));
 
   if(!allRankings.length){
-    userAvatars.innerHTML = '<span style="font-size:11px;color:var(--muted);">Noch keine Rankings vorhanden</span>';
-    document.getElementById('board-wrap').innerHTML = `<div class="empty-state"><h3>Noch keine Rankings</h3><p>Melde dich an, um das erste Ranking zu erstellen.</p></div>`;
+    userAvatars.innerHTML = `<span style="font-size:11px;color:var(--muted);">${t('no_rankings_title')}</span>`;
+    document.getElementById('board-wrap').innerHTML = `<div class="empty-state"><h3>${t('no_rankings_title')}</h3><p>${t('no_rankings_body')}</p></div>`;
     return;
   }
 
@@ -1502,15 +1584,13 @@ function switchView(userId){
   viewingUserId = userId;
   markActiveAvatar(userId);
   editable = !!(currentUser && currentUser.uid === userId);
-  document.getElementById('status-pill').textContent = editable ? 'Bearbeiten' : 'Nur Ansicht';
+  document.getElementById('status-pill').textContent = editable ? t('status_edit') : t('status_view');
   document.getElementById('status-pill').className = 'status-pill ' + (editable ? 'status-edit' : 'status-view');
   searchInput.disabled = false; // siehe Chat: bleibt immer nutzbar — im Nur-Ansicht-Modus zum Finden statt Hinzufügen
-  searchInput.placeholder = editable
-    ? `${currentPositionTag}-Spieler suchen und zur Inbox hinzufügen…`
-    : `${currentPositionTag}-Spieler im Ranking finden…`;
+  searchInput.placeholder = editable ? t('ph_edit', currentPositionTag) : t('ph_find', currentPositionTag);
   document.getElementById('search-hint').textContent = editable
-    ? 'Ziehe Spieler per Drag & Drop in die Tiers. Änderungen werden automatisch gespeichert.'
-    : (currentUser ? 'Du siehst das Ranking eines anderen Nutzers (nur Ansicht).' : ''); // Community: kein Login-Hinweis mehr (siehe Chat)
+    ? t('hint_edit')
+    : (currentUser ? t('hint_viewing_other') : ''); // Community: kein Login-Hinweis mehr (siehe Chat)
   document.getElementById('view-toggle').style.display = 'flex'; // Grid/Liste-Umschalter nur in der individuellen Ansicht, nicht im Konsens (siehe Chat)
 
   unsubBoard = watchBoard(userId, effectiveListKey(), data => {
@@ -1579,11 +1659,11 @@ function switchToOverview(){
   viewingUserId = null;
   editable = false;
   markActiveAvatar('__overview__');
-  document.getElementById('status-pill').textContent = 'Konsens';
+  document.getElementById('status-pill').textContent = t('status_consensus');
   document.getElementById('status-pill').className = 'status-pill status-view';
   searchInput.disabled = false;
-  searchInput.placeholder = `${currentPositionTag}-Spieler im Konsens finden…`;
-  document.getElementById('search-hint').textContent = 'Automatisch berechneter Konsens aus allen Rankings dieses Formats/dieser Position — rein informativ, nicht editierbar.';
+  searchInput.placeholder = t('ph_find_consensus', currentPositionTag);
+  document.getElementById('search-hint').textContent = t('hint_consensus');
   document.getElementById('view-toggle').style.display = 'none'; // Grid/Liste-Umschalter nur in der individuellen Ansicht (siehe Chat)
 
   ensureOverviewDataForCurrentNeed();
@@ -1665,11 +1745,11 @@ function buildRaterListHtml(results, opts){
   }).join('');
 
   const headerHtml = `<div class="ov-list-hdr" style="grid-template-columns:${gridCols};">
-    <span>RK</span><span></span><span>Spieler</span>
-    <span title="Bester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters">Best</span>
-    <span title="Schlechtester Rang, den ein einzelner Rater vergeben hat, mit dem zugehörigen Tier dieses Raters">Worst</span>
-    <span title="Durchschnittlicher Rang über alle Rater, die diesen Spieler bewertet haben">Avg</span>
-    <span title="Standardabweichung — wie einig sich die Rater sind (niedrig = Einigkeit, hoch = Uneinigkeit)">Std.Dev</span>
+    <span>RK</span><span></span><span>${t('player_header')}</span>
+    <span title="${t('tip_best')}">Best</span>
+    <span title="${t('tip_worst')}">Worst</span>
+    <span title="${t('tip_avg')}">Avg</span>
+    <span title="${t('tip_stddev')}">Std.Dev</span>
     ${raterHdrCells}
   </div>`;
 
@@ -1711,7 +1791,7 @@ function buildRaterListHtml(results, opts){
     </div>`;
   });
 
-  return `<div class="ov-list-wrap">${headerHtml}${rowsHtml || '<div class="col-empty" style="padding:20px;">Noch keine Rankings vorhanden.</div>'}</div>`;
+  return `<div class="ov-list-wrap">${headerHtml}${rowsHtml || `<div class="col-empty" style="padding:20px;">${t('no_rankings_title')}</div>`}</div>`;
 }
 
 function attachRaterListEvents(wrap){
@@ -1985,8 +2065,8 @@ overlay.addEventListener('click', e => { if (e.target === overlay) overlay.class
 function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
 function mapAuthError(e){
   const c = e.code || '';
-  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
-  return 'Fehler: ' + (e.message || 'unbekannt');
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
+  return t('login_error_generic') + (e.message || 'unknown');
 }
 document.getElementById('login-submit').addEventListener('click', async () => {
   errEl.classList.remove('show');
@@ -2001,15 +2081,13 @@ watchAuth(async user => {
   document.getElementById('nav-matchups-link').style.display = user ? '' : 'none';
   document.getElementById('nav-coaching-tree-link').style.display = user ? '' : 'none';
   const footerText = document.getElementById('footer-text');
-  if(footerText) footerText.textContent = user
-    ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-    : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+  if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
   if(user){
     const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+    authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
     document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
   } else {
-    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+    authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
     document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
   }
   await refreshUserList();
@@ -2035,8 +2113,8 @@ watchAuth(async user => {
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>

@@ -191,16 +191,86 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close-btn">&times;</button>
-    <div class="modal-title">Login</div>
-    <div class="modal-field" style="margin-top:16px;"><label>Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
-    <div class="modal-field"><label>Passwort</label><input type="password" id="login-pw"></div>
-    <button class="modal-submit" id="login-submit">Anmelden</button>
+    <div class="modal-title" data-i18n="login">Login</div>
+    <div class="modal-field" style="margin-top:16px;"><label data-i18n="login_username">Benutzername</label><input type="text" id="login-email" autocapitalize="off"></div>
+    <div class="modal-field"><label data-i18n="login_password">Passwort</label><input type="password" id="login-pw"></div>
+    <button class="modal-submit" id="login-submit" data-i18n="login_submit">Anmelden</button>
     <div class="modal-error" id="modal-error"></div>
   </div>
 </div>
 
 <script type="module">
   import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+
+  // ── SPRACHE (DE/EN, siehe Chat) ────────────────────────────────────────────
+  // Kein eigener Schalter auf dieser Seite — liest nur den auf der Startseite
+  // gesetzten Modus aus demselben localStorage-Schlüssel.
+  const LANG_KEY = 'mim_lang';
+  function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
+  const I18N = {
+    de: {
+      login: 'Login', logout: 'Logout',
+      login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
+      login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
+      init_cache: 'Lade aus Cache…', init_api: 'Lade von Sleeper API…',
+      init_nflverse: 'Lade nflverse- & PFF-Daten…', init_merge: 'Verarbeite & merge Spieler…',
+      init_loaded: n => `${n.toLocaleString()} IDP-Spieler geladen`, init_error: msg => `Fehler: ${msg}`,
+      search_placeholder: 'Spielername suchen…',
+      search_hint: 'Mindestens 3 Zeichen eingeben, um zu suchen',
+      pos_all: 'Alle IDP', status_all: 'Alle', status_active: 'Aktiv',
+      hint_browse: n => `${n.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`,
+      state_browse: 'Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen, oder wähle eine Position für die Top 50.',
+      state_noresults: q => `Keine Spieler gefunden für <strong>"${q}"</strong>.`,
+      count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} nach Punkten (${season}) · alphabetisch`,
+      count_results: n => `<strong>${n.toLocaleString()}</strong> Ergebnis${n!==1?'se':''}`,
+      count_top50_suffix: ' · zeigt Top 50',
+      age_suffix: ' J.', add_to_compare: 'Zum Vergleich hinzufügen',
+      compare_selected_suffix: '/3 Spieler ausgewählt',
+      compare_open: 'Vergleich öffnen (neuer Tab)', compare_reset: 'Auswahl zurücksetzen',
+      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus',
+      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community-Modus',
+      footer_disclaimer: 'Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.',
+      footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
+    },
+    en: {
+      login: 'Login', logout: 'Logout',
+      login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
+      login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
+      init_cache: 'Loading from cache…', init_api: 'Loading from Sleeper API…',
+      init_nflverse: 'Loading nflverse & PFF data…', init_merge: 'Processing & merging players…',
+      init_loaded: n => `${n.toLocaleString()} IDP players loaded`, init_error: msg => `Error: ${msg}`,
+      search_placeholder: 'Search player name…',
+      search_hint: 'Enter at least 3 characters to search',
+      pos_all: 'All IDP', status_all: 'All', status_active: 'Active',
+      hint_browse: n => `${n.toLocaleString()} IDP players · enter at least 3 characters or pick a position`,
+      state_browse: 'Search for any <strong>IDP defensive player</strong>.<br>Results appear after 3 characters, or pick a position for the Top 50.',
+      state_noresults: q => `No players found for <strong>"${q}"</strong>.`,
+      count_top: (n, fa, pos, season) => `<strong>Top ${n}</strong> ${fa ? 'FA ' : ''}${pos} by points (${season}) · alphabetical`,
+      count_results: n => `<strong>${n.toLocaleString()}</strong> result${n!==1?'s':''}`,
+      count_top50_suffix: ' · showing Top 50',
+      age_suffix: ' yo', add_to_compare: 'Add to comparison',
+      compare_selected_suffix: '/3 players selected',
+      compare_open: 'Open comparison (new tab)', compare_reset: 'Clear selection',
+      footer_internal: 'MICS IN MOTION · FRONT OFFICE · Internal use only · Internal mode',
+      footer_community: 'MICS IN MOTION · FRONT OFFICE · Community mode',
+      footer_disclaimer: 'This data is meant for our community — please use it respectfully and fairly.',
+      footer_copyright: '© 2026 Mics in Motion. All rights reserved.',
+    }
+  };
+  function t(key, ...args){
+    const lang = getLang();
+    const entry = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.de[key];
+    return typeof entry === 'function' ? entry(...args) : (entry !== undefined ? entry : key);
+  }
+  function applyI18n(){
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+    document.documentElement.lang = getLang();
+  }
+  window.getLang = getLang;
+  window.t = t;
+  window.applyI18n = applyI18n;
+  applyI18n();
 
   const authWrap = document.getElementById('auth-wrap');
   const overlay = document.getElementById('modal-overlay');
@@ -211,8 +281,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
   function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
   function mapAuthError(e){
     const c = e.code || '';
-    if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Benutzername oder Passwort falsch.';
-    return 'Fehler: ' + (e.message || 'unbekannt');
+    if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return t('login_error_credentials');
+    return t('login_error_generic') + (e.message || 'unknown');
   }
   document.getElementById('login-submit').addEventListener('click', async () => {
     errEl.classList.remove('show');
@@ -228,15 +298,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
     const linkCoachingTree = document.getElementById('nav-coaching-tree-link');
     if(linkCoachingTree) linkCoachingTree.style.display = user ? '' : 'none';
     const footerText = document.getElementById('footer-text');
-    if(footerText) footerText.textContent = user
-      ? 'MICS IN MOTION · FRONT OFFICE · Nur für internen Gebrauch · Interner-Modus'
-      : 'MICS IN MOTION · FRONT OFFICE · Community-Modus';
+    if(footerText) footerText.textContent = user ? t('footer_internal') : t('footer_community');
     if(user){
       const initial = (user.displayName || user.email || '?')[0].toUpperCase();
-      authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">Logout</button></div></div>`;
+      authWrap.innerHTML = `<div class="auth-user"><div class="auth-avatar">${initial}</div><div><div class="auth-name">${user.displayName||user.email}</div><button class="auth-logout" id="logout-btn">${t('logout')}</button></div></div>`;
       document.getElementById('logout-btn').addEventListener('click', () => logoutUser());
     } else {
-      authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">Login</button>`;
+      authWrap.innerHTML = `<button class="auth-btn" id="auth-open-btn">${t('login')}</button>`;
       document.getElementById('auth-open-btn').addEventListener('click', () => overlay.classList.add('open'));
     }
   });
@@ -247,21 +315,21 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
   <div class="sh-sub">DL · LB · DB · Sleeper + nflverse + PFF</div>
   <div class="search-box-wrap">
     <input class="search-box" id="search-box" type="text"
-      placeholder="Spielername suchen…" oninput="onSearch()" autocomplete="off">
+      placeholder="Spielername suchen…" data-i18n-placeholder="search_placeholder" oninput="onSearch()" autocomplete="off">
     <span class="search-icon">⌕</span>
   </div>
-  <div class="search-hint" id="search-hint">Mindestens 3 Zeichen eingeben, um zu suchen</div>
+  <div class="search-hint" id="search-hint" data-i18n="search_hint">Mindestens 3 Zeichen eingeben, um zu suchen</div>
 </div>
 
 <div class="filter-bar">
   <span class="filter-label">Position</span>
-  <button class="fchip active" onclick="setPos(this,'')">Alle IDP</button>
+  <button class="fchip active" onclick="setPos(this,'')" data-i18n="pos_all">Alle IDP</button>
   <button class="fchip" onclick="setPos(this,'DL')">DL</button>
   <button class="fchip" onclick="setPos(this,'LB')">LB</button>
   <button class="fchip" onclick="setPos(this,'DB')">DB</button>
   <span class="filter-label" style="margin-left:12px">Status</span>
-  <button class="fchip active" onclick="setStatus(this,'')">Alle</button>
-  <button class="fchip" onclick="setStatus(this,'Active')">Aktiv</button>
+  <button class="fchip active" onclick="setStatus(this,'')" data-i18n="status_all">Alle</button>
+  <button class="fchip" onclick="setStatus(this,'Active')" data-i18n="status_active">Aktiv</button>
   <button class="fchip" onclick="setStatus(this,'FA')">FA</button>
 </div>
 
@@ -272,15 +340,15 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
   <div id="results-list">
     <div class="state-box">
       <div class="state-icon">🏈</div>
-      <p>Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen.</p>
+      <p data-i18n="state_browse">Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen.</p>
     </div>
   </div>
 </div>
 
 <div class="compare-bar" id="compare-bar">
-  <span class="compare-bar-txt"><strong id="compare-count">0</strong>/3 Spieler ausgewählt</span>
-  <button class="compare-bar-btn" id="compare-open-btn">Vergleich öffnen (neuer Tab)</button>
-  <button class="compare-bar-clear" id="compare-clear-btn">Auswahl zurücksetzen</button>
+  <span class="compare-bar-txt"><strong id="compare-count">0</strong><span id="compare-selected-suffix" data-i18n="compare_selected_suffix">/3 Spieler ausgewählt</span></span>
+  <button class="compare-bar-btn" id="compare-open-btn" data-i18n="compare_open">Vergleich öffnen (neuer Tab)</button>
+  <button class="compare-bar-clear" id="compare-clear-btn" data-i18n="compare_reset">Auswahl zurücksetzen</button>
 </div>
 
 <script>
@@ -669,7 +737,7 @@ async function init() {
     cached = null;
   }
   if (cached) {
-    sub.textContent = 'Lade aus Cache…';
+    sub.textContent = window.t('init_cache');
     bar.style.width = '80%';
     players = cached;
     bar.style.width = '100%';
@@ -682,12 +750,12 @@ async function init() {
 
   try {
     // 1) Sleeper — Basis für Fantasy-Position/Status/Injury-Fallback/Headshot
-    sub.textContent = 'Lade von Sleeper API…';
+    sub.textContent = window.t('init_api');
     bar.style.width = '15%';
     const sleeperData = await fetchSleeperPlayers();
 
     // 2) nflverse Rosters + Injuries, sowie PFF-Positionen — parallel, alle einmalig
-    sub.textContent = 'Lade nflverse- & PFF-Daten…';
+    sub.textContent = window.t('init_nflverse');
     bar.style.width = '35%';
     const [rosterCsv, injuriesCsv, pffMap] = await Promise.all([
       fetchCsvOnce(NV_ROSTER_URL, [CUR_YEAR, CUR_YEAR-1], 'sleeper_id'),
@@ -700,7 +768,7 @@ async function init() {
     if(!injuriesCsv) console.warn('[nflverse] Injuries konnten nicht geladen werden — Fallback auf Sleepers injury_status.');
 
     bar.style.width = '70%';
-    sub.textContent = 'Verarbeite & merge Spieler…';
+    sub.textContent = window.t('init_merge');
 
     // 3) Merge: Sleeper (Fantasy-Position/Status) + nflverse (Bio/IDs) + PFF (genaue Position)
     //    Spieler, die nflverse/PFF (noch) nicht kennt, fallen NICHT raus — reiner Sleeper-Fallback statt Filterung.
@@ -747,14 +815,14 @@ async function init() {
 
     setCache(players);
     bar.style.width = '100%';
-    sub.textContent = `${players.length.toLocaleString()} IDP-Spieler geladen`;
+    sub.textContent = window.t('init_loaded', players.length);
     setTimeout(() => document.getElementById('init-overlay').classList.add('done'), 300);
     document.getElementById('search-hint').textContent =
       `${players.length.toLocaleString()} IDP-Spieler · DL, LB, DB`;
     loadTop50ByPosition().then(() => { renderResults(); }); // immer neu rendern (nicht nur Top50-Ansicht), damit Punkte auch bei aktiver Suche nachträglich erscheinen
 
   } catch(e) {
-    sub.textContent = `Fehler: ${e.message}`;
+    sub.textContent = window.t('init_error', e.message);
     bar.style.background = '#da3633';
     bar.style.width = '100%';
     console.error(e);
@@ -810,17 +878,16 @@ function renderResults() {
 
       header.style.display = 'flex';
       hint.textContent = '';
-      document.getElementById('results-count').innerHTML =
-        `<strong>Top ${topResults.length}</strong> ${usingFA ? 'FA ' : ''}${activePos} nach Punkten (${TOP50_SEASON}) · alphabetisch`;
+      document.getElementById('results-count').innerHTML = window.t('count_top', topResults.length, usingFA, activePos, TOP50_SEASON);
       list.innerHTML = topResults.map(p => playerRow(p)).join('');
       return;
     }
     header.style.display = 'none';
     if (players.length > 0)
-      hint.textContent = `${players.length.toLocaleString()} IDP-Spieler · mindestens 3 Zeichen eingeben oder eine Position wählen`;
+      hint.textContent = window.t('hint_browse', players.length);
     list.innerHTML = `<div class="state-box">
       <div class="state-icon">🏈</div>
-      <p>Suche nach einem beliebigen <strong>IDP-Defensivspieler</strong>.<br>Ergebnisse erscheinen ab 3 Zeichen, oder wähle eine Position für die Top 50.</p>
+      <p>${window.t('state_browse')}</p>
     </div>`;
     return;
   }
@@ -853,12 +920,12 @@ function renderResults() {
   header.style.display = 'flex';
   hint.textContent = '';
   document.getElementById('results-count').innerHTML =
-    `<strong>${total.toLocaleString()}</strong> Ergebnis${total!==1?'se':''}${total>50?' · zeigt Top 50':''}`;
+    window.t('count_results', total) + (total>50 ? window.t('count_top50_suffix') : '');
 
   if (!total) {
     list.innerHTML = `<div class="state-box">
       <div class="state-icon">🔍</div>
-      <p>Keine Spieler gefunden für <strong>"${searchQ}"</strong>.</p>
+      <p>${window.t('state_noresults', searchQ)}</p>
     </div>`;
     return;
   }
@@ -887,7 +954,7 @@ function playerRow(p) {
   const posDisp = (p.positions && p.positions.length) ? p.positions.join('/') : p.position;
   const exp = p.years_exp !== '' ? `${p.years_exp}Y exp` : '';
   const college = p.college && p.college !== 'null' ? p.college : '';
-  const age = p.age ? `${p.age} J.` : '';
+  const age = p.age ? `${p.age}${window.t('age_suffix')}` : '';
   const height = fmtH(p.height);
   const weight = p.weight ? `${p.weight} lbs` : '';
   const checked = compareIds.has(p.sleeper_id) ? 'checked' : '';
@@ -902,7 +969,7 @@ function playerRow(p) {
   return `
   <div class="player-row">
     <input type="checkbox" class="pr-check" data-id="${p.sleeper_id}" ${checked}
-      onclick="event.stopPropagation()" onchange="toggleCompare(this)" title="Zum Vergleich hinzufügen">
+      onclick="event.stopPropagation()" onchange="toggleCompare(this)" title="${window.t('add_to_compare')}">
     <a class="pr-link" href="player.html?id=${encodeURIComponent(p.sleeper_id)}">
       ${img}
       <div class="pr-info">
@@ -964,8 +1031,8 @@ init();
 </script>
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
   <div id="footer-text">MICS IN MOTION · FRONT OFFICE</div>
-  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
-  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
+  <div class="footer-disclaimer" style="margin-top:6px;font-size:10px;letter-spacing:.3px;color:var(--muted);opacity:.75;" data-i18n="footer_disclaimer">Diese Daten sind für unsere Community gedacht — bitte geht respektvoll und fair damit um.</div>
+  <div style="margin-top:4px;font-size:10px;color:var(--muted);opacity:.6;" data-i18n="footer_copyright">© 2026 Mics in Motion. Alle Rechte vorbehalten.</div>
 </footer>
 </body>
 </html>
