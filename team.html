@@ -427,7 +427,7 @@ const I18N = {
     login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
     record: 'Record', division: 'Division', team_label: 'Team', season_label: 'Season',
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
-    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule &amp; Standings',
+    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
     pos_glossary: 'Positions-Glossar', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Lade Depth Chart…', loading_teamstats: 'Lade Team Stats…',
@@ -457,7 +457,7 @@ const I18N = {
     login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
     record: 'Record', division: 'Division', team_label: 'Team', season_label: 'Season',
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
-    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule &amp; Standings',
+    depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
     pos_glossary: 'Position Glossary', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Loading depth chart…', loading_teamstats: 'Loading team stats…',
@@ -841,6 +841,21 @@ function parseCsvLine(line){
 // Eigener Cloudflare Worker — dauerhaft zuverlässig, da er uns gehört (siehe Chat).
 // Wird von mehreren Funktionen geteilt (nflverse-CSV, ourlads).
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
+// Ohne explizites Timeout kann ein einzelner hängender Request (z.B. bei hoher
+// Auslastung von Sleeper/den CORS-Proxys, wie z.B. rund um den Saisonstart)
+// die komplette Lineup-Details-Berechnung minutenlang blockieren, obwohl
+// eigentlich Fallback-URLs bereitstehen (siehe Chat). Bricht nach `ms` ab und
+// wirft, damit der jeweilige try/catch-Fallback sofort zur nächsten Quelle
+// weiterschaltet, statt endlos zu warten.
+async function fetchWithTimeout(url, ms=9000, options){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try{
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 
 async function fetchNflverseCSV(url){
@@ -854,7 +869,7 @@ async function fetchNflverseCSV(url){
   ];
   for(const a of attempts){
     try{
-      const r = await fetch(a);
+      const r = await fetchWithTimeout(a);
       if(!r.ok) continue;
       const text = a.includes('allorigins') ? (await r.json()).contents : await r.text();
       if(text && text.length > 100) return text;
@@ -1707,7 +1722,9 @@ async function renderLineupSection(abbr, year, includeDetails){
     return;
   }
 
-  const t = teams[abbr];
+  const td = teams[abbr]; // "td" statt "t" — "t" ist die globale Übersetzungsfunktion und wurde
+  // durch ein lokales const t hier weiter oben (Zeile 1677/1715/1721) unerreichbar (TDZ), was
+  // renderLineupSection abstürzen ließ, bevor die Firestore-Cache-Prüfung je Ergebnisse zeigen konnte.
   // FRONT/LB/SECONDARY nur ins DOM schreiben, wenn includeDetails=true (intern) —
   // für Community darf das gar nicht erst gerendert werden, nicht nur per CSS
   // versteckt (siehe Chat: sonst wäre es trotzdem im Seitenquelltext auslesbar).
@@ -1716,11 +1733,11 @@ async function renderLineupSection(abbr, year, includeDetails){
     const lbAvg = computeLeagueAverages(teams, LB_LABELS, 'lb');
     const secAvg = computeLeagueAverages(teams, SEC_LABELS, 'secondary');
     lineupContainer.innerHTML =
-      renderLineupCategoryBox('FRONT', FRONT_LABELS, t.front, t.total, frontAvg) +
-      renderLineupCategoryBox('LB', LB_LABELS, t.lb, t.total, lbAvg) +
-      renderLineupCategoryBox('SECONDARY', SEC_LABELS, t.secondary, t.total, secAvg);
+      renderLineupCategoryBox('FRONT', FRONT_LABELS, td.front, td.total, frontAvg) +
+      renderLineupCategoryBox('LB', LB_LABELS, td.lb, td.total, lbAvg) +
+      renderLineupCategoryBox('SECONDARY', SEC_LABELS, td.secondary, td.total, secAvg);
   }
-  schemesContainer.innerHTML = renderTopSchemesBox(t.codes, t.total);
+  schemesContainer.innerHTML = renderTopSchemesBox(td.codes, td.total);
   const musHdr = document.getElementById('mus-toggle-hdr');
   if(musHdr){
     musHdr.addEventListener('click', () => {
@@ -1967,7 +1984,7 @@ function fetchSleeperAllPlayers(){
     ];
     for(const a of attempts){
       try{
-        const r = await fetch(a);
+        const r = await fetchWithTimeout(a);
         if(!r.ok) continue;
         const data = await r.json();
         if(data && Object.keys(data).length > 100){
@@ -2096,7 +2113,8 @@ const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
 const SCORING_MODE_KEY = 'mim_scoring_mode';
-function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
+// Bowl-Scoring ist vorerst nur für interne Nutzer wählbar (siehe Chat).
+function getScoringMode(){ try{ return (window._isInternalUser && localStorage.getItem(SCORING_MODE_KEY)==='bowl') ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
 function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){
@@ -2787,7 +2805,7 @@ const CURRENT_SEASON_YEAR = isPastMarch1(new Date()) ? new Date().getFullYear() 
 // Gemeinsamer Zugriff über unseren eigenen Worker (siehe Chat) — für nflverse UND ourlads
 async function fetchViaWorker(url){
   try{
-    const r = await fetch(`${MIM_WORKER}${encodeURIComponent(url)}`);
+    const r = await fetchWithTimeout(`${MIM_WORKER}${encodeURIComponent(url)}`);
     if(!r.ok) return null;
     return await r.text();
   }catch(e){ return null; }
