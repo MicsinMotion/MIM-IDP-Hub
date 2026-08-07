@@ -899,8 +899,8 @@ async function main(){
         const t = lineupTeams[abbr];
         t.codes = Object.fromEntries(Object.entries(t.codes).sort((a,b) => b[1]-a[1]).slice(0, 15));
       });
-      await saveSharedCache(`lineup_${year}`, { teams: lineupTeams });
-      console.log(`[Lineup] ✅ Geschrieben nach shared_cache/lineup_${year}`);
+      await saveSharedCache(`lineup_v3_${year}`, { teams: lineupTeams });
+      console.log(`[Lineup] ✅ Geschrieben nach shared_cache/lineup_v3_${year}`);
     } else {
       console.log(`[Lineup] ⚠️  Keine participation-Daten für ${year} verfügbar (werden erst nach Saisonende inkl. Playoffs von FTN bereitgestellt) — übersprungen.`);
     }
