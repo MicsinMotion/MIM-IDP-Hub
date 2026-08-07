@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 20
     defaults:
       run:
-        working-directory: scripts
+        working-directory: precompute-setup/scripts
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
