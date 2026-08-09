@@ -1064,6 +1064,14 @@ function classifyPlayer(x){
   return [...groups];
 }
 let playerMap = {};
+// Sofort anstoßen (nicht erst am Skriptende), und als geteiltes Promise ablegen:
+// watchAuth() und refreshDynamicI18n() lösen weiter oben schon früh renderTab() aus
+// (Login-Status, Sprachwechsel), teils bevor dieser Fetch fertig ist. Ohne dieses
+// gemeinsame Promise würde renderTab() dann mit leerem playerMap rechnen und
+// computeSeasonScores() cacht dieses (falsche) leere Ergebnis dauerhaft — genau das
+// war die Ursache für "Keine Daten verfügbar" trotz erfolgreichem Stats-Fetch
+// (siehe Chat, Race Condition zwischen loadAllPlayers() und den Auth-/i18n-Callbacks).
+const playersReadyPromise = loadAllPlayers();
 async function loadAllPlayers(){
   let cached = (()=>{ try{ const s=store(), ts=s.getItem(CACHE_TS); if(ts && Date.now()-parseInt(ts)<CACHE_TTL){ const r=s.getItem(CACHE_KEY); return r?JSON.parse(r):null; } }catch{} return null; })();
   // Formprüfung: eine ältere player.html-Version hat denselben Cache-Key versehentlich
@@ -1150,8 +1158,10 @@ let seasonScores = null; // [{id, ptsStandard, ptsBowl}] — beide Modi gleichze
 async function computeSeasonScores(){
   if(seasonScores) return seasonScores;
   const entries = await fetchBulkSeasonStats(SEASON_YEAR);
+  // Bei echtem Fetch-Fehlschlag NICHT dauerhaft cachen (leeres Array wäre sonst für den
+  // Rest der Sitzung "sticky") — ein späterer erneuter Aufruf kann es dann nochmal versuchen.
+  if(!entries) return [];
   seasonScores = [];
-  if(!entries) return seasonScores;
   entries.forEach(entry => {
     const pid = entry.player_id != null ? String(entry.player_id) : null;
     if(!pid || !playerMap[pid]) return;
@@ -1202,6 +1212,7 @@ function renderLeaderCol(posLabel, items, valueFn, emptyMsg){
 }
 
 async function renderTab(tab){
+  await playersReadyPromise; // playerMap muss gefüllt sein, bevor computeSeasonScores() matcht (Race-Fix, siehe Chat)
   const grid = document.getElementById('leaders-grid');
   const meta = document.getElementById('leaders-meta');
   grid.innerHTML = `<div class="leaders-loading">${window.t('leaders_loading')}</div>`;
@@ -1693,10 +1704,7 @@ document.querySelectorAll('.scoring-switch-btn').forEach(btn => {
   });
 });
 
-(async () => {
-  await loadAllPlayers();
-  renderTab(currentLeadersTab);
-})();
+renderTab(currentLeadersTab); // loadAllPlayers() läuft bereits (playersReadyPromise oben) und wird intern in renderTab() abgewartet — kein zweiter Fetch nötig
 
 loadInjuryFeed().then(renderInjuryTracker).catch(e => {
   console.warn('IDP News konnten nicht geladen werden:', e);
