@@ -2113,8 +2113,8 @@ const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
 const SCORING_MODE_KEY = 'mim_scoring_mode';
-// Bowl-Scoring ist vorerst nur für interne Nutzer wählbar (siehe Chat).
-function getScoringMode(){ try{ return (window._isInternalUser && localStorage.getItem(SCORING_MODE_KEY)==='bowl') ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
+// Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
+function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
 function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){
