@@ -1742,7 +1742,13 @@ function buildRaterListHtml(results, opts){
   const highlightUserId = opts.highlightUserId || null;
 
   const raterColWidth = 68;
-  const gridCols = `44px 36px 1fr 52px 52px 50px 56px repeat(${allRankings.length}, ${raterColWidth}px)`;
+  // minmax(120px,1fr) statt reinem 1fr (siehe Chat): bei vielen Ratern auf schmalen
+  // Handy-Viewports gab es sonst keinen Platz mehr für die Namens-Spalte übrig — das
+  // Grid hat sie (wegen .ov-list-name-wrap{min-width:0}) bis auf ~0px zusammengequetscht,
+  // der Spielername verschwand komplett (Bild → direkt Zahlen). Mit einer Mindestbreite
+  // bleibt der Name immer lesbar; auf dem Handy scrollt man dann stattdessen horizontal
+  // (per .ov-list-wrap/.board-wrap{overflow-x:auto}, schon vorhanden) zu den Rater-Spalten.
+  const gridCols = `44px 36px minmax(120px,1fr) 52px 52px 50px 56px repeat(${allRankings.length}, ${raterColWidth}px)`;
 
   const raterHdrCells = allRankings.map(u => {
     const img = avatarFor(u.displayName);
