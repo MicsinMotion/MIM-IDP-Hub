@@ -61,7 +61,8 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .gate-note b{color:var(--muted2);}
 
 /* TOOLBAR */
-.toolbar{padding:20px 32px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:flex-start;gap:32px;flex-wrap:wrap;}
+.toolbar{padding:20px 32px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.tb-left{display:flex;align-items:flex-start;gap:32px;flex-wrap:wrap;}
 .tb-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#fff;}
 .tb-title span{color:var(--orange);}
 .tb-group{display:flex;flex-direction:column;gap:6px;}
@@ -72,44 +73,70 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .pos-tab{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .pos-tab:hover{color:var(--text);}
 .pos-tab.active{background:var(--orange);color:#fff;}
+.tb-right{display:flex;flex-direction:column;gap:6px;}
+.search-input-wrap{position:relative;width:280px;}
+.search-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:10px 14px 10px 34px;outline:none;}
+.search-input:focus{border-color:var(--orange);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
 
-/* GRID */
-.grid-wrap{padding:28px 32px 60px;}
-.player-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;max-width:1800px;margin:0 auto;}
-@media(max-width:1300px){ .player-grid{grid-template-columns:repeat(3,1fr);} }
-@media(max-width:900px){ .player-grid{grid-template-columns:repeat(2,1fr);} }
-@media(max-width:600px){ .player-grid{grid-template-columns:1fr;} }
-.empty-state{padding:60px 32px;text-align:center;color:var(--muted);grid-column:1/-1;}
+/* RATER-LEGENDE (Kopfzeile über der Liste) */
+.raters-legend{padding:12px 32px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+.rl-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px;}
+.rl-item{display:flex;align-items:center;gap:7px;}
+.rl-avatar,.rl-avatar-fb{width:22px;height:22px;border-radius:5px;object-fit:cover;display:block;}
+.rl-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;}
+.rl-name{font-size:12px;color:var(--muted2);}
+
+/* LISTE */
+.list-wrap{padding:22px 32px 60px;max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
 .empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
 
-.p-card{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--bg3);min-height:250px;}
-.p-card-logo-bg{position:absolute;inset:0;background-size:contain;background-position:right -30px bottom -30px;background-repeat:no-repeat;opacity:.5;filter:saturate(1.3);pointer-events:none;z-index:0;}
-.p-card{transition:background-color .3s;}
-.p-card-inner{position:relative;z-index:1;padding:22px;display:flex;flex-direction:column;height:100%;}
-.p-card-top{display:flex;gap:16px;align-items:flex-start;}
-.p-link{display:block;text-decoration:none;color:inherit;flex:1;min-width:0;}
-.p-info{min-width:0;}
-.p-name-first{font-weight:600;font-size:19px;color:var(--muted2);line-height:1.15;}
-.p-name-last{font-weight:800;font-size:30px;color:#fff;line-height:1.1;letter-spacing:.3px;}
-.p-sub{font-size:14px;color:var(--muted2);margin-top:8px;line-height:1.5;}
-.p-star{background:none;border:none;font-size:28px;cursor:pointer;line-height:1;color:var(--border2);flex-shrink:0;padding:2px;transition:transform .1s;}
-.p-star:hover{transform:scale(1.15);}
-.p-star.on{color:var(--gold);}
-.p-watch-row{margin-top:auto;padding-top:20px;display:flex;gap:18px;flex-wrap:nowrap;justify-content:flex-start;}
-.p-watch-item{display:flex;flex-direction:column;align-items:center;gap:6px;}
-.p-watch-avatar,.p-watch-avatar-fb{width:52px;height:52px;border-radius:10px;object-fit:cover;display:block;}
-.p-watch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:19px;}
-.p-watch-item.checked .p-watch-avatar,.p-watch-item.checked .p-watch-avatar-fb{box-shadow:0 0 0 2px var(--green-light);border-radius:10px;}
-.p-watch-check{width:28px;height:28px;accent-color:var(--green-light);cursor:pointer;}
+.col-header{display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:0 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
+.ch-checks{display:flex;justify-content:center;gap:9px;}
+.ch-avatar,.ch-avatar-fb{width:18px;height:18px;border-radius:4px;object-fit:cover;display:block;}
+.ch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:8px;}
+.ch-star{text-align:center;}
+.pos-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--orange);background:var(--orange-glow);border-radius:4px;padding:2px 6px;margin-left:8px;vertical-align:middle;}
+
+.p-row{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--bg3);transition:background-color .3s;}
+.p-row-logo-bg{position:absolute;left:0;top:0;bottom:0;width:190px;background-size:120px;background-position:20px center;background-repeat:no-repeat;opacity:.22;pointer-events:none;z-index:0;}
+.p-row-logo-mini{width:24px;height:24px;border-radius:50%;background-size:contain;background-position:center;background-repeat:no-repeat;flex-shrink:0;}
+.p-row-main{position:relative;z-index:1;display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:14px 20px;}
+
+.p-name-block{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.p-name{font-weight:800;font-size:18px;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-school{font-size:12px;color:var(--muted2);font-weight:500;}
+
+.p-checks{display:flex;justify-content:center;gap:9px;}
+.p-watch-avatar,.p-watch-avatar-fb{display:none;} /* Avatare nicht mehr pro Zeile, siehe Kopfzeile */
+.p-watch-check{width:20px;height:20px;accent-color:var(--green-light);cursor:pointer;}
 .p-watch-check:disabled{cursor:not-allowed;opacity:.35;}
-.p-no-link{font-size:11px;color:var(--muted);font-style:italic;margin-top:6px;}
+
+.p-star{background:none;border:none;font-size:22px;cursor:pointer;line-height:1;color:var(--border2);padding:0;justify-self:center;}
+.p-star.on{color:var(--gold);}
+
+.p-tape-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;justify-self:center;padding:6px;border-radius:6px;display:flex;align-items:center;gap:6px;}
+.p-tape-arrow{display:inline-block;transition:transform .15s;}
+.p-tape-btn.open .p-tape-arrow{transform:rotate(180deg);color:var(--orange);}
+.p-tape-panel{position:relative;z-index:1;max-height:0;overflow:hidden;transition:max-height .2s ease;}
+.p-tape-panel.open{max-height:260px;overflow-y:auto;border-top:1px solid var(--border);}
+.p-tape-inner{padding:14px 20px;display:flex;flex-direction:column;gap:8px;}
+.p-tape-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--text);gap:12px;}
+.p-tape-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.p-tape-item a{color:var(--orange);text-decoration:none;font-weight:600;flex-shrink:0;}
+.p-tape-empty,.p-tape-error{font-size:12px;color:var(--muted);font-style:italic;padding:4px 2px;}
+.p-tape-error{color:var(--red);}
+.p-no-link{font-size:11px;color:var(--muted);font-style:italic;}
 
 @media(max-width:700px){
-  nav{padding:0 20px;} .toolbar,.grid-wrap{padding-left:20px;padding-right:20px;}
+  nav{padding:0 20px;} .toolbar,.list-wrap,.raters-legend{padding-left:20px;padding-right:20px;}
   .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .nav-mid::-webkit-scrollbar{display:none;}
   .nav-link{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 9px;}
   .brand{font-size:18px;}
+  .col-header,.p-row-main{grid-template-columns:minmax(140px,1fr) var(--checks-w,140px) 40px 50px;}
+  .list-wrap{overflow-x:auto;}
 }
 </style>
 </head>
@@ -163,20 +190,29 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 <!-- Hauptinhalt -->
 <div id="scouting-app" style="display:none;">
   <div class="toolbar">
-    <div class="tb-title">COLLEGE <span>SCOUTING</span></div>
-    <div class="tb-group">
-      <label>Jahrgang</label>
-      <select class="tb-select" id="year-select"></select>
+    <div class="tb-left">
+      <div class="tb-title">COLLEGE <span>SCOUTING</span></div>
+      <div class="tb-group">
+        <label>Jahrgang</label>
+        <select class="tb-select" id="year-select"></select>
+      </div>
+      <div class="tb-group">
+        <label>Position</label>
+        <div class="pos-tabs" id="pos-tabs"></div>
+      </div>
     </div>
-    <div class="tb-group">
-      <label>Position</label>
-      <div class="pos-tabs" id="pos-tabs"></div>
+    <div class="tb-right">
+      <label style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Spieler suchen (alle Positionen)</label>
+      <div class="search-input-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" class="search-input" id="player-search" placeholder="Name eingeben…">
+      </div>
     </div>
   </div>
-  <div class="grid-wrap">
-    <div class="player-grid" id="player-grid">
-      <div class="empty-state"><h3>Lade Tabellenblätter…</h3></div>
-    </div>
+  <div class="raters-legend" id="raters-legend"></div>
+  <div class="list-wrap">
+    <div class="col-header" id="col-header"></div>
+    <div id="player-list"><div class="empty-state"><h3>Lade Tabellenblätter…</h3></div></div>
   </div>
 </div>
 
@@ -196,6 +232,10 @@ import { watchAuth, loginUser, logoutUser, listAllRankings, avatarFor, loadScout
 // 5) Die erzeugte Client-ID unten einfügen
 const GOOGLE_CLIENT_ID = '1057503302309-3a2e5r43f0i7r52rssrb2tf50v779nul.apps.googleusercontent.com';
 const SPREADSHEET_ID = '17TOUdKg5RsHNlz2GdCNNd7dL2ZIMe-IhEkvjnF1kSnI';
+// Erweitert um Drive-Readonly (siehe Chat): derselbe Login-Dialog wie bisher,
+// zusätzlich zur Sheets-Berechtigung wird jetzt auch Lesezugriff auf die
+// Tape-Ordner mit angefragt (nötig für die Tape-Liste im Dropdown weiter unten).
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly';
 
 // ─── APP-LOGIN (Firebase, wie auf den anderen Seiten) ──────────────────────
 const authWrap = document.getElementById('auth-wrap');
@@ -250,7 +290,7 @@ let tokenClient = null;
 function initGoogleAuth(){
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    scope: GOOGLE_SCOPES,
     callback: (resp) => {
       if(resp.error){ alert('Google-Anmeldung fehlgeschlagen: ' + resp.error); return; }
       googleAccessToken = resp.access_token;
@@ -270,6 +310,27 @@ async function sheetsApiFetch(url){
   if(!r.ok) throw new Error('Sheets API Fehler ' + r.status);
   return r.json();
 }
+
+// ─── GOOGLE DRIVE: TAPES IM ORDNER AUFLISTEN ───────────────────────────────
+// Nutzt denselben googleAccessToken wie die Sheets-Calls (erweiterter Scope
+// oben) — funktioniert nur, wenn der/die gerade eingeloggte Crew-Account beim
+// Tape-Anbieter selbst Zugriff auf den jeweiligen Ordner hat (siehe Chat).
+function extractDriveFolderId(url){
+  if(!url) return null;
+  const m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+const driveListCache = {};
+async function listDriveFolder(folderId){
+  if(driveListCache[folderId]) return driveListCache[folderId];
+  const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&fields=files(id,name,webViewLink,mimeType)&pageSize=50`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${googleAccessToken}` } });
+  if(!r.ok){ const err = new Error('Drive API Fehler ' + r.status); err.status = r.status; throw err; }
+  const data = await r.json();
+  driveListCache[folderId] = data.files || [];
+  return driveListCache[folderId];
+}
+
 
 // ─── SHEET-TABS ERMITTELN (dynamisch, kein hartcodiertes Namensschema) ─────
 // Erkennt sowohl "2026+ DL" (laufender Jahrgang) als auch "2025 DL" (archiviert)
@@ -398,23 +459,60 @@ let currentYear = null;
 let currentPos = null;
 let unsubScouting = null;
 let scoutingDocData = { players: {} };
+let playersCache = {}; // `${year}|${pos}` -> [{name, school, driveUrl}, ...] (Sheet-Daten, für Suche über alle Positionen)
+let searchTerm = '';
 
 async function initScoutingApp(){
-  document.getElementById('player-grid').innerHTML = `<div class="empty-state"><h3>Lade Tabellenblätter…</h3></div>`;
+  document.getElementById('player-list').innerHTML = `<div class="empty-state"><h3>Lade Tabellenblätter…</h3></div>`;
   await Promise.all([loadSheetTabs(), loadNcaaSchoolsIndex(), (async()=>{ allUsers = await listAllRankings(); allUsers.sort((a,b)=>(a.displayName||'').localeCompare(b.displayName||'','de',{sensitivity:'base'})); })()]);
 
   const years = [...new Set(allTabs.map(t => t.year))].sort((a,b) => b - a);
   if(!years.length){
-    document.getElementById('player-grid').innerHTML = `<div class="empty-state"><h3>Keine passenden Tabs gefunden</h3><p>Erwartet wird ein Muster wie "2026+ DL" oder "2025 DL".</p></div>`;
+    document.getElementById('player-list').innerHTML = `<div class="empty-state"><h3>Keine passenden Tabs gefunden</h3><p>Erwartet wird ein Muster wie "2026+ DL" oder "2025 DL".</p></div>`;
     return;
   }
   const yearSelect = document.getElementById('year-select');
   yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
   currentYear = years[0];
   yearSelect.value = currentYear;
-  yearSelect.addEventListener('change', () => { currentYear = parseInt(yearSelect.value,10); renderPosTabs(); });
+  yearSelect.addEventListener('change', () => { currentYear = parseInt(yearSelect.value,10); playersCache = {}; renderPosTabs(); });
+
+  renderRatersLegend();
+  renderColHeader();
+
+  const searchInput = document.getElementById('player-search');
+  let searchDebounce = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      searchTerm = searchInput.value.trim().toLowerCase();
+      rerenderCurrentView();
+    }, 200);
+  });
 
   renderPosTabs();
+}
+
+function renderRatersLegend(){
+  const el = document.getElementById('raters-legend');
+  el.innerHTML = `<span class="rl-label">Gesehen von</span>` + allUsers.map(u => {
+    const img = avatarFor(u.displayName);
+    const initial = (u.displayName||'?')[0].toUpperCase();
+    return `<div class="rl-item">${img ? `<img class="rl-avatar" src="${img}" alt="">` : `<div class="rl-avatar-fb">${initial}</div>`}<span class="rl-name">${u.displayName||''}</span></div>`;
+  }).join('');
+}
+function renderColHeader(){
+  const checksWidth = Math.max(90, allUsers.length * 29 + 12);
+  document.documentElement.style.setProperty('--checks-w', checksWidth + 'px');
+  const el = document.getElementById('col-header');
+  el.innerHTML = `<span>Spieler</span>
+    <div class="ch-checks">${allUsers.map(u => {
+      const img = avatarFor(u.displayName);
+      const initial = (u.displayName||'?')[0].toUpperCase();
+      return img ? `<img class="ch-avatar" src="${img}" title="${u.displayName||''}">` : `<div class="ch-avatar-fb" title="${u.displayName||''}">${initial}</div>`;
+    }).join('')}</div>
+    <span class="ch-star">★</span>
+    <span></span>`;
 }
 
 function renderPosTabs(){
@@ -432,107 +530,167 @@ function renderPosTabs(){
   if(currentPos) loadAndRenderPosition();
 }
 
+function rerenderCurrentView(){
+  if(searchTerm) renderSearchResults(); else loadAndRenderPosition();
+}
+
+async function loadPlayersForTabCached(tab){
+  const key = `${tab.year}|${tab.pos}`;
+  if(!playersCache[key]) playersCache[key] = await loadPlayersForTab(tab.title);
+  return playersCache[key];
+}
+
+// ─── SUCHE ÜBER ALLE POSITIONEN DES JAHRGANGS ──────────────────────────────
+async function renderSearchResults(){
+  const listEl = document.getElementById('player-list');
+  listEl.innerHTML = `<div class="empty-state"><h3>Suche…</h3></div>`;
+  const tabsThisYear = allTabs.filter(t => t.year === currentYear);
+  const perTab = await Promise.all(tabsThisYear.map(async tab => {
+    const players = await loadPlayersForTabCached(tab);
+    return players.filter(p => p.name.toLowerCase().includes(searchTerm)).map(p => ({...p, pos: tab.pos}));
+  }));
+  const matches = perTab.flat();
+  if(!matches.length){
+    listEl.innerHTML = `<div class="empty-state"><h3>Keine Treffer für "${searchTerm}"</h3></div>`;
+    return;
+  }
+  // Für die Checkbox/Stern-Zustände: einmalig (nicht live) je betroffener Position laden
+  const posInResults = [...new Set(matches.map(m => m.pos))];
+  const docsByPos = {};
+  await Promise.all(posInResults.map(async pos => { docsByPos[pos] = await loadScoutingDoc(currentYear, pos); }));
+  await renderList(matches, docsByPos, true);
+}
+
 async function loadAndRenderPosition(){
-  const grid = document.getElementById('player-grid');
-  grid.innerHTML = `<div class="empty-state"><h3>Lade Spieler…</h3></div>`;
+  const listEl = document.getElementById('player-list');
+  listEl.innerHTML = `<div class="empty-state"><h3>Lade Spieler…</h3></div>`;
 
   const tab = allTabs.find(t => t.year === currentYear && t.pos === currentPos);
-  if(!tab){ grid.innerHTML = `<div class="empty-state"><h3>Kein Tab gefunden</h3></div>`; return; }
+  if(!tab){ listEl.innerHTML = `<div class="empty-state"><h3>Kein Tab gefunden</h3></div>`; return; }
 
-  const players = await loadPlayersForTab(tab.title);
+  const players = await loadPlayersForTabCached(tab);
 
   if(unsubScouting) unsubScouting();
   unsubScouting = watchScoutingDoc(currentYear, currentPos, data => {
     scoutingDocData = data || { players: {} };
-    renderGrid(players);
+    renderList(players.map(p => ({...p, pos: currentPos})), { [currentPos]: scoutingDocData }, false);
   });
 }
 
-function watchAvatarHtml(user){
-  const img = avatarFor(user.displayName);
-  const initial = (user.displayName||'?')[0].toUpperCase();
-  return img ? `<img class="p-watch-avatar" src="${img}" alt="${user.displayName||''}">` : `<div class="p-watch-avatar-fb">${initial}</div>`;
-}
 
-function renderGrid(players){
-  const grid = document.getElementById('player-grid');
+async function renderList(players, docsByPos, showPosBadge){
+  const listEl = document.getElementById('player-list');
   if(!players.length){
-    grid.innerHTML = `<div class="empty-state"><h3>Keine Spieler in diesem Tab</h3></div>`;
+    listEl.innerHTML = `<div class="empty-state"><h3>Keine Spieler in diesem Tab</h3></div>`;
     return;
   }
-  grid.innerHTML = players.map(p => {
+
+  listEl.innerHTML = players.map(p => {
     const slug = slugify(p.name);
-    const status = (scoutingDocData.players && scoutingDocData.players[slug]) || {};
+    const docData = docsByPos[p.pos] || { players: {} };
+    const status = (docData.players && docData.players[slug]) || {};
     const starred = !!status.starred;
-    const logoBg = ''; // wird nach dem Rendern gedrosselt nachgeladen (siehe applyLogosThrottled)
-    const nameParts = p.name.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
 
     const watchHtml = allUsers.map(u => {
       const checked = !!(status.watchedBy && status.watchedBy[u.id]);
       const isMe = currentUser && currentUser.uid === u.id;
-      return `<div class="p-watch-item${checked?' checked':''}" title="${u.displayName||''}${checked?' – geschaut':''}">
-        ${watchAvatarHtml(u)}
-        <input type="checkbox" class="p-watch-check" data-uid="${u.id}" data-slug="${slug}" ${checked?'checked':''} ${isMe?'':'disabled'}>
-      </div>`;
+      return `<input type="checkbox" class="p-watch-check" data-uid="${u.id}" data-slug="${slug}" data-pos="${p.pos}" ${checked?'checked':''} ${isMe?'':'disabled'} title="${u.displayName||''}">`;
     }).join('');
 
-    return `<div class="p-card">
-      <div class="p-card-logo-bg" data-school="${(p.school||'').replace(/"/g,'&quot;')}" ${logoBg}></div>
-      <div class="p-card-inner">
-        <div class="p-card-top">
-          ${p.driveUrl
-            ? `<a class="p-link" href="${p.driveUrl}" target="_blank" rel="noopener">${nameBlock(firstName, lastName, p.school)}</a>`
-            : `<div class="p-link">${nameBlock(firstName, lastName, p.school)}</div>`}
-          <button class="p-star${starred?' on':''}" data-slug="${slug}" title="Muss-Sehen-Markierung">★</button>
+    const folderId = extractDriveFolderId(p.driveUrl);
+    const posBadge = showPosBadge ? `<span class="pos-badge">${p.pos}</span>` : '';
+
+    return `<div class="p-row" data-slug="${slug}" data-pos="${p.pos}">
+      <div class="p-row-logo-bg" data-school="${(p.school||'').replace(/"/g,'&quot;')}"></div>
+      <div class="p-row-main">
+        <div class="p-name-block">
+          <div class="p-name">${p.name}${posBadge}</div>
+          <div class="p-school">${p.school||'–'}</div>
         </div>
-        ${!p.driveUrl ? `<div class="p-no-link">Kein Tape-Link hinterlegt</div>` : ''}
-        <div class="p-watch-row">${watchHtml}</div>
+        <div class="p-checks">${watchHtml}</div>
+        <button class="p-star${starred?' on':''}" data-slug="${slug}" data-pos="${p.pos}" title="Muss-Sehen-Markierung">★</button>
+        ${folderId
+          ? `<button class="p-tape-btn" data-folder="${folderId}"><span class="p-row-logo-mini" data-school="${(p.school||'').replace(/"/g,'&quot;')}"></span><span class="p-tape-arrow">&#9660;</span></button>`
+          : `<span class="p-no-link" title="Kein Tape-Link hinterlegt">–</span>`}
       </div>
+      ${folderId ? `<div class="p-tape-panel"><div class="p-tape-inner"></div></div>` : ''}
     </div>`;
   }).join('');
 
-  grid.querySelectorAll('.p-star').forEach(btn => {
+  listEl.querySelectorAll('.p-star').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const slug = btn.dataset.slug;
-      const current = !!(scoutingDocData.players?.[slug]?.starred);
+      const slug = btn.dataset.slug, pos = btn.dataset.pos;
+      const docData = docsByPos[pos] || { players: {} };
+      const current = !!(docData.players?.[slug]?.starred);
       btn.classList.toggle('on', !current);
-      await toggleScoutingStar(currentYear, currentPos, slug, !current);
+      await toggleScoutingStar(currentYear, pos, slug, !current);
     });
   });
-  grid.querySelectorAll('.p-watch-check').forEach(cb => {
+  listEl.querySelectorAll('.p-watch-check').forEach(cb => {
     cb.addEventListener('change', async () => {
       if(!currentUser || cb.dataset.uid !== currentUser.uid) return;
-      await toggleScoutingWatched(currentYear, currentPos, cb.dataset.slug, currentUser.uid, cb.checked);
+      await toggleScoutingWatched(currentYear, cb.dataset.pos, cb.dataset.slug, currentUser.uid, cb.checked);
     });
+  });
+  listEl.querySelectorAll('.p-tape-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleTapePanel(btn));
   });
 
   applyLogosThrottled();
 }
 
+// Klappt das Tape-Panel auf/zu und lädt beim ersten Öffnen den Drive-Ordnerinhalt
+// (siehe Chat: gleicher OAuth-Token wie für Sheets, erweitert um Drive-Readonly-Scope).
+async function toggleTapePanel(btn){
+  const row = btn.closest('.p-row');
+  const panel = row.querySelector('.p-tape-panel');
+  const inner = panel.querySelector('.p-tape-inner');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  if(!isOpen || inner.dataset.loaded) return;
+  inner.dataset.loaded = '1';
+  inner.innerHTML = `<div class="p-tape-empty">Lade Tapes…</div>`;
+  try{
+    const files = await listDriveFolder(btn.dataset.folder);
+    if(!files.length){ inner.innerHTML = `<div class="p-tape-empty">Ordner ist leer</div>`; return; }
+    inner.innerHTML = files.map(f => `<div class="p-tape-item"><span>${f.name}</span><a href="${f.webViewLink}" target="_blank" rel="noopener">Ansehen &#8599;</a></div>`).join('');
+  }catch(e){
+    const hinweis = e.status === 403 || e.status === 404
+      ? 'Kein Zugriff auf diesen Ordner mit dem aktuell eingeloggten Google-Konto.'
+      : 'Tapes konnten nicht geladen werden (' + (e.message||'Fehler') + ').';
+    inner.innerHTML = `<div class="p-tape-error">${hinweis}</div>`;
+  }
+}
+
 // Setzt die Team-Logo-Hintergründe zeitlich gestaffelt (max. 4/Sekunde), damit wir
 // das 5-Requests/Sekunde-Limit der öffentlichen NCAA-API nicht überschreiten —
-// bei vielen gleichzeitig sichtbaren Karten würden sonst nur die ersten paar laden.
+// bei vielen gleichzeitig sichtbaren Zeilen würden sonst nur die ersten paar laden.
+// Trifft jetzt sowohl das große Hintergrund-Wasserzeichen als auch das kleine
+// runde Logo neben dem Tape-Pfeil (beide teilen sich denselben Farb-Cache).
 function applyLogosThrottled(){
-  const els = Array.from(document.querySelectorAll('.p-card-logo-bg[data-school]'));
-  els.forEach((el, i) => {
+  const groups = new Map(); // school -> {bg: el|null, mini: el|null}
+  document.querySelectorAll('[data-school]').forEach(el => {
     const school = el.dataset.school;
     if(!school) return;
+    if(!groups.has(school)) groups.set(school, []);
+    groups.get(school).push(el);
+  });
+  Array.from(groups.entries()).forEach(([school, els], i) => {
     setTimeout(() => {
       const url = ncaaLogoUrl(school);
-      el.style.backgroundImage = `url('${url}')`;
-      applyTeamColorFromLogo(url, el.closest('.p-card'));
+      els.forEach(el => { el.style.backgroundImage = `url('${url}')`; });
+      const rowEl = els[0].closest('.p-row');
+      applyTeamColorFromLogo(url, rowEl);
     }, i * 250);
   });
 }
 
 // Liest die dominante Farbe direkt aus dem geladenen Logo aus (per Canvas) und färbt
-// die Karte entsprechend ein — keine zusätzliche Datenquelle/API für Team-Farben nötig.
+// die Zeile entsprechend ein — keine zusätzliche Datenquelle/API für Team-Farben nötig.
 const colorCache = {};
-function applyTeamColorFromLogo(url, cardEl){
-  if(!url || !cardEl) return;
-  if(colorCache[url]){ cardEl.style.backgroundColor = colorCache[url]; return; }
+function applyTeamColorFromLogo(url, rowEl){
+  if(!url || !rowEl) return;
+  if(colorCache[url]){ rowEl.style.backgroundColor = colorCache[url]; return; }
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = () => {
@@ -553,28 +711,19 @@ function applyTeamColorFromLogo(url, cardEl){
         if(max < 35) continue;
         r+=rr; g+=gg; b+=bb; n++;
       }
-      if(n < 10) return; // zu wenig brauchbare Pixel, Karte bleibt neutral
+      if(n < 10) return; // zu wenig brauchbare Pixel, Zeile bleibt neutral
       r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
-      // Auf ein dunkles, dezentes Kartendesign abdunkeln, damit Text lesbar bleibt
+      // Auf ein dunkles, dezentes Design abdunkeln, damit Text lesbar bleibt
       const dr=Math.round(r*0.28), dg=Math.round(g*0.28), db=Math.round(b*0.28);
       const color = `rgb(${dr},${dg},${db})`;
       colorCache[url] = color;
-      cardEl.style.backgroundColor = color;
-    }catch(e){ /* Canvas evtl. "tainted" durch fehlende CORS-Freigabe des Bildes — dann bleibt die Karte neutral */ }
+      rowEl.style.backgroundColor = color;
+    }catch(e){ /* Canvas evtl. "tainted" durch fehlende CORS-Freigabe des Bildes — dann bleibt die Zeile neutral */ }
   };
   img.onerror = () => {};
   img.src = url;
 }
 
-// Kein zuverlässiger Live-Headshot verfügbar (siehe Hinweis oben) — Name groß über
-// zwei Zeilen (Vorname / Nachname) statt Foto/Initialen-Box.
-function nameBlock(firstName, lastName, school){
-  return `<div class="p-info">
-      <div class="p-name-first">${firstName}</div>
-      <div class="p-name-last">${lastName}</div>
-      <div class="p-sub">${school||'–'}</div>
-    </div>`;
-}
 </script>
 
 <footer style="text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);letter-spacing:1px;">
