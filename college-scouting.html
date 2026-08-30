@@ -79,23 +79,15 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .search-input:focus{border-color:var(--orange);}
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
 
-/* RATER-LEGENDE (Kopfzeile über der Liste) */
-.raters-legend{padding:12px 32px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
-.rl-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px;}
-.rl-item{display:flex;align-items:center;gap:7px;}
-.rl-avatar,.rl-avatar-fb{width:22px;height:22px;border-radius:5px;object-fit:cover;display:block;}
-.rl-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;}
-.rl-name{font-size:12px;color:var(--muted2);}
-
 /* LISTE */
-.list-wrap{padding:22px 32px 60px;max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.list-wrap{padding:22px 32px 60px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 .empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
 .empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
 
 .col-header{display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:0 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
-.ch-checks{display:flex;justify-content:center;gap:9px;}
-.ch-avatar,.ch-avatar-fb{width:18px;height:18px;border-radius:4px;object-fit:cover;display:block;}
-.ch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:8px;}
+.ch-checks{display:flex;justify-content:center;gap:12px;}
+.ch-avatar,.ch-avatar-fb{width:32px;height:32px;border-radius:7px;object-fit:cover;display:block;}
+.ch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
 .ch-star{text-align:center;}
 .pos-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--orange);background:var(--orange-glow);border-radius:4px;padding:2px 6px;margin-left:8px;vertical-align:middle;}
 
@@ -130,7 +122,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .p-no-link{font-size:11px;color:var(--muted);font-style:italic;}
 
 @media(max-width:700px){
-  nav{padding:0 20px;} .toolbar,.list-wrap,.raters-legend{padding-left:20px;padding-right:20px;}
+  nav{padding:0 20px;} .toolbar,.list-wrap{padding-left:20px;padding-right:20px;}
   .nav-mid{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .nav-mid::-webkit-scrollbar{display:none;}
   .nav-link{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 9px;}
@@ -209,7 +201,6 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
       </div>
     </div>
   </div>
-  <div class="raters-legend" id="raters-legend"></div>
   <div class="list-wrap">
     <div class="col-header" id="col-header"></div>
     <div id="player-list"><div class="empty-state"><h3>Lade Tabellenblätter…</h3></div></div>
@@ -477,7 +468,6 @@ async function initScoutingApp(){
   yearSelect.value = currentYear;
   yearSelect.addEventListener('change', () => { currentYear = parseInt(yearSelect.value,10); playersCache = {}; renderPosTabs(); });
 
-  renderRatersLegend();
   renderColHeader();
 
   const searchInput = document.getElementById('player-search');
@@ -493,16 +483,8 @@ async function initScoutingApp(){
   renderPosTabs();
 }
 
-function renderRatersLegend(){
-  const el = document.getElementById('raters-legend');
-  el.innerHTML = `<span class="rl-label">Gesehen von</span>` + allUsers.map(u => {
-    const img = avatarFor(u.displayName);
-    const initial = (u.displayName||'?')[0].toUpperCase();
-    return `<div class="rl-item">${img ? `<img class="rl-avatar" src="${img}" alt="">` : `<div class="rl-avatar-fb">${initial}</div>`}<span class="rl-name">${u.displayName||''}</span></div>`;
-  }).join('');
-}
 function renderColHeader(){
-  const checksWidth = Math.max(90, allUsers.length * 29 + 12);
+  const checksWidth = Math.max(120, allUsers.length * 44 + 12);
   document.documentElement.style.setProperty('--checks-w', checksWidth + 'px');
   const el = document.getElementById('col-header');
   el.innerHTML = `<span>Spieler</span>
@@ -667,21 +649,30 @@ async function toggleTapePanel(btn){
 // bei vielen gleichzeitig sichtbaren Zeilen würden sonst nur die ersten paar laden.
 // Trifft jetzt sowohl das große Hintergrund-Wasserzeichen als auch das kleine
 // runde Logo neben dem Tape-Pfeil (beide teilen sich denselben Farb-Cache).
+// Lädt die Logos in Batches zu je 4 gleichzeitig, mit ~1s Pause zwischen den
+// Batches (bleibt unter dem 5-Requests/Sekunde-Limit der öffentlichen NCAA-API,
+// räumt aber eine lange Liste deutlich schneller ab als eine strikte
+// Eins-nach-dem-anderen-Kette). Trifft sowohl das große Hintergrund-Wasserzeichen
+// als auch das kleine runde Logo neben dem Tape-Pfeil (gleicher Farb-Cache).
 function applyLogosThrottled(){
-  const groups = new Map(); // school -> {bg: el|null, mini: el|null}
+  const groups = new Map();
   document.querySelectorAll('[data-school]').forEach(el => {
     const school = el.dataset.school;
     if(!school) return;
     if(!groups.has(school)) groups.set(school, []);
     groups.get(school).push(el);
   });
-  Array.from(groups.entries()).forEach(([school, els], i) => {
+  const entries = Array.from(groups.entries());
+  const BATCH_SIZE = 4, BATCH_GAP_MS = 1050;
+  entries.forEach(([school, els], i) => {
+    const batchIndex = Math.floor(i / BATCH_SIZE);
     setTimeout(() => {
       const url = ncaaLogoUrl(school);
+      if(!url) return; // kein Slug ableitbar — Zeile bleibt neutral statt kaputtem Bild
       els.forEach(el => { el.style.backgroundImage = `url('${url}')`; });
       const rowEl = els[0].closest('.p-row');
       applyTeamColorFromLogo(url, rowEl);
-    }, i * 250);
+    }, batchIndex * BATCH_GAP_MS);
   });
 }
 
@@ -720,7 +711,7 @@ function applyTeamColorFromLogo(url, rowEl){
       rowEl.style.backgroundColor = color;
     }catch(e){ /* Canvas evtl. "tainted" durch fehlende CORS-Freigabe des Bildes — dann bleibt die Zeile neutral */ }
   };
-  img.onerror = () => {};
+  img.onerror = () => { console.warn('[Logo] Konnte Logo nicht laden für URL:', url, '— evtl. fehlt eine Slug-Zuordnung in ncaaSchoolMap/SCHOOL_ABBREV.'); };
   img.src = url;
 }
 
