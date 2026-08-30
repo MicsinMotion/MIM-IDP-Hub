@@ -655,31 +655,73 @@ async function toggleTapePanel(btn){
   }
 }
 
-// Lädt die Logos in Batches zu je 4 gleichzeitig, mit ~1s Pause zwischen den
-// Batches (bleibt unter dem 5-Requests/Sekunde-Limit der öffentlichen NCAA-API,
-// räumt aber eine lange Liste deutlich schneller ab als eine strikte
-// Eins-nach-dem-anderen-Kette). Trifft sowohl das große Hintergrund-Wasserzeichen
-// als auch das kleine runde Logo neben dem Tape-Pfeil (gleicher Farb-Cache).
-// Probiert pro Schule mehrere Slug-Kandidaten (ncaaSlugCandidates) durch, bis
-// einer tatsächlich lädt — vorher blieb eine Zeile schon beim ersten 404 leer.
+// ─── GLOBALE RATE-LIMIT-QUEUE ──────────────────────────────────────────────
+// Der öffentliche NCAA-API-Dienst erlaubt nur 5 Requests/Sekunde PRO IP — und
+// da alle Besucher hier über denselben Server-Proxy (proxy.php) laufen, teilen
+// sich ALLE Nutzer der Seite dieses eine Limit (nicht 5/Sekunde pro Person).
+// Deshalb läuft JEDER einzelne Logo-Request (auch jeder Kandidaten-Retry für
+// dieselbe Schule) über eine einzige globale Kette mit fixem Abstand — nicht
+// nur zwischen verschiedenen Schulen, wie es vorher der Fall war.
+const RATE_GAP_MS = 260; // ~3.8/Sekunde, mit Sicherheitsabstand zum 5er-Limit
+let rateQueueTail = Promise.resolve();
+function rateLimited(fn){
+  const run = rateQueueTail.then(() => new Promise(r => setTimeout(r, RATE_GAP_MS))).then(fn);
+  rateQueueTail = run.catch(() => {}); // ein Fehlschlag darf die Kette nicht stoppen
+  return run;
+}
+
+// ─── DAUERHAFTER SLUG-CACHE ─────────────────────────────────────────────────
+// Einmal erfolgreich aufgelöste Schule -> Slug wird in localStorage gemerkt
+// (Slugs ändern sich praktisch nie), damit bei jedem erneuten Laden der Seite
+// nicht wieder bei Null durchprobiert werden muss — reduziert die tatsächliche
+// Request-Last auf den gemeinsamen Proxy drastisch.
+const SLUG_CACHE_KEY = 'mim_scouting_logo_slugs_v1', SLUG_CACHE_TTL = 30*24*60*60*1000;
+let resolvedSlugCache = {};
+(function loadSlugCache(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(SLUG_CACHE_KEY) || '{}');
+    const now = Date.now();
+    Object.entries(raw).forEach(([k,v]) => { if(v && now - v.ts < SLUG_CACHE_TTL) resolvedSlugCache[k] = v.slug; });
+  }catch{}
+})();
+function saveSlugCache(){
+  try{
+    const out = {};
+    Object.entries(resolvedSlugCache).forEach(([k,slug]) => { out[k] = { slug, ts: Date.now() }; });
+    localStorage.setItem(SLUG_CACHE_KEY, JSON.stringify(out));
+  }catch{}
+}
+
+function loadImage(url){
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = reject;
+    im.src = url;
+  });
+}
+
 const logoResolveCache = {}; // normSchoolTxt(school) -> Promise<{url, img} | null>
 function resolveSchoolLogo(school){
   const key = normSchoolTxt(school);
   if(logoResolveCache[key]) return logoResolveCache[key];
-  const candidates = ncaaSlugCandidates(school);
   logoResolveCache[key] = (async () => {
+    // Bekannter, schon einmal funktionierender Slug? Dann nur EIN Request nötig.
+    if(resolvedSlugCache[key]){
+      const url = buildLogoUrl(resolvedSlugCache[key]);
+      try{ const img = await rateLimited(() => loadImage(url)); return { url, img }; }
+      catch{ /* Slug plötzlich ungültig (selten) — unten regulär neu durchprobieren */ }
+    }
+    const candidates = ncaaSlugCandidates(school);
     for(const slug of candidates){
       const url = buildLogoUrl(slug);
       try{
-        const img = await new Promise((resolve, reject) => {
-          const im = new Image();
-          im.crossOrigin = 'anonymous';
-          im.onload = () => resolve(im);
-          im.onerror = reject;
-          im.src = url;
-        });
+        const img = await rateLimited(() => loadImage(url));
+        resolvedSlugCache[key] = slug;
+        saveSlugCache();
         return { url, img };
-      }catch{ /* nächsten Kandidaten probieren */ }
+      }catch{ /* nächsten Kandidaten probieren, jeweils selbst rate-limitiert */ }
     }
     console.warn(`[Logo] Alle ${candidates.length} Kandidaten fehlgeschlagen für "${school}":`, candidates);
     return null;
@@ -694,19 +736,16 @@ function applyLogosThrottled(){
     if(!groups.has(school)) groups.set(school, []);
     groups.get(school).push(el);
   });
-  const entries = Array.from(groups.entries());
-  const BATCH_SIZE = 4, BATCH_GAP_MS = 1050;
-  entries.forEach(([school, els], i) => {
-    const batchIndex = Math.floor(i / BATCH_SIZE);
-    setTimeout(async () => {
-      const result = await resolveSchoolLogo(school);
+  groups.forEach((els, school) => {
+    resolveSchoolLogo(school).then(result => {
       if(!result) return; // alle Kandidaten fehlgeschlagen — Zeile bleibt neutral statt kaputtem Bild
       els.forEach(el => { el.style.backgroundImage = `url('${result.url}')`; });
       const rowEl = els[0].closest('.p-row');
       applyTeamColorFromImage(result.img, result.url, rowEl);
-    }, batchIndex * BATCH_GAP_MS);
+    });
   });
 }
+
 
 // Liest die dominante Farbe direkt aus dem (schon geladenen) Logo aus (per Canvas)
 // und färbt die Zeile entsprechend ein — kein zweiter Bild-Request nötig, da das
