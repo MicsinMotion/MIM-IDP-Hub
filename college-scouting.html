@@ -80,12 +80,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
 
 /* LISTE */
-.list-wrap{padding:22px 32px 60px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.list-wrap{padding:22px 32px 60px;margin:0 auto;max-width:1900px;display:flex;flex-direction:column;gap:12px;}
 .empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
 .empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
 
 .col-header{display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:0 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
-.ch-checks{display:flex;justify-content:center;gap:12px;}
+.ch-checks{display:grid;grid-template-columns:repeat(var(--rater-count,1), 40px);gap:16px;justify-items:center;}
 .ch-avatar,.ch-avatar-fb{width:32px;height:32px;border-radius:7px;object-fit:cover;display:block;}
 .ch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
 .ch-star{text-align:center;}
@@ -100,7 +100,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .p-name{font-weight:800;font-size:18px;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .p-school{font-size:12px;color:var(--muted2);font-weight:500;}
 
-.p-checks{display:flex;justify-content:center;gap:9px;}
+.p-checks{display:grid;grid-template-columns:repeat(var(--rater-count,1), 40px);gap:16px;justify-items:center;}
 .p-watch-avatar,.p-watch-avatar-fb{display:none;} /* Avatare nicht mehr pro Zeile, siehe Kopfzeile */
 .p-watch-check{width:20px;height:20px;accent-color:var(--green-light);cursor:pointer;}
 .p-watch-check:disabled{cursor:not-allowed;opacity:.35;}
@@ -424,19 +424,27 @@ const SCHOOL_ABBREV = {
   'miami (u)': 'miami fl',
   'miami (fl)': 'miami fl',
 };
-function ncaaLogoUrl(school){
+// Liefert mehrere mögliche Slug-Kandidaten in Prioritäts-Reihenfolge, statt nur
+// einen einzigen Rateversuch (siehe Chat: einige Colleges wie Akron/Florida
+// State/Houston blieben sonst dauerhaft ohne Logo, wenn der erste Kandidat
+// nicht zufällig exakt zur ncaa-api-Konvention passte).
+function ncaaSlugCandidates(school){
   const raw = (school||'').toLowerCase().trim();
   const expanded = SCHOOL_ABBREV[raw] || raw;
   const norm = normSchoolTxt(expanded);
-  let slug = ncaaSchoolMap && ncaaSchoolMap[norm];
-  if(!slug && ncaaSchoolMap){
-    // Fuzzy-Fallback: z.B. "arizonastate" vs. offiziellem "arizonast" (Kürzel "St.")
+  const candidates = [];
+  if(ncaaSchoolMap){
+    if(ncaaSchoolMap[norm]) candidates.push(ncaaSchoolMap[norm]);
     const keys = Object.keys(ncaaSchoolMap);
     const hit = keys.find(k => k.length > 3 && (norm.includes(k) || k.includes(norm)));
-    if(hit) slug = ncaaSchoolMap[hit];
+    if(hit && ncaaSchoolMap[hit]) candidates.push(ncaaSchoolMap[hit]);
   }
-  if(!slug) slug = slugifySchool(expanded);
-  if(!slug) return '';
+  candidates.push(slugifySchool(expanded));                     // "state" -> "st" (Standard-NCAA-Konvention)
+  candidates.push(slugifySchool(expanded).replace(/-st$/, '-state')); // Rückfall: falls die API "state" ausgeschrieben erwartet
+  candidates.push(slugifySchool(expanded.replace(/\bstate\b/, '').trim())); // Rückfall: Schule ganz ohne "State"/"St." im Slug
+  return [...new Set(candidates.filter(Boolean))];
+}
+function buildLogoUrl(slug){
   const directUrl = `https://ncaa-api.henrygd.me/logo/${slug}.svg`;
   return `${OWN_PROXY}${encodeURIComponent(directUrl)}`;
 }
@@ -484,8 +492,11 @@ async function initScoutingApp(){
 }
 
 function renderColHeader(){
-  const checksWidth = Math.max(120, allUsers.length * 44 + 12);
+  const cellW = 40, gap = 16;
+  const n = allUsers.length || 1;
+  const checksWidth = n * cellW + (n - 1) * gap + 12; // +12 kleiner Puffer gegen Kantenabschnitt
   document.documentElement.style.setProperty('--checks-w', checksWidth + 'px');
+  document.documentElement.style.setProperty('--rater-count', n);
   const el = document.getElementById('col-header');
   el.innerHTML = `<span>Spieler</span>
     <div class="ch-checks">${allUsers.map(u => {
@@ -644,16 +655,37 @@ async function toggleTapePanel(btn){
   }
 }
 
-// Setzt die Team-Logo-Hintergründe zeitlich gestaffelt (max. 4/Sekunde), damit wir
-// das 5-Requests/Sekunde-Limit der öffentlichen NCAA-API nicht überschreiten —
-// bei vielen gleichzeitig sichtbaren Zeilen würden sonst nur die ersten paar laden.
-// Trifft jetzt sowohl das große Hintergrund-Wasserzeichen als auch das kleine
-// runde Logo neben dem Tape-Pfeil (beide teilen sich denselben Farb-Cache).
 // Lädt die Logos in Batches zu je 4 gleichzeitig, mit ~1s Pause zwischen den
 // Batches (bleibt unter dem 5-Requests/Sekunde-Limit der öffentlichen NCAA-API,
 // räumt aber eine lange Liste deutlich schneller ab als eine strikte
 // Eins-nach-dem-anderen-Kette). Trifft sowohl das große Hintergrund-Wasserzeichen
 // als auch das kleine runde Logo neben dem Tape-Pfeil (gleicher Farb-Cache).
+// Probiert pro Schule mehrere Slug-Kandidaten (ncaaSlugCandidates) durch, bis
+// einer tatsächlich lädt — vorher blieb eine Zeile schon beim ersten 404 leer.
+const logoResolveCache = {}; // normSchoolTxt(school) -> Promise<{url, img} | null>
+function resolveSchoolLogo(school){
+  const key = normSchoolTxt(school);
+  if(logoResolveCache[key]) return logoResolveCache[key];
+  const candidates = ncaaSlugCandidates(school);
+  logoResolveCache[key] = (async () => {
+    for(const slug of candidates){
+      const url = buildLogoUrl(slug);
+      try{
+        const img = await new Promise((resolve, reject) => {
+          const im = new Image();
+          im.crossOrigin = 'anonymous';
+          im.onload = () => resolve(im);
+          im.onerror = reject;
+          im.src = url;
+        });
+        return { url, img };
+      }catch{ /* nächsten Kandidaten probieren */ }
+    }
+    console.warn(`[Logo] Alle ${candidates.length} Kandidaten fehlgeschlagen für "${school}":`, candidates);
+    return null;
+  })();
+  return logoResolveCache[key];
+}
 function applyLogosThrottled(){
   const groups = new Map();
   document.querySelectorAll('[data-school]').forEach(el => {
@@ -666,26 +698,24 @@ function applyLogosThrottled(){
   const BATCH_SIZE = 4, BATCH_GAP_MS = 1050;
   entries.forEach(([school, els], i) => {
     const batchIndex = Math.floor(i / BATCH_SIZE);
-    setTimeout(() => {
-      const url = ncaaLogoUrl(school);
-      if(!url) return; // kein Slug ableitbar — Zeile bleibt neutral statt kaputtem Bild
-      els.forEach(el => { el.style.backgroundImage = `url('${url}')`; });
+    setTimeout(async () => {
+      const result = await resolveSchoolLogo(school);
+      if(!result) return; // alle Kandidaten fehlgeschlagen — Zeile bleibt neutral statt kaputtem Bild
+      els.forEach(el => { el.style.backgroundImage = `url('${result.url}')`; });
       const rowEl = els[0].closest('.p-row');
-      applyTeamColorFromLogo(url, rowEl);
+      applyTeamColorFromImage(result.img, result.url, rowEl);
     }, batchIndex * BATCH_GAP_MS);
   });
 }
 
-// Liest die dominante Farbe direkt aus dem geladenen Logo aus (per Canvas) und färbt
-// die Zeile entsprechend ein — keine zusätzliche Datenquelle/API für Team-Farben nötig.
+// Liest die dominante Farbe direkt aus dem (schon geladenen) Logo aus (per Canvas)
+// und färbt die Zeile entsprechend ein — kein zweiter Bild-Request nötig, da das
+// Bild von resolveSchoolLogo() oben bereits erfolgreich geladen wurde.
 const colorCache = {};
-function applyTeamColorFromLogo(url, rowEl){
-  if(!url || !rowEl) return;
+function applyTeamColorFromImage(img, url, rowEl){
+  if(!img || !rowEl) return;
   if(colorCache[url]){ rowEl.style.backgroundColor = colorCache[url]; return; }
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    try{
+  try{
       const canvas = document.createElement('canvas');
       const w = canvas.width = 40, h = canvas.height = 40;
       const ctx = canvas.getContext('2d');
@@ -709,10 +739,7 @@ function applyTeamColorFromLogo(url, rowEl){
       const color = `rgb(${dr},${dg},${db})`;
       colorCache[url] = color;
       rowEl.style.backgroundColor = color;
-    }catch(e){ /* Canvas evtl. "tainted" durch fehlende CORS-Freigabe des Bildes — dann bleibt die Zeile neutral */ }
-  };
-  img.onerror = () => { console.warn('[Logo] Konnte Logo nicht laden für URL:', url, '— evtl. fehlt eine Slug-Zuordnung in ncaaSchoolMap/SCHOOL_ABBREV.'); };
-  img.src = url;
+  }catch(e){ /* Canvas evtl. "tainted" durch fehlende CORS-Freigabe des Bildes — dann bleibt die Zeile neutral */ }
 }
 
 </script>
