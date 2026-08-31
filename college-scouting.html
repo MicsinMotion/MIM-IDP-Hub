@@ -593,7 +593,7 @@ async function initScoutingApp(){
   yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
   currentYear = years[0];
   yearSelect.value = currentYear;
-  yearSelect.addEventListener('change', () => { currentYear = parseInt(yearSelect.value,10); playersCache = {}; renderPosTabs(); });
+  yearSelect.addEventListener('change', () => { currentYear = parseInt(yearSelect.value,10); playersCache = {}; renderColHeader(); renderPosTabs(); });
 
   renderColHeader();
 
@@ -624,7 +624,7 @@ function renderColHeader(){
       return img ? `<img class="ch-avatar" src="${img}" title="${u.displayName||''}">` : `<div class="ch-avatar-fb" title="${u.displayName||''}">${initial}</div>`;
     }).join('')}</div>
     <span class="ch-star">★</span>
-    <span>Stats</span>
+    <span>Stats (Season ${currentYear - 1})</span>
     <span></span>`;
 }
 
@@ -698,7 +698,10 @@ async function renderList(players, docsByPos, showPosBadge){
     return;
   }
 
-  const statsData = await cfbdStatsForYear(currentYear).catch(() => null);
+  // Das Sheet-Jahr ist das Draft-Jahr (z.B. "2026" = 2026er Draft, bereits
+  // stattgefunden) — die relevanten College-Stats stammen aus der Season DAVOR
+  // (2025), nicht aus dem gleichlautenden CFBD-Jahr. Siehe Chat.
+  const statsData = await cfbdStatsForYear(currentYear - 1).catch(() => null);
 
   listEl.innerHTML = players.map(p => {
     const slug = slugify(p.name);
