@@ -84,7 +84,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
 .empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
 
-.col-header{display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:0 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
+.col-header{display:grid;grid-template-columns:1.9fr var(--checks-w,140px) 40px 1.5fr 60px;align-items:center;gap:14px;padding:0 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
 .ch-checks{display:grid;grid-template-columns:repeat(var(--rater-count,1), 40px);gap:16px;justify-items:center;}
 .ch-avatar,.ch-avatar-fb{width:32px;height:32px;border-radius:7px;object-fit:cover;display:block;}
 .ch-avatar-fb{background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;}
@@ -94,7 +94,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .p-row{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--bg3);transition:background-color .3s;}
 .p-row-logo-bg{position:absolute;left:0;top:0;bottom:0;width:190px;background-size:120px;background-position:20px center;background-repeat:no-repeat;opacity:.22;pointer-events:none;z-index:0;}
 .p-row-logo-mini{width:24px;height:24px;border-radius:50%;background-size:contain;background-position:center;background-repeat:no-repeat;flex-shrink:0;}
-.p-row-main{position:relative;z-index:1;display:grid;grid-template-columns:2.3fr var(--checks-w,140px) 40px 60px;align-items:center;gap:14px;padding:14px 20px;}
+.p-row-main{position:relative;z-index:1;display:grid;grid-template-columns:1.9fr var(--checks-w,140px) 40px 1.5fr 60px;align-items:center;gap:14px;padding:14px 20px;}
 
 .p-name-block{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .p-name{font-weight:800;font-size:18px;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -107,6 +107,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 .p-star{background:none;border:none;font-size:22px;cursor:pointer;line-height:1;color:var(--border2);padding:0;justify-self:center;}
 .p-star.on{color:var(--gold);}
+
+.p-stats{display:flex;gap:16px;flex-wrap:wrap;}
+.p-stat{display:flex;flex-direction:column;align-items:center;min-width:38px;}
+.p-stat-val{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#fff;line-height:1;}
+.p-stat-lbl{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.p-stat-empty{font-size:11px;color:var(--muted);font-style:italic;}
 
 .p-tape-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;justify-self:center;padding:6px;border-radius:6px;display:flex;align-items:center;gap:6px;}
 .p-tape-arrow{display:inline-block;transition:transform .15s;}
@@ -127,7 +133,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
   .nav-mid::-webkit-scrollbar{display:none;}
   .nav-link{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 9px;}
   .brand{font-size:18px;}
-  .col-header,.p-row-main{grid-template-columns:minmax(140px,1fr) var(--checks-w,140px) 40px 50px;}
+  .col-header,.p-row-main{grid-template-columns:minmax(140px,1fr) var(--checks-w,140px) 40px 1fr 50px;}
   .list-wrap{overflow-x:auto;}
 }
 </style>
@@ -227,6 +233,8 @@ const SPREADSHEET_ID = '17TOUdKg5RsHNlz2GdCNNd7dL2ZIMe-IhEkvjnF1kSnI';
 // zusätzlich zur Sheets-Berechtigung wird jetzt auch Lesezugriff auf die
 // Tape-Ordner mit angefragt (nötig für die Tape-Liste im Dropdown weiter unten).
 const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly';
+// Cloudflare-Worker-Route für CFBD (siehe Chat) — hält den API-Key serverseitig geheim.
+const CFBD_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?cfbd=';
 
 // ─── APP-LOGIN (Firebase, wie auf den anderen Seiten) ──────────────────────
 const authWrap = document.getElementById('auth-wrap');
@@ -301,6 +309,117 @@ async function sheetsApiFetch(url){
   if(!r.ok) throw new Error('Sheets API Fehler ' + r.status);
   return r.json();
 }
+
+// ─── CFBD (CollegeFootballData) STATS ──────────────────────────────────────
+// Live-Abruf über den Cloudflare-Worker (Key bleibt dort geheim, siehe Chat).
+// Reine Season-Werte des laufenden Jahrgangs, kein Career-Umschalter (siehe Chat).
+// Mehrere Kategorien parallel, weil eine Zeile pro (Spieler, Kategorie,
+// statType) kommt — Passing/Rushing/Receiving für Offense, Defensive +
+// Interceptions für Defense. Stat-Keys werden als "kategorie.statType"
+// gespeichert, damit z.B. "YDS" aus Rushing und Receiving beim selben
+// Dual-Threat-Spieler nicht denselben Platz überschreiben.
+const CFBD_CATEGORIES = ['passing','rushing','receiving','defensive','interceptions'];
+
+// Namens-Normalisierung fürs Matching (siehe Chat): Punkte raus, Jr./Sr./II-IV
+// raus, Akzente vereinheitlichen — bevor überhaupt verglichen wird.
+function normPlayerName(name){
+  let s = (name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  s = s.replace(/\./g,'');
+  s = s.replace(/\b(jr|sr|ii|iii|iv)\b/g,'');
+  s = s.replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+  return s;
+}
+
+const cfbdStatsCache = {}; // `${year}` -> Promise<{pivot, nameIndex}>
+async function cfbdStatsForYear(year){
+  const cacheKey = String(year);
+  if(cfbdStatsCache[cacheKey]) return cfbdStatsCache[cacheKey];
+  cfbdStatsCache[cacheKey] = (async () => {
+    const perCategory = await Promise.all(CFBD_CATEGORIES.map(async cat => {
+      const path = `/stats/player/season?year=${year}&category=${cat}`;
+      try{
+        const r = await fetch(CFBD_WORKER + encodeURIComponent(path));
+        if(!r.ok){ console.warn(`[CFBD] Kategorie "${cat}" Fehler ${r.status}`); return []; }
+        const rows = await r.json();
+        return rows.map(row => ({ ...row, category: row.category || cat }));
+      }catch(e){ console.warn(`[CFBD] Kategorie "${cat}" fehlgeschlagen:`, e); return []; }
+    }));
+
+    const pivot = {};      // "normName|normSchool" -> {player, team, "kategorie.statType": wert}
+    const nameIndex = {};  // normName -> [gleiche Objekte wie oben] — für Stufe-2-Fallback (nur bei Eindeutigkeit)
+    perCategory.flat().forEach(row => {
+      const nName = normPlayerName(row.player);
+      const nTeam = normSchoolTxt(row.team);
+      const key = `${nName}|${nTeam}`;
+      if(!pivot[key]) pivot[key] = { player: row.player, team: row.team };
+      pivot[key][`${row.category}.${row.statType}`] = row.stat;
+    });
+    const seen = new Set();
+    Object.values(pivot).forEach(entry => {
+      const nName = normPlayerName(entry.player);
+      if(!nameIndex[nName]) nameIndex[nName] = [];
+      // Duplikate vermeiden, falls dieselbe Person schon über einen anderen Schul-Key drin ist
+      const dupKey = nName + '|' + entry.team;
+      if(seen.has(dupKey)) return;
+      seen.add(dupKey);
+      nameIndex[nName].push(entry);
+    });
+    console.info(`[CFBD] ${year}: ${Object.keys(pivot).length} Spieler-Einträge über ${CFBD_CATEGORIES.length} Kategorien geladen.`);
+    return { pivot, nameIndex };
+  })();
+  return cfbdStatsCache[cacheKey];
+}
+
+// Dreistufiges Matching (siehe Chat): 1) Name+College exakt (mit SCHOOL_ABBREV-
+// Abgleich), 2) Name allein NUR falls in der ganzen CFBD-Season eindeutig,
+// 3) sonst kein Treffer — lieber keine Stats als falsch zugeordnete.
+function findCfbdStatsForPlayer(statsData, name, school){
+  if(!statsData) return null;
+  const { pivot, nameIndex } = statsData;
+  const nName = normPlayerName(name);
+  const rawSchool = (school||'').toLowerCase().trim();
+  const expandedSchool = SCHOOL_ABBREV[rawSchool] || rawSchool;
+  const nSchool = normSchoolTxt(expandedSchool);
+  const exact = pivot[`${nName}|${nSchool}`];
+  if(exact) return exact;
+  const candidates = nameIndex[nName];
+  if(candidates && candidates.length === 1) return candidates[0];
+  return null;
+}
+
+const STAT_KEY_CANDIDATES = {
+  TKL: ['defensive.TOT','defensive.TACKLES'], SOLO: ['defensive.SOLO'], TFL: ['defensive.TFL'],
+  SACKS: ['defensive.SACKS','defensive.SACK'], HRRY: ['defensive.QB HUR','defensive.HURRIES','defensive.HUR'],
+  PD: ['defensive.PD','defensive.PASSES DEFENDED','interceptions.PD'], INT: ['interceptions.INT','defensive.INT'],
+  FF: ['defensive.FF','defensive.FORCED FUMBLES'],
+  PASS_YDS: ['passing.YDS'], PASS_TD: ['passing.TD'], PASS_INT: ['passing.INT'],
+  RUSH_YDS: ['rushing.YDS'], RUSH_TD: ['rushing.TD'], CAR: ['rushing.CAR','rushing.ATT'],
+  REC: ['receiving.REC'], REC_YDS: ['receiving.YDS'], REC_TD: ['receiving.TD']
+};
+function readStat(playerStats, ourKey){
+  if(!playerStats) return null;
+  if(ourKey === 'YPR'){
+    const rec = readStat(playerStats, 'REC'), yds = readStat(playerStats, 'REC_YDS');
+    if(!rec || !yds) return null;
+    return (yds / rec).toFixed(1);
+  }
+  const candidates = STAT_KEY_CANDIDATES[ourKey] || [ourKey];
+  for(const c of candidates){ if(playerStats[c] != null) return playerStats[c]; }
+  return null;
+}
+// Reihenfolge/Auswahl wie besprochen. Keys entsprechen den ECHTEN Sheet-Tab-
+// Namen (EDGE/DL/LB/CB/SAF/QB/RB/WR/TE), nicht eigenen Abkürzungen.
+const STAT_CONFIG = {
+  EDGE: [{k:'SACKS',l:'Sacks'},{k:'TFL',l:'TFL'},{k:'HRRY',l:'Hrry'},{k:'FF',l:'FF'}],
+  DL:   [{k:'TKL',l:'TKL'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'HRRY',l:'Hrry'}],
+  LB:   [{k:'TKL',l:'TKL'},{k:'SOLO',l:'Solo'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'PD',l:'PD'}],
+  CB:   [{k:'PD',l:'PD'},{k:'INT',l:'INT'},{k:'TKL',l:'TKL'}],
+  SAF:  [{k:'TKL',l:'TKL'},{k:'INT',l:'INT'},{k:'PD',l:'PD'},{k:'FF',l:'FF'}],
+  QB:   [{k:'PASS_YDS',l:'Pass Yds'},{k:'PASS_TD',l:'Pass TD'},{k:'PASS_INT',l:'INT'},{k:'RUSH_YDS',l:'Rush Yds'},{k:'RUSH_TD',l:'Rush TD'}],
+  RB:   [{k:'RUSH_YDS',l:'Rush Yds'},{k:'RUSH_TD',l:'Rush TD'},{k:'CAR',l:'Car'},{k:'REC',l:'Rec'},{k:'REC_YDS',l:'Rec Yds'}],
+  WR:   [{k:'REC',l:'Rec'},{k:'REC_YDS',l:'Rec Yds'},{k:'REC_TD',l:'Rec TD'},{k:'YPR',l:'Y/R'}],
+  TE:   [{k:'REC',l:'Rec'},{k:'REC_YDS',l:'Rec Yds'},{k:'REC_TD',l:'Rec TD'}]
+};
 
 // ─── GOOGLE DRIVE: TAPES IM ORDNER AUFLISTEN ───────────────────────────────
 // Nutzt denselben googleAccessToken wie die Sheets-Calls (erweiterter Scope
@@ -505,6 +624,7 @@ function renderColHeader(){
       return img ? `<img class="ch-avatar" src="${img}" title="${u.displayName||''}">` : `<div class="ch-avatar-fb" title="${u.displayName||''}">${initial}</div>`;
     }).join('')}</div>
     <span class="ch-star">★</span>
+    <span>Stats</span>
     <span></span>`;
 }
 
@@ -578,6 +698,8 @@ async function renderList(players, docsByPos, showPosBadge){
     return;
   }
 
+  const statsData = await cfbdStatsForYear(currentYear).catch(() => null);
+
   listEl.innerHTML = players.map(p => {
     const slug = slugify(p.name);
     const docData = docsByPos[p.pos] || { players: {} };
@@ -589,6 +711,12 @@ async function renderList(players, docsByPos, showPosBadge){
       const isMe = currentUser && currentUser.uid === u.id;
       return `<input type="checkbox" class="p-watch-check" data-uid="${u.id}" data-slug="${slug}" data-pos="${p.pos}" ${checked?'checked':''} ${isMe?'':'disabled'} title="${u.displayName||''}">`;
     }).join('');
+
+    const cfg = STAT_CONFIG[p.pos] || [];
+    const playerStats = (statsData && cfg.length) ? findCfbdStatsForPlayer(statsData, p.name, p.school) : null;
+    const statsHtml = !cfg.length ? '' : (playerStats
+      ? cfg.map(s => `<div class="p-stat"><div class="p-stat-val">${readStat(playerStats, s.k) ?? '–'}</div><div class="p-stat-lbl">${s.l}</div></div>`).join('')
+      : `<span class="p-stat-empty">Keine CFBD-Stats gefunden</span>`);
 
     const folderId = extractDriveFolderId(p.driveUrl);
     const posBadge = showPosBadge ? `<span class="pos-badge">${p.pos}</span>` : '';
@@ -602,6 +730,7 @@ async function renderList(players, docsByPos, showPosBadge){
         </div>
         <div class="p-checks">${watchHtml}</div>
         <button class="p-star${starred?' on':''}" data-slug="${slug}" data-pos="${p.pos}" title="Muss-Sehen-Markierung">★</button>
+        <div class="p-stats">${statsHtml}</div>
         ${folderId
           ? `<button class="p-tape-btn" data-folder="${folderId}"><span class="p-row-logo-mini" data-school="${(p.school||'').replace(/"/g,'&quot;')}"></span><span class="p-tape-arrow">&#9660;</span></button>`
           : `<span class="p-no-link" title="Kein Tape-Link hinterlegt">–</span>`}
