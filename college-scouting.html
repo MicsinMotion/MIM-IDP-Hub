@@ -441,7 +441,7 @@ const STAT_KEY_CANDIDATES = {
   // etablierten CFBD-Wrapper-Pakets, das die echten API-Feldnamen hart
   // absichert) — nicht mehr nur aus allgemeiner Doku geraten (siehe Chat).
   TKL: ['defensive.TOT'], SOLO: ['defensive.SOLO'], TFL: ['defensive.TFL'],
-  SACKS: ['defensive.SACKS'], HRRY: ['defensive.QB HUR','defensive.QB_HUR','defensive.HURRIES','defensive.HUR','defensive.QBHUR'], // mehrere Kandidaten, da unklar welche Schreibweise die API tatsächlich nutzt (siehe Chat)
+  SACKS: ['defensive.SACKS'],
   PD: ['defensive.PD'], INT: ['interceptions.INT'],
   // FF/FR (Forced/Recovered Fumbles für den VERTEIDIGER) gibt's laut dieser
   // verifizierten Quelle bei CFBD auf Spieler-Ebene nicht — die "fumbles"-
@@ -467,8 +467,8 @@ function readStat(playerStats, ourKey){
 // Reihenfolge/Auswahl wie besprochen. Keys entsprechen den ECHTEN Sheet-Tab-
 // Namen (EDGE/DL/LB/CB/SAF/QB/RB/WR/TE), nicht eigenen Abkürzungen.
 const STAT_CONFIG = {
-  EDGE: [{k:'SACKS',l:'Sacks'},{k:'TFL',l:'TFL'},{k:'HRRY',l:'Hrry'},{k:'DEF_TD',l:'Def TD'}],
-  DL:   [{k:'TKL',l:'TKL'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'HRRY',l:'Hrry'}],
+  EDGE: [{k:'TKL',l:'TKL'},{k:'SACKS',l:'Sacks'},{k:'TFL',l:'TFL'},{k:'DEF_TD',l:'Def TD'}],
+  DL:   [{k:'TKL',l:'TKL'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'}],
   LB:   [{k:'TKL',l:'TKL'},{k:'SOLO',l:'Solo'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'PD',l:'PD'}],
   CB:   [{k:'PD',l:'PD'},{k:'INT',l:'INT'},{k:'TKL',l:'TKL'}],
   SAF:  [{k:'TKL',l:'TKL'},{k:'INT',l:'INT'},{k:'PD',l:'PD'},{k:'DEF_TD',l:'Def TD'}],
