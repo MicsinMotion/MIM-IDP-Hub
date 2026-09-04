@@ -362,8 +362,8 @@ async function fetchCfbdCategory(year, cat, attempt){
   const path = `/stats/player/season?year=${year}&category=${cat}`;
   try{
     const r = await fetch(CFBD_WORKER + encodeURIComponent(path));
-    if(r.status === 429 && attempt < 3){
-      await new Promise(res => setTimeout(res, 2000 * Math.pow(2, attempt))); // 2s, 4s, 8s
+    if(r.status === 429 && attempt < 4){
+      await new Promise(res => setTimeout(res, 2500 * Math.pow(2, attempt))); // 2.5s, 5s, 10s, 20s
       return fetchCfbdCategory(year, cat, attempt + 1);
     }
     if(!r.ok){ console.warn(`[CFBD] Kategorie "${cat}" Fehler ${r.status}`); return []; }
@@ -384,7 +384,7 @@ async function cfbdStatsForYear(year){
     const perCategory = [];
     for(const cat of CFBD_CATEGORIES){
       const alreadyCached = loadCfbdCategoryFromStorage(year, cat);
-      if(!alreadyCached) await new Promise(res => setTimeout(res, 900));
+      if(!alreadyCached) await new Promise(res => setTimeout(res, 1800));
       perCategory.push(await fetchCfbdCategory(year, cat));
     }
 
@@ -431,12 +431,20 @@ function findCfbdStatsForPlayer(statsData, name, school){
 }
 
 const STAT_KEY_CANDIDATES = {
-  TKL: ['defensive.TOT','defensive.TACKLES'], SOLO: ['defensive.SOLO'], TFL: ['defensive.TFL'],
-  SACKS: ['defensive.SACKS','defensive.SACK'], HRRY: ['defensive.QB HUR','defensive.HURRIES','defensive.HUR'],
-  PD: ['defensive.PD','defensive.PASSES DEFENDED','interceptions.PD'], INT: ['interceptions.INT','defensive.INT'],
-  FF: ['defensive.FF','defensive.FORCED FUMBLES'],
+  // Feldnamen jetzt gegen eine verifizierte Quelle geprüft (Testsuite eines
+  // etablierten CFBD-Wrapper-Pakets, das die echten API-Feldnamen hart
+  // absichert) — nicht mehr nur aus allgemeiner Doku geraten (siehe Chat).
+  TKL: ['defensive.TOT'], SOLO: ['defensive.SOLO'], TFL: ['defensive.TFL'],
+  SACKS: ['defensive.SACKS'], HRRY: ['defensive.QB_HUR'], // Unterstrich, nicht Leerzeichen — war der Fehler
+  PD: ['defensive.PD'], INT: ['interceptions.INT'],
+  // FF/FR (Forced/Recovered Fumbles für den VERTEIDIGER) gibt's laut dieser
+  // verifizierten Quelle bei CFBD auf Spieler-Ebene nicht — die "fumbles"-
+  // Kategorie dort bezieht sich auf den fumbelnden OFFENSIV-Spieler, nicht auf
+  // den Verteidiger. Ersatzweise defensive Touchdowns (Pick-Six/Fumble-Return),
+  // ebenfalls ein Playmaking-Signal und tatsächlich in den Daten vorhanden.
+  DEF_TD: ['defensive.TD'],
   PASS_YDS: ['passing.YDS'], PASS_TD: ['passing.TD'], PASS_INT: ['passing.INT'],
-  RUSH_YDS: ['rushing.YDS'], RUSH_TD: ['rushing.TD'], CAR: ['rushing.CAR','rushing.ATT'],
+  RUSH_YDS: ['rushing.YDS'], RUSH_TD: ['rushing.TD'], CAR: ['rushing.CAR'],
   REC: ['receiving.REC'], REC_YDS: ['receiving.YDS'], REC_TD: ['receiving.TD']
 };
 function readStat(playerStats, ourKey){
@@ -453,11 +461,11 @@ function readStat(playerStats, ourKey){
 // Reihenfolge/Auswahl wie besprochen. Keys entsprechen den ECHTEN Sheet-Tab-
 // Namen (EDGE/DL/LB/CB/SAF/QB/RB/WR/TE), nicht eigenen Abkürzungen.
 const STAT_CONFIG = {
-  EDGE: [{k:'SACKS',l:'Sacks'},{k:'TFL',l:'TFL'},{k:'HRRY',l:'Hrry'},{k:'FF',l:'FF'}],
+  EDGE: [{k:'SACKS',l:'Sacks'},{k:'TFL',l:'TFL'},{k:'HRRY',l:'Hrry'},{k:'DEF_TD',l:'Def TD'}],
   DL:   [{k:'TKL',l:'TKL'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'HRRY',l:'Hrry'}],
   LB:   [{k:'TKL',l:'TKL'},{k:'SOLO',l:'Solo'},{k:'TFL',l:'TFL'},{k:'SACKS',l:'Sacks'},{k:'PD',l:'PD'}],
   CB:   [{k:'PD',l:'PD'},{k:'INT',l:'INT'},{k:'TKL',l:'TKL'}],
-  SAF:  [{k:'TKL',l:'TKL'},{k:'INT',l:'INT'},{k:'PD',l:'PD'},{k:'FF',l:'FF'}],
+  SAF:  [{k:'TKL',l:'TKL'},{k:'INT',l:'INT'},{k:'PD',l:'PD'},{k:'DEF_TD',l:'Def TD'}],
   QB:   [{k:'PASS_YDS',l:'Pass Yds'},{k:'PASS_TD',l:'Pass TD'},{k:'PASS_INT',l:'INT'},{k:'RUSH_YDS',l:'Rush Yds'},{k:'RUSH_TD',l:'Rush TD'}],
   RB:   [{k:'RUSH_YDS',l:'Rush Yds'},{k:'RUSH_TD',l:'Rush TD'},{k:'CAR',l:'Car'},{k:'REC',l:'Rec'},{k:'REC_YDS',l:'Rec Yds'}],
   WR:   [{k:'REC',l:'Rec'},{k:'REC_YDS',l:'Rec Yds'},{k:'REC_TD',l:'Rec TD'},{k:'YPR',l:'Y/R'}],
