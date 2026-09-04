@@ -929,8 +929,11 @@ function applyLogosThrottled(){
     resolveSchoolLogo(school).then(result => {
       if(!result) return; // alle Kandidaten fehlgeschlagen — Zeile bleibt neutral statt kaputtem Bild
       els.forEach(el => { el.style.backgroundImage = `url('${result.url}')`; });
-      const rowEl = els[0].closest('.p-row');
-      applyTeamColorFromImage(result.img, result.url, rowEl);
+      // Alle betroffenen Zeilen einfärben, nicht nur die erste (siehe Chat) —
+      // bei mehreren Spielern derselben Schule liegen mehrere .p-row in
+      // derselben Element-Gruppe, vorher wurde nur els[0] berücksichtigt.
+      const uniqueRows = new Set(els.map(el => el.closest('.p-row')).filter(Boolean));
+      uniqueRows.forEach(rowEl => applyTeamColorFromImage(result.img, result.url, rowEl));
     });
   });
 }
