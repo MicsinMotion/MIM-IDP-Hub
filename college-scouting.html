@@ -408,6 +408,12 @@ async function cfbdStatsForYear(year){
       nameIndex[nName].push(entry);
     });
     console.info(`[CFBD] ${year}: ${Object.keys(pivot).length} Spieler-Einträge über ${CFBD_CATEGORIES.length} Kategorien geladen.`);
+    // Einmalige Diagnose (siehe Chat): zeigt ALLE tatsächlich vorkommenden
+    // "kategorie.statType"-Feldnamen — hilft, unklare Fälle wie Hurries final
+    // zu bestätigen, ohne weiter zu raten.
+    const allFieldNames = new Set();
+    Object.values(pivot).forEach(entry => Object.keys(entry).forEach(k => { if(k !== 'player' && k !== 'team') allFieldNames.add(k); }));
+    console.info(`[CFBD] Alle vorkommenden Feldnamen für ${year}:`, [...allFieldNames].sort());
     return { pivot, nameIndex };
   })();
   return cfbdStatsCache[cacheKey];
@@ -435,7 +441,7 @@ const STAT_KEY_CANDIDATES = {
   // etablierten CFBD-Wrapper-Pakets, das die echten API-Feldnamen hart
   // absichert) — nicht mehr nur aus allgemeiner Doku geraten (siehe Chat).
   TKL: ['defensive.TOT'], SOLO: ['defensive.SOLO'], TFL: ['defensive.TFL'],
-  SACKS: ['defensive.SACKS'], HRRY: ['defensive.QB_HUR'], // Unterstrich, nicht Leerzeichen — war der Fehler
+  SACKS: ['defensive.SACKS'], HRRY: ['defensive.QB HUR','defensive.QB_HUR','defensive.HURRIES','defensive.HUR','defensive.QBHUR'], // mehrere Kandidaten, da unklar welche Schreibweise die API tatsächlich nutzt (siehe Chat)
   PD: ['defensive.PD'], INT: ['interceptions.INT'],
   // FF/FR (Forced/Recovered Fumbles für den VERTEIDIGER) gibt's laut dieser
   // verifizierten Quelle bei CFBD auf Spieler-Ebene nicht — die "fumbles"-
