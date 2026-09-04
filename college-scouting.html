@@ -330,21 +330,47 @@ function normPlayerName(name){
   return s;
 }
 
-const cfbdStatsCache = {}; // `${year}` -> Promise<{pivot, nameIndex}>
+const cfbdStatsCache = {}; // `${year}` -> Promise<{pivot, nameIndex}>  (nur für die laufende Sitzung)
+
+// Dauerhafter Cache PRO KATEGORIE in localStorage (siehe Chat): Season-Stats
+// ändern sich nicht minütlich, deshalb muss nicht bei jedem Tab-Wechsel/Reload
+// neu bei CFBD angefragt werden, was das Rate-Limit unnötig strapaziert hat.
+// Pro Kategorie einzeln gecacht, damit ein einzelner Fehlschlag nicht den
+// gesamten Fortschritt der anderen 4 erfolgreichen Kategorien verwirft.
+const CFBD_CACHE_TTL = 12*60*60*1000; // 12h
+function cfbdCacheKey(year, cat){ return `mim_scouting_cfbd_v1_${year}_${cat}`; }
+function loadCfbdCategoryFromStorage(year, cat){
+  try{
+    const raw = JSON.parse(localStorage.getItem(cfbdCacheKey(year, cat)) || 'null');
+    if(raw && Date.now() - raw.ts < CFBD_CACHE_TTL) return raw.rows;
+  }catch{}
+  return null;
+}
+function saveCfbdCategoryToStorage(year, cat, rows){
+  try{ localStorage.setItem(cfbdCacheKey(year, cat), JSON.stringify({ rows, ts: Date.now() })); }
+  catch{ /* z.B. localStorage voll — dann halt kein Cache, nicht schlimm */ }
+}
+
 // Ein einzelner Kategorie-Abruf, mit Wiederholung bei 429 (Rate-Limit von CFBD
 // selbst — unabhängig vom NCAA-Logo-Rate-Limit, ein komplett anderer Dienst).
+// Deutlich vorsichtigeres Backoff als beim ersten Versuch (2s/4s/8s statt
+// 1.2s/2.4s), weil selbst die erste, kleinere Pause noch zu 429ern führte.
 async function fetchCfbdCategory(year, cat, attempt){
   attempt = attempt || 0;
+  const cached = loadCfbdCategoryFromStorage(year, cat);
+  if(cached) return cached;
   const path = `/stats/player/season?year=${year}&category=${cat}`;
   try{
     const r = await fetch(CFBD_WORKER + encodeURIComponent(path));
-    if(r.status === 429 && attempt < 2){
-      await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); // 1.2s, dann 2.4s
+    if(r.status === 429 && attempt < 3){
+      await new Promise(res => setTimeout(res, 2000 * Math.pow(2, attempt))); // 2s, 4s, 8s
       return fetchCfbdCategory(year, cat, attempt + 1);
     }
     if(!r.ok){ console.warn(`[CFBD] Kategorie "${cat}" Fehler ${r.status}`); return []; }
-    const rows = await r.json();
-    return rows.map(row => ({ ...row, category: row.category || cat }));
+    const rawRows = await r.json();
+    const rows = rawRows.map(row => ({ ...row, category: row.category || cat }));
+    saveCfbdCategoryToStorage(year, cat, rows);
+    return rows;
   }catch(e){ console.warn(`[CFBD] Kategorie "${cat}" fehlgeschlagen:`, e); return []; }
 }
 async function cfbdStatsForYear(year){
@@ -352,12 +378,14 @@ async function cfbdStatsForYear(year){
   if(cfbdStatsCache[cacheKey]) return cfbdStatsCache[cacheKey];
   cfbdStatsCache[cacheKey] = (async () => {
     // Nacheinander statt Promise.all (siehe Chat): 5 Kategorien gleichzeitig
-    // haben CFBDs eigenes Rate-Limit ausgelöst (429 bei 3 von 5 Kategorien).
-    // Mit kleiner Pause dazwischen bleibt das zuverlässig unter dem Limit.
+    // haben CFBDs eigenes Rate-Limit ausgelöst. Pause nur vor ECHTEN Netzwerk-
+    // Requests (nicht vor Cache-Treffern), damit ein voll gecachtes Jahr sofort
+    // fertig ist, ohne künstliche Wartezeit.
     const perCategory = [];
     for(const cat of CFBD_CATEGORIES){
+      const alreadyCached = loadCfbdCategoryFromStorage(year, cat);
+      if(!alreadyCached) await new Promise(res => setTimeout(res, 900));
       perCategory.push(await fetchCfbdCategory(year, cat));
-      await new Promise(res => setTimeout(res, 350));
     }
 
     const pivot = {};      // "normName|normSchool" -> {player, team, "kategorie.statType": wert}
