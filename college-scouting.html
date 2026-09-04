@@ -331,19 +331,34 @@ function normPlayerName(name){
 }
 
 const cfbdStatsCache = {}; // `${year}` -> Promise<{pivot, nameIndex}>
+// Ein einzelner Kategorie-Abruf, mit Wiederholung bei 429 (Rate-Limit von CFBD
+// selbst — unabhängig vom NCAA-Logo-Rate-Limit, ein komplett anderer Dienst).
+async function fetchCfbdCategory(year, cat, attempt){
+  attempt = attempt || 0;
+  const path = `/stats/player/season?year=${year}&category=${cat}`;
+  try{
+    const r = await fetch(CFBD_WORKER + encodeURIComponent(path));
+    if(r.status === 429 && attempt < 2){
+      await new Promise(res => setTimeout(res, 1200 * (attempt + 1))); // 1.2s, dann 2.4s
+      return fetchCfbdCategory(year, cat, attempt + 1);
+    }
+    if(!r.ok){ console.warn(`[CFBD] Kategorie "${cat}" Fehler ${r.status}`); return []; }
+    const rows = await r.json();
+    return rows.map(row => ({ ...row, category: row.category || cat }));
+  }catch(e){ console.warn(`[CFBD] Kategorie "${cat}" fehlgeschlagen:`, e); return []; }
+}
 async function cfbdStatsForYear(year){
   const cacheKey = String(year);
   if(cfbdStatsCache[cacheKey]) return cfbdStatsCache[cacheKey];
   cfbdStatsCache[cacheKey] = (async () => {
-    const perCategory = await Promise.all(CFBD_CATEGORIES.map(async cat => {
-      const path = `/stats/player/season?year=${year}&category=${cat}`;
-      try{
-        const r = await fetch(CFBD_WORKER + encodeURIComponent(path));
-        if(!r.ok){ console.warn(`[CFBD] Kategorie "${cat}" Fehler ${r.status}`); return []; }
-        const rows = await r.json();
-        return rows.map(row => ({ ...row, category: row.category || cat }));
-      }catch(e){ console.warn(`[CFBD] Kategorie "${cat}" fehlgeschlagen:`, e); return []; }
-    }));
+    // Nacheinander statt Promise.all (siehe Chat): 5 Kategorien gleichzeitig
+    // haben CFBDs eigenes Rate-Limit ausgelöst (429 bei 3 von 5 Kategorien).
+    // Mit kleiner Pause dazwischen bleibt das zuverlässig unter dem Limit.
+    const perCategory = [];
+    for(const cat of CFBD_CATEGORIES){
+      perCategory.push(await fetchCfbdCategory(year, cat));
+      await new Promise(res => setTimeout(res, 350));
+    }
 
     const pivot = {};      // "normName|normSchool" -> {player, team, "kategorie.statType": wert}
     const nameIndex = {};  // normName -> [gleiche Objekte wie oben] — für Stufe-2-Fallback (nur bei Eindeutigkeit)
