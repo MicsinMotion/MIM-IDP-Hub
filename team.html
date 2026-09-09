@@ -1006,10 +1006,18 @@ const PKG_TIER_LABELS = { secondary:'Secondary', lb:'Linebackers', front:'Front'
 async function fetchPffPackageDepth(abbr){
   const teamId = PFF_TEAM_ID[abbr];
   if(!teamId) return null;
+  const url = `https://www.pff.com/api/teams/${teamId}/package_depth`;
+  // Bewusst NICHT über fetchViaWorker (das verschluckt bei !r.ok stumm den
+  // Status-Code) — hier direkt selbst fetchen, damit im Fehlerfall Status und
+  // Antworttext sichtbar sind, statt nur "keine Daten" ohne Grund (siehe Chat).
   try{
-    const url = `https://www.pff.com/api/teams/${teamId}/package_depth`;
-    const res = await fetchViaWorker(url);
-    if(!res) return null;
+    const r = await fetchWithTimeout(`${MIM_WORKER}${encodeURIComponent(url)}`);
+    if(!r.ok){
+      const body = await r.text().catch(() => '');
+      console.warn(`[Personnel] PFF Fehler ${r.status} @ ${url}:`, body.slice(0, 300));
+      return null;
+    }
+    const res = await r.text();
     const json = JSON.parse(res);
     return json.packages || null;
   }catch(e){ console.warn('[Personnel] PFF package_depth konnte nicht geladen werden:', e); return null; }
