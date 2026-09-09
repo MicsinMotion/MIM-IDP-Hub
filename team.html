@@ -1007,20 +1007,28 @@ async function fetchPffPackageDepth(abbr){
   const teamId = PFF_TEAM_ID[abbr];
   if(!teamId) return null;
   const url = `https://www.pff.com/api/teams/${teamId}/package_depth`;
-  // Bewusst NICHT über fetchViaWorker (das verschluckt bei !r.ok stumm den
-  // Status-Code) — hier direkt selbst fetchen, damit im Fehlerfall Status und
-  // Antworttext sichtbar sind, statt nur "keine Daten" ohne Grund (siehe Chat).
-  try{
-    const r = await fetchWithTimeout(`${MIM_WORKER}${encodeURIComponent(url)}`);
-    if(!r.ok){
-      const body = await r.text().catch(() => '');
-      console.warn(`[Personnel] PFF Fehler ${r.status} @ ${url}:`, body.slice(0, 300));
-      return null;
-    }
-    const res = await r.text();
-    const json = JSON.parse(res);
-    return json.packages || null;
-  }catch(e){ console.warn('[Personnel] PFF package_depth konnte nicht geladen werden:', e); return null; }
+  // Erst proxy.php (netcup-Server-IP) versuchen, dann als Rückfall den
+  // Cloudflare-Worker (?url=) — Cloudflare-Worker-Anfragen werden von PFFs
+  // Bot-Schutz vermutlich generell erkannt/geblockt (auch mit korrekten
+  // Headern, siehe Chat), proxy.php läuft über eine ganz andere Infrastruktur
+  // und hat pff.com schon auf der Whitelist (dasselbe Muster wie bei den
+  // Sleeper-Endpunkten in dieser Datei, die aus ähnlichem Grund proxy.php vor
+  // dem Worker versuchen).
+  for(const proxyUrl of [`${OWN_PROXY}${encodeURIComponent(url)}`, `${MIM_WORKER}${encodeURIComponent(url)}`]){
+    try{
+      const r = await fetchWithTimeout(proxyUrl);
+      if(!r.ok){
+        const body = await r.text().catch(() => '');
+        console.warn(`[Personnel] Fehler ${r.status} @ ${proxyUrl}:`, body.slice(0, 300));
+        continue;
+      }
+      const res = await r.text();
+      const json = JSON.parse(res);
+      if(json.packages) return json.packages;
+      console.warn(`[Personnel] Antwort ohne "packages"-Feld @ ${proxyUrl}:`, res.slice(0, 300));
+    }catch(e){ console.warn(`[Personnel] Fehlgeschlagen @ ${proxyUrl}:`, e); }
+  }
+  return null;
 }
 
 function renderPackageField(players){
