@@ -1149,14 +1149,16 @@ async function fetchBulkSeasonStats(yr){
   for(const url of attempts){
     try{
       const r = await fetch(url);
-      if(!r.ok) continue;
+      if(!r.ok){ console.warn(`[Leaders] Fetch-Versuch fehlgeschlagen (Status ${r.status}):`, url); continue; }
       const t = await r.text();
-      if(!t || t === 'null') continue;
+      if(!t || t === 'null'){ console.warn('[Leaders] Fetch-Versuch lieferte leere/null-Antwort:', url); continue; }
       const obj = JSON.parse(t);
-      if(Array.isArray(obj) && obj.length) return obj;
-      if(obj && typeof obj === 'object' && Object.keys(obj).length) return Object.values(obj);
-    }catch(e){}
+      if(Array.isArray(obj) && obj.length){ console.info(`[Leaders] Erfolg über`, url, `— ${obj.length} Einträge.`); return obj; }
+      if(obj && typeof obj === 'object' && Object.keys(obj).length){ console.info(`[Leaders] Erfolg über`, url, `— ${Object.keys(obj).length} Einträge (Objekt-Form).`); return Object.values(obj); }
+      console.warn('[Leaders] Antwort war leeres Array/Objekt:', url, obj);
+    }catch(e){ console.warn('[Leaders] Fetch-Versuch warf Fehler (oft CORS):', url, e); }
   }
+  console.warn('[Leaders] Alle 3 Versuche fehlgeschlagen für Jahr', yr);
   return null;
 }
 
