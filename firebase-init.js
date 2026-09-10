@@ -28,6 +28,10 @@
 //          allow read: if true;
 //          allow write: if request.auth != null;
 //        }
+//        match /public_counters/{docId} {
+//          allow read: if true;
+//          allow write: if true;
+//        }
 //      }
 //    }
 //
@@ -41,7 +45,7 @@ import {
   signInWithEmailAndPassword, signOut, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, collection, getDocs, onSnapshot
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, onSnapshot, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ─── HIER DEINE FIREBASE CONFIG EINFÜGEN ───────────────────────────────────
@@ -228,4 +232,26 @@ export async function saveSharedCache(key, data){
     await setDoc(doc(db, "shared_cache", key), { ...data, updatedAt: Date.now() });
     return true;
   }catch(e){ console.warn('[SharedCache] Schreiben fehlgeschlagen für', key, '— evtl. fehlen die Firestore-Regeln dafür:', e.message); return false; }
+}
+
+// ─── ÖFFENTLICHE ZÄHLER (public_counters) ───────────────────────────────────
+// Eigene, bewusst eng gefasste Collection NUR für einfache Zähler (z.B.
+// Seitenaufrufe) — getrennt von shared_cache, weil deren Schreibrechte auf
+// eingeloggte Nutzer beschränkt sind (siehe Regel-Kommentar oben) und ein
+// "wie oft wurde die Seite aufgerufen"-Zähler ja gerade JEDEN Besuch zählen
+// soll, auch nicht eingeloggte. Nutzt Firestores echtes atomares increment()
+// statt "lesen, +1, schreiben" — dadurch geht bei zeitgleichen Aufrufen kein
+// Tick mehr verloren, im Gegensatz zum alten Ansatz über saveSharedCache.
+export async function incrementPublicCounter(key){
+  try{
+    await setDoc(doc(db, "public_counters", key), { count: increment(1), lastUpdated: Date.now() }, { merge: true });
+    return true;
+  }catch(e){ console.warn('[PublicCounter] Increment fehlgeschlagen für', key, '— evtl. fehlt die Firestore-Regel dafür (siehe Kommentar oben):', e.message); return false; }
+}
+
+export async function getPublicCounter(key){
+  try{
+    const snap = await getDoc(doc(db, "public_counters", key));
+    return snap.exists() ? (snap.data().count || 0) : 0;
+  }catch(e){ console.warn('[PublicCounter] Lesen fehlgeschlagen für', key, '—', e.message); return null; }
 }
