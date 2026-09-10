@@ -122,22 +122,6 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .dc-glossary-item{font-size:12px;color:var(--muted);display:flex;gap:8px;}
 .dc-glossary-item b{color:var(--orange);min-width:38px;flex-shrink:0;}
 
-/* ── PERSONNEL PACKAGES (siehe Chat, Quelle: PFF) ── */
-.pkg-wrap{padding:20px;}
-.pkg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
-.pkg-tab{background:var(--bg3);border:1px solid var(--border2);color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;padding:8px 16px;border-radius:20px;cursor:pointer;transition:all .15s;}
-.pkg-tab:hover{color:var(--text);}
-.pkg-tab.active{background:var(--orange);color:#fff;border-color:var(--orange);}
-.pkg-field{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:28px 20px;min-height:300px;background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 87px, var(--border) 87px, var(--border) 88px);overflow-x:auto;}
-.pkg-tier{display:flex;justify-content:center;align-items:flex-start;gap:24px;margin-bottom:48px;flex-wrap:wrap;}
-.pkg-tier:last-child{margin-bottom:0;}
-.pkg-card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;width:108px;text-align:center;overflow:hidden;flex-shrink:0;}
-.pkg-card-num{background:var(--orange);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:5px 0;}
-.pkg-card-name{font-size:11px;font-weight:700;color:var(--text);padding:8px 5px 5px;line-height:1.25;min-height:30px;display:flex;align-items:center;justify-content:center;}
-.pkg-card-pos{background:var(--bg4);color:var(--orange);font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;padding:4px 0;border-top:1px solid var(--border2);}
-.pkg-source{font-size:11px;color:var(--muted);margin-top:14px;font-style:italic;text-align:center;}
-.pkg-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 0;}
-
 /* DEFENSIVE LINEUP BREAKDOWN (FRONT / LB / SECONDARY / Most used Schemes) */
 .team-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
 @media(max-width:1100px){ .team-two-col{grid-template-columns:1fr;} }
@@ -360,18 +344,6 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     </div>
   </div>
 
-  <div id="personnel-pkg-section" style="display:none;margin-top:14px;">
-    <div class="dc-heading section-toggle-hdr" id="pkg-toggle-hdr" style="cursor:pointer;user-select:none;">
-      <span data-i18n="personnel_packages">Personnel Packages</span>
-      <span class="ts-toggle-chevron" id="pkg-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
-    </div>
-    <div id="pkg-body">
-      <div class="dc-subline" id="pkg-subline" data-i18n="personnel_packages_subline">Aktuelle Positions-Zuordnung je Personnel-Paket, Quelle: PFF</div>
-      <div class="dc-loading" id="pkg-status" data-i18n="loading_generic">Lädt…</div>
-      <div id="pkg-container"></div>
-    </div>
-  </div>
-
   <div id="full-team-stats-section" style="display:none;">
     <div class="dc-heading section-toggle-hdr" id="ts-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
       <span data-i18n="team_stats">Team Stats</span>
@@ -457,7 +429,6 @@ const I18N = {
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
     depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
-    personnel_packages: 'Personnel Packages', personnel_packages_subline: 'Aktuelle Positions-Zuordnung je Personnel-Paket, Quelle: PFF',
     pos_glossary: 'Positions-Glossar', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Lade Depth Chart…', loading_teamstats: 'Lade Team Stats…',
     loading_schedule: 'Lade Schedule &amp; Standings…', loading_roster: 'Lade Team Roster…',
@@ -488,7 +459,6 @@ const I18N = {
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
     depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
-    personnel_packages: 'Personnel Packages', personnel_packages_subline: 'Current position assignments per personnel package, source: PFF',
     pos_glossary: 'Position Glossary', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Loading depth chart…', loading_teamstats: 'Loading team stats…',
     loading_schedule: 'Loading schedule &amp; standings…', loading_roster: 'Loading team roster…',
@@ -987,120 +957,6 @@ async function fetchPffRosterMap(abbr){
   return { pffMap, rawPlayers };
 }
 
-// ─── PERSONNEL PACKAGES (siehe Chat) ───────────────────────────────────────
-// Quelle: PFFs eigener package_depth-Endpunkt — dieselbe Team-ID-Tabelle wie
-// beim Roster (PFF_TEAM_ID), öffentlich ohne Login abrufbar (im Browser
-// bestätigt getestet), läuft über den bestehenden Worker-Proxy (pff.com ist
-// dort schon whitelisted, keine neue Freigabe nötig).
-// Gruppierung der PFF-Positionskürzel in die drei Reihen fürs Feld-Layout.
-const PKG_POS_TIER = {
-  // Front (Defensive Line)
-  DLE:'front', DLT:'front', DRT:'front', DRE:'front', NT:'front', DT:'front', DE:'front', LEO:'front', EDGE:'front',
-  // Linebackers
-  LILB:'lb', RILB:'lb', LLB:'lb', RLB:'lb', MLB:'lb', WLB:'lb', SLB:'lb', LOLB:'lb', ROLB:'lb', LB:'lb',
-  // Secondary
-  CB:'secondary', SCB:'secondary', NCB:'secondary', FS:'secondary', SS:'secondary', S:'secondary', DB:'secondary'
-};
-const PKG_TIER_LABELS = { secondary:'Secondary', lb:'Linebackers', front:'Front' }; // Reihenfolge = Anzeige-Reihenfolge (oben→unten wie auf dem Feld)
-
-async function fetchPffPackageDepth(abbr){
-  const teamId = PFF_TEAM_ID[abbr];
-  if(!teamId) return null;
-  const url = `https://www.pff.com/api/teams/${teamId}/package_depth`;
-  // Erst proxy.php (netcup-Server-IP) versuchen, dann als Rückfall den
-  // Cloudflare-Worker (?url=) — Cloudflare-Worker-Anfragen werden von PFFs
-  // Bot-Schutz vermutlich generell erkannt/geblockt (auch mit korrekten
-  // Headern, siehe Chat), proxy.php läuft über eine ganz andere Infrastruktur
-  // und hat pff.com schon auf der Whitelist (dasselbe Muster wie bei den
-  // Sleeper-Endpunkten in dieser Datei, die aus ähnlichem Grund proxy.php vor
-  // dem Worker versuchen).
-  for(const proxyUrl of [`${OWN_PROXY}${encodeURIComponent(url)}`, `${MIM_WORKER}${encodeURIComponent(url)}`]){
-    try{
-      const r = await fetchWithTimeout(proxyUrl);
-      if(!r.ok){
-        const body = await r.text().catch(() => '');
-        console.warn(`[Personnel] Fehler ${r.status} @ ${proxyUrl}:`, body.slice(0, 300));
-        continue;
-      }
-      const res = await r.text();
-      const json = JSON.parse(res);
-      if(json.packages) return json.packages;
-      console.warn(`[Personnel] Antwort ohne "packages"-Feld @ ${proxyUrl}:`, res.slice(0, 300));
-    }catch(e){ console.warn(`[Personnel] Fehlgeschlagen @ ${proxyUrl}:`, e); }
-  }
-  return null;
-}
-
-function renderPackageField(players){
-  const groups = { secondary: [], lb: [], front: [] };
-  const unmatched = [];
-  (players || []).forEach(p => {
-    const tier = PKG_POS_TIER[(p.position || '').toUpperCase()];
-    if(tier) groups[tier].push(p);
-    else unmatched.push(p);
-  });
-  const tierHtml = Object.keys(PKG_TIER_LABELS).map(tierKey => {
-    const list = groups[tierKey];
-    if(!list.length) return '';
-    return `<div class="pkg-tier">${list.map(p => `
-      <div class="pkg-card">
-        <div class="pkg-card-num">#${p.jersey_number ?? '–'}</div>
-        <div class="pkg-card-name">${p.name || '–'}</div>
-        <div class="pkg-card-pos">${p.position || '–'}</div>
-      </div>`).join('')}</div>`;
-  }).join('');
-  // Unbekannte Positionskürzel (falls PFF mal ein neues nutzt) trotzdem anzeigen,
-  // statt sie kommentarlos zu verschlucken — lieber sichtbar in einer eigenen
-  // Reihe als ein Spieler, der einfach fehlt.
-  const unmatchedHtml = unmatched.length ? `<div class="pkg-tier">${unmatched.map(p => `
-    <div class="pkg-card">
-      <div class="pkg-card-num">#${p.jersey_number ?? '–'}</div>
-      <div class="pkg-card-name">${p.name || '–'}</div>
-      <div class="pkg-card-pos">${p.position || '–'}</div>
-    </div>`).join('')}</div>` : '';
-  return `<div class="pkg-field">${tierHtml}${unmatchedHtml}</div>`;
-}
-
-async function renderPersonnelPackages(abbr, year){
-  const section = document.getElementById('personnel-pkg-section');
-  // Live-Roster-Zuordnung — ergibt für vergangene Saisons keinen Sinn, genau wie
-  // beim bestehenden Depth Chart (siehe dessen Kommentar dazu).
-  if(year !== CURRENT_SEASON_YEAR){ section.style.display = 'none'; return; }
-  section.style.display = '';
-  const statusEl = document.getElementById('pkg-status');
-  const container = document.getElementById('pkg-container');
-  statusEl.style.display = '';
-  statusEl.textContent = t('loading_generic');
-  container.innerHTML = '';
-
-  const packages = await fetchPffPackageDepth(abbr);
-  statusEl.style.display = 'none';
-  if(!packages || !packages.length){
-    container.innerHTML = `<div class="pkg-empty">Aktuell keine Personnel-Package-Daten von PFF verfügbar.</div>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="pkg-wrap">
-      <div class="pkg-tabs" id="pkg-tabs"></div>
-      <div id="pkg-field-slot"></div>
-      <div class="pkg-source">Personnel-Pakete und Zuordnung laut PFF, aktualisiert sich mit deren Datenstand.</div>
-    </div>`;
-  const tabsEl = document.getElementById('pkg-tabs');
-  const fieldSlot = document.getElementById('pkg-field-slot');
-
-  tabsEl.innerHTML = packages.map((pkg, i) => `<button class="pkg-tab${i===0?' active':''}" data-idx="${i}">${pkg.description || '–'}</button>`).join('');
-  fieldSlot.innerHTML = renderPackageField(packages[0].players);
-
-  tabsEl.querySelectorAll('.pkg-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabsEl.querySelectorAll('.pkg-tab').forEach(b => b.classList.toggle('active', b===btn));
-      const pkg = packages[parseInt(btn.dataset.idx, 10)];
-      fieldSlot.innerHTML = renderPackageField(pkg.players);
-    });
-  });
-}
-
 // pff_id bevorzugt aus der AKTUELLEN Saison-Rosters-CSV auflösen (sleeper_id ->
 // pff_id), nicht nur aus der CSV des gerade ausgewählten Jahres — exakt dasselbe
 // Prinzip wie player.html's enrichIds() (dort wird ebenfalls über mehrere Jahre
@@ -1370,7 +1226,6 @@ bindSectionToggle('sched-toggle-hdr', 'sched-body', 'sched-toggle-chevron');
 bindSectionToggle('lineup-toggle-hdr', 'lineup-body', 'lineup-toggle-chevron');
 bindSectionToggle('community-stats-toggle-hdr', 'community-stats-body', 'community-stats-toggle-chevron');
 bindSectionToggle('roster-toggle-hdr', 'roster-body', 'roster-toggle-chevron');
-bindSectionToggle('pkg-toggle-hdr', 'pkg-body', 'pkg-toggle-chevron');
 
 // ── CACHE für die BERECHNETEN Aggregate (nicht die Roh-PBP) ──────────────────
 // Sobald einmal berechnet, ändert sich eine ABGESCHLOSSENE Saison nie wieder —
@@ -3497,9 +3352,6 @@ if(team){
 
     // Depth Chart (live)
     renderDepthChart(abbr, year);
-
-    // Personnel Packages (live, siehe Chat) — nur aktuelle Season, wie Depth Chart
-    renderPersonnelPackages(abbr, year);
 
     // Schedule & Standings (live) — für beide Zielgruppen sichtbar
     renderScheduleStandings(abbr, year);
