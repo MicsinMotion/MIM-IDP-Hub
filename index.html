@@ -1134,7 +1134,13 @@ function calcPts(s, mode){
 }
 
 const NOW_YEAR = new Date().getFullYear();
-const SEASON_YEAR = NOW_YEAR - 1; // aktuelle Season hat mitten im Jahr meist noch keine Stats -> letzte volle Season
+// War vorher starr "NOW_YEAR - 1" — hätte die 2026er-Season die ganze Zeit
+// über weiterhin 2025er-Stats gezeigt, bis Neujahr 2027 (siehe Chat). Jetzt
+// wie CURRENT_SEASON_YEAR anderswo ein fester Stichtag, nur eben am
+// Saisonstart (1. September) statt am 1. März, weil es hier um Stats geht,
+// nicht um Rosters/Draft-Jahrgänge.
+function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
+const SEASON_YEAR = isPastSeasonStart(new Date()) ? NOW_YEAR : NOW_YEAR - 1;
 
 // ─── BULK STATS (Season Leaders + Rookie Leaders) — mit CORS-Fallback wie im Ranking-Tool ──
 async function fetchBulkSeasonStats(yr){
