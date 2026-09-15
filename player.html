@@ -416,6 +416,12 @@ const nvProxyUrls = rawUrl => [
 ];
 const NV_CSV_URLS = yr=>nvProxyUrls(NV_GH_URL(yr));
 const LEAGUE_ID   = '1265652443362889728';
+// Zweite, echte Sleeper-Liga speziell für MIM-Bowl-Scoring (siehe Chat) — ohne
+// das würde die Detailseite bei aktivem Bowl-Modus trotzdem die echten
+// Matchup-Punkte aus der STANDARD-Liga ziehen, obwohl die Bowl-Liga andere
+// Scoring-Einstellungen hat. Welche der beiden als Kette aufgebaut wird,
+// entscheidet buildLeagueChain() unten anhand des aktuell aktiven Modus.
+const LEAGUE_ID_BOWL = '1381701756060188672';
 const LEAGUE_MU   = (lgId,wk)=>`https://api.sleeper.app/v1/league/${lgId}/matchups/${wk}`;
 const SL_SCHEDULE = yr=>`https://api.sleeper.app/schedule/nfl/regular/${yr}`;
 
@@ -647,7 +653,11 @@ function fetchNvSnapMap(yr){
           const wk=parseInt(c[iWk])||0;
           const team=(iTeam>=0?c[iTeam]:'')||'';
           const snaps=parseFloat(c[iDsnp]);
-          const pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
+          // Gleiche Format-Absicherung wie in team.html (siehe Chat) — manche
+          // Zeilen liefern den Wert schon als Prozent statt als Anteil, sonst
+          // würde z.B. "20.26" zu "2026%" werden.
+          let pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
+          if(!isNaN(pctRaw) && pctRaw > 1) pctRaw = pctRaw / 100;
           if(!map.has(pid))map.set(pid,new Map());
           map.get(pid).set(wk,{
             defense_snaps: isNaN(snaps)?null:snaps,
@@ -867,9 +877,13 @@ async function fetchFB(d,p){
 
 // ── LEAGUE CHAIN ─────────────────────────────────────────────────────────────
 async function buildLeagueChain(){
-  leagueChain[CUR_YEAR]=LEAGUE_ID;
+  // Welche der beiden echten Ligen als Kette aufgebaut wird, richtet sich nach
+  // dem aktuell aktiven Scoring-Modus (siehe Chat) — vorher stand hier immer
+  // fest LEAGUE_ID, unabhängig vom Standard/Bowl-Schalter.
+  const startId = getScoringMode()==='bowl' ? LEAGUE_ID_BOWL : LEAGUE_ID;
+  leagueChain[CUR_YEAR]=startId;
   try{
-    let lgId=LEAGUE_ID;
+    let lgId=startId;
     for(let i=0;i<7;i++){
       const r=await fetch(`https://api.sleeper.app/v1/league/${lgId}`);if(!r.ok)break;
       const lg=await r.json();

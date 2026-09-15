@@ -1268,7 +1268,11 @@ async function loadPlayerSeasons(id){
   for(const yr of years){
     const s = await fetchSeasonStats(id, yr);
     pts[yr] = s ? calcPts(s) : 0;
-    if(yr === NOW_YEAR-1) lastSeasonStats = s;
+    // War vorher hart auf NOW_YEAR-1 (letztes Kalenderjahr) verdrahtet — zeigte
+    // die ganze 2026er-Season über weiterhin "2025 Stats" im Vergleichs-Panel,
+    // exakt derselbe Fehler wie bei SEASON_YEAR oben, nur in einer komplett
+    // anderen Funktion (siehe Chat). Jetzt derselbe Saisonstart-Stichtag.
+    if(yr === SEASON_YEAR) lastSeasonStats = s;
   }
   return { pts, lastSeasonStats };
 }
@@ -1625,7 +1629,7 @@ function renderComparePanel(){
           <div class="cmp-pts-val">${(data.pts && data.pts[y] != null) ? data.pts[y].toFixed(1) : '0.0'}</div>
         </div>`).join('')}</div>`;
       const s = data.lastSeasonStats;
-      statsHtml = `<div class="cmp-stats-title">${NOW_YEAR-1} Stats</div>
+      statsHtml = `<div class="cmp-stats-title">${SEASON_YEAR} Stats</div>
         <div class="cmp-stats-grid">${STAT_DEFS.map(([label,key]) => `
           <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
         </div>`;

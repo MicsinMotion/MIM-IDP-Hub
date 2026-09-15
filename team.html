@@ -889,6 +889,14 @@ const NV_SNAP_URL = yr => `https://github.com/nflverse/nflverse-data/releases/do
 
 // PFF Team-Rosters — liefert die genaue Position (DI/ED statt fälschlich DT/OLB).
 const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
+// nflverse führt die Rams offiziell als "LA" (nicht "LAR") — bestätigt über
+// nflreadr's eigene clean_team_abbrs()-Doku. Der Rest der Seite (TEAMS,
+// PFF_TEAM_ID, Team-Switcher) nutzt durchgehend "LAR". War vorher nur lokal in
+// aggregateTeamDefense() versteckt, dadurch griff es NICHT beim Roster- und
+// Snap-Counts-Laden (siehe Chat — deshalb lud das Rams-Roster gar nicht mehr).
+// Jetzt global, damit jede Stelle, die eine rohe nflverse-CSV-Team-Spalte
+// gegen "abbr" vergleicht, automatisch mitgilt.
+function normalizeAbbr(t){ return t === 'LA' ? 'LAR' : t; }
 const PFF_POS_MAP={DI:'DI',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
 
 // Fallback-Zuordnung (nflverse depth_chart_position/position → 5-Wege-Split), falls
@@ -1052,12 +1060,6 @@ async function fetchPbpCsv(yr){
 // third_down_converted, third_down_failed, game_id, home_team, away_team,
 // total_home_score, total_away_score.
 function aggregateTeamDefense(pbpText){
-  // nflverse führt die Rams offiziell als "LA" (nicht "LAR") — bestätigt über
-  // nflreadr's eigene clean_team_abbrs()-Doku. Der Rest der Seite (TEAMS,
-  // PFF_TEAM_ID, Team-Switcher) nutzt durchgehend "LAR", deshalb hier normalisieren,
-  // statt an jeder Stelle einen Sonderfall einzubauen (siehe Chat).
-  const normalizeAbbr = t => t === 'LA' ? 'LAR' : t;
-
   const lines = pbpText.split('\n');
   const H = parseCsvLine(lines[0]).map(h => h.trim());
   console.log(`[TeamStats] PBP Header (${H.length} Spalten):`, H);
@@ -2017,7 +2019,7 @@ async function fetchTeamRosterYear(abbr, year){
   const skippedNames = [];
   for(let i=1;i<lines.length;i++){
     const row = parseCsvLine(lines[i]);
-    if(val(row, idx.team) !== abbr) continue;
+    if(normalizeAbbr(val(row, idx.team)) !== abbr) continue;
     const sid = val(row, idx.sleeper);
     if(!sid){
       skippedNoSleeperId++;
@@ -2056,9 +2058,16 @@ async function fetchSnapCountsYear(year){
     const row = parseCsvLine(lines[i]);
     const pid = (row[iPfr]||'').trim(); if(!pid) continue;
     const wk = parseInt(row[iWk]) || 0;
-    const team = (iTeam>=0 ? row[iTeam] : '').trim();
+    const team = normalizeAbbr((iTeam>=0 ? row[iTeam] : '').trim());
     const snaps = parseFloat(row[iSnp]);
-    const pctRaw = parseFloat(row[iPct]); // Anteil (0.82), nicht Prozent
+    // Verteidigung gegen Format-Inkonsistenz (siehe Chat): manche Zeilen (v.a.
+    // frisch veröffentlichte Week-1-Daten) liefern den Wert offenbar schon als
+    // Prozent (z.B. "20.26" = 20,26%) statt als Anteil (0.2026) — ohne diese
+    // Normalisierung würde "20.26" nochmal ×100 gerechnet und als "2026%"
+    // angezeigt. Ein Anteil ist per Definition ≤ 1, alles darüber wird deshalb
+    // als "ist schon Prozent" behandelt und vorher durch 100 geteilt.
+    let pctRaw = parseFloat(row[iPct]); // Anteil (0.82), nicht Prozent
+    if(!isNaN(pctRaw) && pctRaw > 1) pctRaw = pctRaw / 100;
     if(!byPlayer.has(pid)) byPlayer.set(pid, new Map());
     byPlayer.get(pid).set(wk, { snaps: isNaN(snaps)?null:snaps, pct: isNaN(pctRaw)?null:Math.round(pctRaw*100), team });
     if(!isNaN(snaps) && !isNaN(pctRaw) && pctRaw > 0 && team){
@@ -2075,9 +2084,29 @@ async function fetchSnapCountsYear(year){
 // Saison dieses Teams (nicht nur seine eigenen Wochen) — für die Roster-Ansicht
 // einfacher als in player.html, da das Team hier schon feststeht (kein Trade-Fall
 // zu berücksichtigen).
-function computeSeasonSnaps(pfrId, abbr, snapData){
-  const byWeek = pfrId ? snapData.byPlayer.get(pfrId) : null;
-  if(!byWeek || !byWeek.size) return { seasonSnaps: null, seasonPct: null, byWeek: new Map(), joinedMidSeason: false };
+function computeSeasonSnaps(pfrId, abbr, snapData, sleeperWeekly){
+  let byWeek = pfrId ? snapData.byPlayer.get(pfrId) : null;
+  let usedSleeperFallback = false;
+  // Rookie-Rückfall (siehe Chat): nflverse/PFR vergibt pfr_id oft erst, nachdem
+  // ein Spieler tatsächlich sein erstes NFL-Snap gespielt hat — bis dahin gäbe
+  // es hier sonst gar keine Snap-Anzeige. Sleeper führt eigene Wochen-Stats
+  // (inkl. Defense-Snaps) aber schon ab Woche 1, und die werden ohnehin schon
+  // für die Fantasy-Punkte geladen (sleeperWeekly) — hier nur zusätzlich
+  // ausgelesen, kein neuer Netzwerk-Call. Team-Gesamt-Snaps (Nenner für %)
+  // kommen weiter aus den nflverse-Daten der ANDEREN Spieler dieses Teams.
+  if((!byWeek || !byWeek.size) && sleeperWeekly && Object.keys(sleeperWeekly).length){
+    const built = new Map();
+    Object.entries(sleeperWeekly).forEach(([wk, stats]) => {
+      const snp = stats && (stats.def_snp ?? stats.defense_snaps ?? stats.snp);
+      if(snp == null) return;
+      const wkNum = parseInt(wk,10) || 0;
+      const teamTotal = snapData.teamWeekTotal.get(`${abbr}|${wkNum}`);
+      const pct = teamTotal > 0 ? Math.round(snp/teamTotal*100) : null;
+      built.set(wkNum, { snaps: snp, pct, team: abbr });
+    });
+    if(built.size){ byWeek = built; usedSleeperFallback = true; }
+  }
+  if(!byWeek || !byWeek.size) return { seasonSnaps: null, seasonPct: null, byWeek: new Map(), joinedMidSeason: false, usedSleeperFallback };
   let seasonSnaps = 0;
   byWeek.forEach(w => { if(w.snaps != null) seasonSnaps += w.snaps; });
   let seasonTeamTotal = 0;
@@ -2095,7 +2124,7 @@ function computeSeasonSnaps(pfrId, abbr, snapData){
   const endedHere = lastWeek && lastWeek[1].team === abbr;
   const joinedMidSeason = hasOtherTeamEarlier && endedHere;
 
-  return { seasonSnaps, seasonPct, byWeek, joinedMidSeason };
+  return { seasonSnaps, seasonPct, byWeek, joinedMidSeason, usedSleeperFallback };
 }
 
 // ── SLEEPER: Weekly Stats je Spieler (→ Season Stats & Fantasy Points, wie in
@@ -2386,7 +2415,7 @@ function renderRosterSections(container, grouped, statsById, snapData, abbr, pre
     const players = grouped[key].map(p => {
       const summary = seasonSummaryFromWeeks(statsById[p.sleeper_id] || {});
       const prevSummary = seasonSummaryFromWeeks((prevStatsById && prevStatsById[p.sleeper_id]) || {});
-      const snapInfo = computeSeasonSnaps(p.pfr_id, abbr, snapData);
+      const snapInfo = computeSeasonSnaps(p.pfr_id, abbr, snapData, statsById[p.sleeper_id]);
       return { p, summary, prevSummary, snapInfo };
     }).sort((a,b) => {
       // Primär nach Snap% absteigend (fehlende Werte ans Ende), danach alphabetisch
