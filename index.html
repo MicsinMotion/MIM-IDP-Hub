@@ -3,6 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// Theme so früh wie möglich setzen (siehe Chat), bevor CSS überhaupt greift —
+// sonst würde beim Laden kurz das falsche Theme aufblitzen. Bewusst ein
+// eigenes, blockierendes <script> hier statt im großen Modul-Skript unten,
+// weil letzteres viel später/asynchron läuft.
+(function(){
+  try{
+    var t = localStorage.getItem('mim_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }catch(e){}
+})();
+</script>
 <title>Mics in Motion · Front Office</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -22,6 +34,27 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --orange-glow: rgba(196,114,42,.15);
   --orange: #C4722A;
   --red: #da3633;
+  --nav-bg: rgba(13,17,23,0.95);
+}
+/* HELLER MODUS (siehe Chat) — Orange-Markenfarbe bleibt gleich, alles andere
+   gedreht. Aktiviert über [data-theme="light"] auf <html>, gesetzt durch das
+   winzige Blocking-Script im <head> unten, damit beim Laden kein falsches
+   Theme kurz aufblitzt. */
+[data-theme="light"] {
+  --bg: #f6f4f1;
+  --bg2: #ffffff;
+  --bg3: #eeece7;
+  --border: #ddd8d0;
+  --border2: #c7c0b6;
+  --text: #1c1a17;
+  --muted: #6b6459;
+  --green: #C4722A;
+  --green-light: #C4722A;
+  --orange: #C4722A;
+  --orange-dim: #e8c9a8;
+  --orange-glow: rgba(196,114,42,.12);
+  --red: #c62828;
+  --nav-bg: rgba(255,255,255,0.92);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -35,7 +68,7 @@ body {
 
 /* NAV */
 nav {
-  background: rgba(13,17,23,0.95);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   padding: 0 40px;
@@ -49,7 +82,7 @@ nav {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
   letter-spacing: 3px;
-  color: #fff;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -111,7 +144,7 @@ nav {
   font-size: clamp(52px, 8vw, 96px);
   letter-spacing: 6px;
   line-height: .95;
-  color: #fff;
+  color: var(--text);
   position: relative;
 }
 .hero-logo { width: 190px; height: 190px; margin-bottom: 24px; }
@@ -207,7 +240,7 @@ nav {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
   letter-spacing: 2px;
-  color: #fff;
+  color: var(--text);
   line-height: 1;
 }
 .card-desc {
@@ -261,6 +294,8 @@ footer {
 .lang-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
 .lang-switch-btn:hover { color: var(--text); }
 .lang-switch-btn.active { background: var(--orange); color: #fff; }
+.theme-switch-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.theme-switch-btn:hover { border-color: var(--orange); }
 .auth-btn {
   font-size: 12px; font-weight: 600; letter-spacing: .5px;
   color: var(--text); background: var(--bg3); border: 1px solid var(--border);
@@ -297,7 +332,7 @@ footer {
 .modal-close:hover { color: var(--text); }
 .modal-title {
   font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px;
-  color: #fff; margin-bottom: 4px;
+  color: var(--text); margin-bottom: 4px;
 }
 .modal-tabs { display: flex; gap: 4px; margin: 16px 0 20px; border-bottom: 1px solid var(--border); }
 .modal-tab {
@@ -359,7 +394,7 @@ footer {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 26px;
   letter-spacing: 2px;
-  color: #fff;
+  color: var(--text);
 }
 .leaders-title span { color: var(--orange); }
 
@@ -406,7 +441,7 @@ footer {
 }
 .injury-row-body { flex: 1; min-width: 0; }
 .injury-row-hdr { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 3px; }
-.injury-row-name { font-weight: 700; color: #fff; font-size: 13.5px; }
+.injury-row-name { font-weight: 700; color: var(--text); font-size: 13.5px; }
 .injury-row-pos { font-size: 11px; color: var(--muted); }
 .injury-row-status {
   font-size: 10px;
@@ -469,7 +504,7 @@ footer {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 16px;
   letter-spacing: 2px;
-  color: #fff;
+  color: var(--text);
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
@@ -528,7 +563,7 @@ footer {
 .compare-panel{position:fixed;top:60px;right:0;bottom:0;width:360px;background:var(--bg3);border-left:1px solid var(--border);box-shadow:-8px 0 24px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .25s ease;z-index:400;overflow-y:auto;display:flex;flex-direction:column;}
 .compare-panel.open{transform:translateX(0);}
 .compare-hdr{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg3);z-index:2;}
-.compare-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:#fff;}
+.compare-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--text);}
 .compare-close-all{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
 .compare-close-all:hover{color:var(--text);}
 .compare-body{flex:1;}
@@ -538,7 +573,7 @@ footer {
 .cmp-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-right:20px;}
 .cmp-hs,.cmp-hs-fb{width:52px;height:52px;border-radius:8px;object-fit:cover;object-position:top;background:var(--bg2);flex-shrink:0;}
 .cmp-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);}
-.cmp-name{font-size:15px;font-weight:700;color:#fff;}
+.cmp-name{font-size:15px;font-weight:700;color:var(--text);}
 .cmp-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 .cmp-loading{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0 14px;}
 .cmp-pts-row{display:flex;gap:8px;margin-bottom:14px;}
@@ -596,6 +631,7 @@ footer {
     <a href="https://www.mim-bowl.de" target="_blank" rel="noopener" class="nav-link">MIM Bowl</a>
   </div>
   <div style="display:flex;align-items:center;gap:14px;">
+    <button class="theme-switch-btn" id="theme-switch-btn" title="Hell/Dunkel" aria-label="Hell/Dunkel umschalten">🌙</button>
     <div class="lang-switch" id="lang-switch">
       <button class="lang-switch-btn" data-lang="de">🇩🇪 DE</button>
       <button class="lang-switch-btn" data-lang="en">🇺🇸 EN</button>
@@ -756,9 +792,33 @@ const LANG_KEY = 'mim_lang';
 function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
 function setLang(l){ try{ localStorage.setItem(LANG_KEY, l); }catch{} }
 
+// ── HELLER/DUNKLER MODUS (siehe Chat) ───────────────────────────────────────
+// Gleiches Prinzip wie Sprache/Scoring: ein Wert in localStorage, gilt seiten-
+// übergreifend. Das eigentliche Setzen beim Laden passiert schon ganz früh im
+// Blocking-Script im <head> (bevor CSS greift) — hier nur noch der Klick-
+// Handler + Icon-Update für die Restlaufzeit der Seite.
+const THEME_KEY = 'mim_theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)==='light' ? 'light' : 'dark'; }catch{ return 'dark'; } }
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  try{ localStorage.setItem(THEME_KEY, theme); }catch{}
+  updateThemeButton();
+}
+function updateThemeButton(){
+  const btn = document.getElementById('theme-switch-btn');
+  if(!btn) return;
+  const isLight = getTheme() === 'light';
+  // Icon zeigt das Ziel des Klicks, nicht den aktuellen Zustand — Mond = "zu Dunkel wechseln"
+  // ist verwirrend, wenn man SCHON im Dunkelmodus ist. Sonne = "zu Hell wechseln" ist klarer.
+  btn.textContent = isLight ? '🌙' : '☀️';
+  btn.title = t('theme_toggle_' + (isLight ? 'dark' : 'light'));
+}
+
 const I18N = {
   de: {
     nav_more: 'Weitere Seiten:',
+    theme_toggle_light: 'Zum hellen Modus wechseln',
+    theme_toggle_dark: 'Zum dunklen Modus wechseln',
     login: 'Login',
     logout: 'Logout',
     login_username: 'Benutzername',
@@ -823,6 +883,8 @@ const I18N = {
   },
   en: {
     nav_more: 'More pages:',
+    theme_toggle_light: 'Switch to light mode',
+    theme_toggle_dark: 'Switch to dark mode',
     login: 'Login',
     logout: 'Logout',
     login_username: 'Username',
@@ -916,6 +978,13 @@ document.querySelectorAll('.lang-switch-btn').forEach(btn => {
   });
 });
 applyI18n();
+
+// Theme-Button: Anfangszustand setzen + Klick-Handler (Setzen selbst passiert
+// schon im Blocking-Script im <head>, hier nur Icon/Titel + Umschalten).
+updateThemeButton();
+document.getElementById('theme-switch-btn').addEventListener('click', () => {
+  setTheme(getTheme() === 'light' ? 'dark' : 'light');
+});
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -1117,33 +1186,12 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
-// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
-// Chat) — die Tabellen oben sind jetzt nur noch ein Rückfall, falls der Live-
-// Abruf mal fehlschlägt, nicht mehr die primäre Quelle. Das behebt strukturell,
-// dass die Formeln hier von den echten Liga-Einstellungen abweichen konnten.
-const LEAGUE_ID = '1265652443362889728';
-const LEAGUE_ID_BOWL = '1381701756060188672';
-let SCORING_SETTINGS = { standard: null, bowl: null };
-const scoringSettingsReadyPromise = (async () => {
-  const [std, bowl] = await Promise.all([
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
-  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
-  if(!SCORING_SETTINGS.standard) console.warn('[Scoring] Live-Settings (Standard-Liga) nicht verfügbar — nutze lokale Rückfall-Tabelle.');
-  if(!SCORING_SETTINGS.bowl) console.warn('[Scoring] Live-Settings (Bowl-Liga) nicht verfügbar — nutze lokale Rückfall-Tabelle.');
-})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern) — die
 // Community bekommt immer Standard, auch falls an einem gemeinsam genutzten
 // Rechner o.ä. vorher mal "bowl" in localStorage gelandet ist.
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){
-  const m = mode || getScoringMode();
-  const live = SCORING_SETTINGS[m];
-  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
-}
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function activeScoreField(){ return getScoringMode()==='bowl' ? 'ptsBowl' : 'ptsStandard'; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){
@@ -1155,13 +1203,7 @@ function calcPts(s, mode){
 }
 
 const NOW_YEAR = new Date().getFullYear();
-// War vorher starr "NOW_YEAR - 1" — hätte die 2026er-Season die ganze Zeit
-// über weiterhin 2025er-Stats gezeigt, bis Neujahr 2027 (siehe Chat). Jetzt
-// wie CURRENT_SEASON_YEAR anderswo ein fester Stichtag, nur eben am
-// Saisonstart (1. September) statt am 1. März, weil es hier um Stats geht,
-// nicht um Rosters/Draft-Jahrgänge.
-function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
-const SEASON_YEAR = isPastSeasonStart(new Date()) ? NOW_YEAR : NOW_YEAR - 1;
+const SEASON_YEAR = NOW_YEAR - 1; // aktuelle Season hat mitten im Jahr meist noch keine Stats -> letzte volle Season
 
 // ─── BULK STATS (Season Leaders + Rookie Leaders) — mit CORS-Fallback wie im Ranking-Tool ──
 async function fetchBulkSeasonStats(yr){
@@ -1170,16 +1212,14 @@ async function fetchBulkSeasonStats(yr){
   for(const url of attempts){
     try{
       const r = await fetch(url);
-      if(!r.ok){ console.warn(`[Leaders] Fetch-Versuch fehlgeschlagen (Status ${r.status}):`, url); continue; }
+      if(!r.ok) continue;
       const t = await r.text();
-      if(!t || t === 'null'){ console.warn('[Leaders] Fetch-Versuch lieferte leere/null-Antwort:', url); continue; }
+      if(!t || t === 'null') continue;
       const obj = JSON.parse(t);
-      if(Array.isArray(obj) && obj.length){ console.info(`[Leaders] Erfolg über`, url, `— ${obj.length} Einträge.`); return obj; }
-      if(obj && typeof obj === 'object' && Object.keys(obj).length){ console.info(`[Leaders] Erfolg über`, url, `— ${Object.keys(obj).length} Einträge (Objekt-Form).`); return Object.values(obj); }
-      console.warn('[Leaders] Antwort war leeres Array/Objekt:', url, obj);
-    }catch(e){ console.warn('[Leaders] Fetch-Versuch warf Fehler (oft CORS):', url, e); }
+      if(Array.isArray(obj) && obj.length) return obj;
+      if(obj && typeof obj === 'object' && Object.keys(obj).length) return Object.values(obj);
+    }catch(e){}
   }
-  console.warn('[Leaders] Alle 3 Versuche fehlgeschlagen für Jahr', yr);
   return null;
 }
 
@@ -1241,7 +1281,7 @@ function renderLeaderCol(posLabel, items, valueFn, emptyMsg){
 }
 
 async function renderTab(tab){
-  await Promise.all([playersReadyPromise, scoringSettingsReadyPromise]); // playerMap gefüllt UND echte Scoring-Settings da, bevor computeSeasonScores() rechnet (siehe Chat)
+  await playersReadyPromise; // playerMap muss gefüllt sein, bevor computeSeasonScores() matcht (Race-Fix, siehe Chat)
   const grid = document.getElementById('leaders-grid');
   const meta = document.getElementById('leaders-meta');
   grid.innerHTML = `<div class="leaders-loading">${window.t('leaders_loading')}</div>`;
@@ -1289,11 +1329,7 @@ async function loadPlayerSeasons(id){
   for(const yr of years){
     const s = await fetchSeasonStats(id, yr);
     pts[yr] = s ? calcPts(s) : 0;
-    // War vorher hart auf NOW_YEAR-1 (letztes Kalenderjahr) verdrahtet — zeigte
-    // die ganze 2026er-Season über weiterhin "2025 Stats" im Vergleichs-Panel,
-    // exakt derselbe Fehler wie bei SEASON_YEAR oben, nur in einer komplett
-    // anderen Funktion (siehe Chat). Jetzt derselbe Saisonstart-Stichtag.
-    if(yr === SEASON_YEAR) lastSeasonStats = s;
+    if(yr === NOW_YEAR-1) lastSeasonStats = s;
   }
   return { pts, lastSeasonStats };
 }
@@ -1650,7 +1686,7 @@ function renderComparePanel(){
           <div class="cmp-pts-val">${(data.pts && data.pts[y] != null) ? data.pts[y].toFixed(1) : '0.0'}</div>
         </div>`).join('')}</div>`;
       const s = data.lastSeasonStats;
-      statsHtml = `<div class="cmp-stats-title">${SEASON_YEAR} Stats</div>
+      statsHtml = `<div class="cmp-stats-title">${NOW_YEAR-1} Stats</div>
         <div class="cmp-stats-grid">${STAT_DEFS.map(([label,key]) => `
           <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
         </div>`;
