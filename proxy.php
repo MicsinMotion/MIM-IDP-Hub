@@ -42,6 +42,7 @@ $allowedHosts = [
     'site.api.espn.com',
     'www.pff.com',
     'ncaa-api.henrygd.me',
+    'www.thetwodeep.com',
 ];
 
 $parsedHost = parse_url($url, PHP_URL_HOST);
