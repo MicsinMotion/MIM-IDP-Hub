@@ -63,16 +63,14 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .breadcrumb{padding:9px 32px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--bg2);}
 .breadcrumb a{color:var(--muted);text-decoration:none;}
 .breadcrumb a:hover{color:var(--text);}
-.player-header{position:relative;overflow:hidden;border-bottom:1px solid var(--border);}
-.ph-bg-color{position:absolute;inset:0;opacity:.18;}
-.ph-bg-grad{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,12,16,0) 0%,rgba(8,12,16,.7) 50%,rgba(8,12,16,1) 100%);}
-.ph-bg-grad2{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,16,0) 0%,rgba(8,12,16,.5) 100%);}
-.ph-logo-bg{position:absolute;right:0;top:50%;transform:translateY(-50%);height:110%;width:auto;opacity:.18;filter:blur(2px) saturate(0.5);object-fit:contain;pointer-events:none;}
+.player-header{position:relative;overflow:hidden;border-bottom:1px solid var(--border);background:var(--bg2);}
+.ph-bg-color{position:absolute;inset:0;opacity:.08;}
+.ph-logo-bg{position:absolute;right:0;top:50%;transform:translateY(-50%);height:110%;width:auto;opacity:.08;filter:saturate(0.6);object-fit:contain;pointer-events:none;}
 .ph-inner{position:relative;z-index:1;padding:40px 48px 36px;display:flex;gap:36px;align-items:center;}
 .ph-hs-wrap{flex-shrink:0;position:relative;}
-.ph-hs{width:160px;height:160px;border-radius:12px;object-fit:cover;object-position:top center;border:3px solid rgba(255,255,255,.1);background:var(--bg3);box-shadow:0 12px 40px rgba(0,0,0,.6);}
-.ph-hs-fb{width:160px;height:160px;border-radius:12px;background:var(--bg3);border:3px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--muted);box-shadow:0 12px 40px rgba(0,0,0,.6);}
-.ph-team-badge{position:absolute;bottom:-8px;right:-8px;width:42px;height:42px;border-radius:50%;background:var(--bg2);border:3px solid var(--border);object-fit:contain;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+.ph-hs{width:160px;height:160px;border-radius:12px;object-fit:cover;object-position:top center;border:3px solid var(--border2);background:var(--bg3);box-shadow:0 12px 32px rgba(0,0,0,.25);}
+.ph-hs-fb{width:160px;height:160px;border-radius:12px;background:var(--bg3);border:3px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:58px;color:var(--muted);box-shadow:0 12px 32px rgba(0,0,0,.25);}
+.ph-team-badge{position:absolute;bottom:-8px;right:-8px;width:42px;height:42px;border-radius:50%;background:var(--bg2);border:3px solid var(--border);object-fit:contain;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);}
 .ph-info{flex:1;min-width:0;}
 .ph-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .badge{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;padding:4px 11px;border-radius:5px;}
@@ -82,19 +80,19 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .bact{background:rgba(46,160,67,.12);color:var(--green-light);border:1px solid rgba(46,160,67,.25);}
 .binj{background:rgba(218,54,51,.12);color:var(--red);border:1px solid rgba(218,54,51,.25);}
 .bother{background:rgba(125,133,144,.1);color:var(--muted2);border:1px solid var(--border2);}
-.bnum{background:transparent;color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.12);font-size:14px;padding:3px 10px;}
+.bnum{background:transparent;color:var(--muted);border:1px solid var(--border2);font-size:14px;padding:3px 10px;}
 .bnv{background:rgba(163,113,247,.12);color:#a371f7;border:1px solid rgba(163,113,247,.28);}
 .nv-src{font-size:10px;color:var(--muted);align-self:center;margin-left:-2px;}
-.ph-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,5.5vw,72px);letter-spacing:3px;color:var(--text);line-height:.95;margin-bottom:6px;text-shadow:0 2px 16px rgba(0,0,0,.6);}
-.ph-sub{font-size:16px;color:rgba(255,255,255,.55);font-weight:500;margin-bottom:22px;}
-.vitals{display:flex;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);overflow:hidden;backdrop-filter:blur(8px);width:fit-content;}
-.vit{padding:14px 24px;border-right:1px solid rgba(255,255,255,.05);text-align:center;}
+.ph-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,5.5vw,72px);letter-spacing:3px;color:var(--text);line-height:.95;margin-bottom:6px;}
+.ph-sub{font-size:16px;color:var(--muted);font-weight:500;margin-bottom:22px;}
+.vitals{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;width:fit-content;}
+.vit{padding:14px 24px;border-right:1px solid var(--border);text-align:center;}
 .vit:last-child{border-right:none;}
 .vit-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--text);line-height:1;}
-.vit-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:4px;}
+.vit-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
 .ph-extra{margin-top:16px;display:flex;gap:24px;flex-wrap:wrap;}
-.ph-ei{font-size:13px;color:rgba(255,255,255,.45);}
-.ph-ei strong{color:rgba(255,255,255,.75);font-weight:500;}
+.ph-ei{font-size:13px;color:var(--muted);}
+.ph-ei strong{color:var(--text);font-weight:500;}
 .main{padding:32px 48px 80px;}
 .section{margin-bottom:36px;}
 .sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:11px;border-bottom:1px solid var(--border);}
@@ -127,7 +125,7 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .inj-hb-val{color:var(--text);font-weight:600;text-align:right;}
 .inj-hb-note{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.45;}
 .inj-hb-note b{color:var(--text);}
-.inj-hb-loading-overlay{position:absolute;inset:0;background:rgba(13,17,23,.95);border-radius:10px;display:flex;align-items:center;justify-content:center;z-index:5;}
+.inj-hb-loading-overlay{position:absolute;inset:0;background:var(--nav-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;z-index:5;}
 .inj-hb-spinner{width:34px;height:34px;border:4px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:injSpin .8s linear infinite;}
 @keyframes injSpin{to{transform:rotate(360deg);}}
 @media(max-width:1300px){ .inj-header-box{display:none;} }
@@ -465,6 +463,12 @@ const nvProxyUrls = rawUrl => [
 ];
 const NV_CSV_URLS = yr=>nvProxyUrls(NV_GH_URL(yr));
 const LEAGUE_ID   = '1265652443362889728';
+// Zweite, echte Sleeper-Liga speziell für MIM-Bowl-Scoring (siehe Chat) — ohne
+// das würde die Detailseite bei aktivem Bowl-Modus trotzdem die echten
+// Matchup-Punkte aus der STANDARD-Liga ziehen, obwohl die Bowl-Liga andere
+// Scoring-Einstellungen hat. Welche der beiden als Kette aufgebaut wird,
+// entscheidet buildLeagueChain() unten anhand des aktuell aktiven Modus.
+const LEAGUE_ID_BOWL = '1381701756060188672';
 const LEAGUE_MU   = (lgId,wk)=>`https://api.sleeper.app/v1/league/${lgId}/matchups/${wk}`;
 const SL_SCHEDULE = yr=>`https://api.sleeper.app/schedule/nfl/regular/${yr}`;
 
@@ -696,7 +700,11 @@ function fetchNvSnapMap(yr){
           const wk=parseInt(c[iWk])||0;
           const team=(iTeam>=0?c[iTeam]:'')||'';
           const snaps=parseFloat(c[iDsnp]);
-          const pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
+          // Gleiche Format-Absicherung wie in team.html (siehe Chat) — manche
+          // Zeilen liefern den Wert schon als Prozent statt als Anteil, sonst
+          // würde z.B. "20.26" zu "2026%" werden.
+          let pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
+          if(!isNaN(pctRaw) && pctRaw > 1) pctRaw = pctRaw / 100;
           if(!map.has(pid))map.set(pid,new Map());
           map.get(pid).set(wk,{
             defense_snaps: isNaN(snaps)?null:snaps,
@@ -854,10 +862,28 @@ const SCORING_STANDARD={idp_tkl_solo:1.5,idp_tkl_ast:0.5,idp_sack:4,idp_qb_hit:1
 const SCORING_BOWL={idp_tkl_solo:1.5,idp_tkl_ast:0.75,idp_sack:5,idp_qb_hit:2,
   idp_tkl_loss:3,idp_pass_def:5,idp_int:5,idp_fum_rec:2,idp_ff:4,idp_td:6,
   idp_safe:10,idp_blk_kick:6};
+// Live-Scoring-Settings aus den zwei echten Ligen (LEAGUE_ID/LEAGUE_ID_BOWL,
+// oben schon vorhanden) — Tabellen darüber nur noch Rückfall (siehe Chat).
+// Getrennt von buildLeagueChain()/fetchSeasonPtsForPlayer(), die weiterhin die
+// noch genauere Matchup-Scan-Quelle für die "echten" Season-Punktkarten sind —
+// calcPts() hier wird für Wochen-Einzelwerte/Schnellschätzungen daneben genutzt.
+let SCORING_SETTINGS = { standard: null, bowl: null };
+const scoringSettingsReadyPromise = (async () => {
+  const [std, bowl] = await Promise.all([
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
+  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
+})();
 const SCORING_MODE_KEY='mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function getScoringTable(mode){
+  const m = mode || getScoringMode();
+  const live = SCORING_SETTINGS[m];
+  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
+}
 function calcPts(s,mode){
   if(!s)return 0;
   let pts=0;
@@ -916,9 +942,13 @@ async function fetchFB(d,p){
 
 // ── LEAGUE CHAIN ─────────────────────────────────────────────────────────────
 async function buildLeagueChain(){
-  leagueChain[CUR_YEAR]=LEAGUE_ID;
+  // Welche der beiden echten Ligen als Kette aufgebaut wird, richtet sich nach
+  // dem aktuell aktiven Scoring-Modus (siehe Chat) — vorher stand hier immer
+  // fest LEAGUE_ID, unabhängig vom Standard/Bowl-Schalter.
+  const startId = getScoringMode()==='bowl' ? LEAGUE_ID_BOWL : LEAGUE_ID;
+  leagueChain[CUR_YEAR]=startId;
   try{
-    let lgId=LEAGUE_ID;
+    let lgId=startId;
     for(let i=0;i<7;i++){
       const r=await fetch(`https://api.sleeper.app/v1/league/${lgId}`);if(!r.ok)break;
       const lg=await r.json();
@@ -1205,6 +1235,7 @@ const SEASON_RANK_CACHE_PREFIX = 'mim_szn_rank_v2_';
 const SEASON_RANK_CACHE_TTL = 23*60*60*1000;
 
 async function buildSeasonRankGroup(tag, year){
+  await scoringSettingsReadyPromise; // gleiche Absicherung wie in loadAllStats (siehe Chat)
   const cacheKey = SEASON_RANK_CACHE_PREFIX + tag + '_' + year;
   const sharedKey = `season_rank_v2_${tag}_${year}`;
   try{
@@ -2120,6 +2151,7 @@ async function toggleWeekly(yr){
 
 // ── LOAD ALL STATS ────────────────────────────────────────────────────────────
 async function loadAllStats(p){
+  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor irgendein calcPts()-Aufruf hier unten rechnet (siehe Chat)
   const seasons=window._S||[];
   let statsMap={},ptsMap={},teamMap={},snapMap={};
   let cum={gp:0,snaps:0,solo:0,ast:0,tkl:0,tfl:0,sk:0,qbh:0,pbu:0,int:0,fr:0,ff:0,safe:0,td:0};
