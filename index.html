@@ -41,20 +41,20 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
    winzige Blocking-Script im <head> unten, damit beim Laden kein falsches
    Theme kurz aufblitzt. */
 [data-theme="light"] {
-  --bg: #f6f4f1;
-  --bg2: #ffffff;
-  --bg3: #eeece7;
-  --border: #ddd8d0;
-  --border2: #c7c0b6;
-  --text: #1c1a17;
-  --muted: #6b6459;
+  --bg: #e9e4da;
+  --bg2: #f1ece2;
+  --bg3: #ded8cb;
+  --border: #cdc4b2;
+  --border2: #b6ab96;
+  --text: #292420;
+  --muted: #6f6656;
   --green: #C4722A;
   --green-light: #C4722A;
   --orange: #C4722A;
   --orange-dim: #e8c9a8;
   --orange-glow: rgba(196,114,42,.12);
-  --red: #c62828;
-  --nav-bg: rgba(255,255,255,0.92);
+  --red: #b3261e;
+  --nav-bg: rgba(241,236,226,0.92);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -294,8 +294,10 @@ footer {
 .lang-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
 .lang-switch-btn:hover { color: var(--text); }
 .lang-switch-btn.active { background: var(--orange); color: #fff; }
-.theme-switch-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 14px; transition: all .15s; }
-.theme-switch-btn:hover { border-color: var(--orange); }
+.theme-switch { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.theme-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn.active { background: var(--orange); color: #fff; }
 .auth-btn {
   font-size: 12px; font-weight: 600; letter-spacing: .5px;
   color: var(--text); background: var(--bg3); border: 1px solid var(--border);
@@ -631,7 +633,10 @@ footer {
     <a href="https://www.mim-bowl.de" target="_blank" rel="noopener" class="nav-link">MIM Bowl</a>
   </div>
   <div style="display:flex;align-items:center;gap:14px;">
-    <button class="theme-switch-btn" id="theme-switch-btn" title="Hell/Dunkel" aria-label="Hell/Dunkel umschalten">🌙</button>
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-switch-btn" data-theme="dark">🌙 <span data-i18n="theme_dark">Dunkel</span></button>
+      <button class="theme-switch-btn" data-theme="light">☀️ <span data-i18n="theme_light">Hell</span></button>
+    </div>
     <div class="lang-switch" id="lang-switch">
       <button class="lang-switch-btn" data-lang="de">🇩🇪 DE</button>
       <button class="lang-switch-btn" data-lang="en">🇺🇸 EN</button>
@@ -805,20 +810,15 @@ function setTheme(theme){
   updateThemeButton();
 }
 function updateThemeButton(){
-  const btn = document.getElementById('theme-switch-btn');
-  if(!btn) return;
-  const isLight = getTheme() === 'light';
-  // Icon zeigt das Ziel des Klicks, nicht den aktuellen Zustand — Mond = "zu Dunkel wechseln"
-  // ist verwirrend, wenn man SCHON im Dunkelmodus ist. Sonne = "zu Hell wechseln" ist klarer.
-  btn.textContent = isLight ? '🌙' : '☀️';
-  btn.title = t('theme_toggle_' + (isLight ? 'dark' : 'light'));
+  const theme = getTheme();
+  document.querySelectorAll('.theme-switch-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
 }
 
 const I18N = {
   de: {
     nav_more: 'Weitere Seiten:',
-    theme_toggle_light: 'Zum hellen Modus wechseln',
-    theme_toggle_dark: 'Zum dunklen Modus wechseln',
+    theme_dark: 'Dunkel',
+    theme_light: 'Hell',
     login: 'Login',
     logout: 'Logout',
     login_username: 'Benutzername',
@@ -883,8 +883,8 @@ const I18N = {
   },
   en: {
     nav_more: 'More pages:',
-    theme_toggle_light: 'Switch to light mode',
-    theme_toggle_dark: 'Switch to dark mode',
+    theme_dark: 'Dark',
+    theme_light: 'Light',
     login: 'Login',
     logout: 'Logout',
     login_username: 'Username',
@@ -982,8 +982,11 @@ applyI18n();
 // Theme-Button: Anfangszustand setzen + Klick-Handler (Setzen selbst passiert
 // schon im Blocking-Script im <head>, hier nur Icon/Titel + Umschalten).
 updateThemeButton();
-document.getElementById('theme-switch-btn').addEventListener('click', () => {
-  setTheme(getTheme() === 'light' ? 'dark' : 'light');
+document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.theme === getTheme()) return;
+    setTheme(btn.dataset.theme);
+  });
 });
 
 const authWrap = document.getElementById('auth-wrap');
