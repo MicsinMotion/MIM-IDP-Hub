@@ -198,7 +198,10 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .dc-table tr:hover td{background:var(--bg3);}
 .dc-pos-cell{font-weight:700;color:var(--orange);font-size:12px;letter-spacing:.5px;}
 .dc-player-cell a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border2);text-underline-offset:3px;}
-.dc-greendot{color:#2ea043;font-size:11px;margin-right:5px;}
+.dc-greendot{color:#2ea043;font-size:15px;margin-left:6px;vertical-align:middle;}
+.dc-greendot-legend{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.5;}
+.dc-greendot-legend .dc-greendot{margin-left:0;margin-right:6px;font-size:12px;}
+.dc-greendot-legend a{color:var(--orange);}
 .dc-player-cell a:hover{color:var(--orange);text-decoration-color:var(--orange);}
 .dc-player-cell.empty{color:var(--muted);}
 
@@ -367,6 +370,7 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
       <div class="dc-glossary" id="dc-glossary" style="display:none;">
         <div class="dc-glossary-title" data-i18n="pos_glossary">Positions-Glossar</div>
         <div class="dc-glossary-grid" id="dc-glossary-grid"></div>
+        <div class="dc-greendot-legend"><span class="dc-greendot">●</span> Trägt den Green Dot — Funkverbindung zum Trainerstab, meldet den Play Call auf Defense (Quelle: <a href="https://www.thetwodeep.com" target="_blank" rel="noopener">TWO·DEEP</a>)</div>
       </div>
     </div>
   </div>
@@ -2960,15 +2964,40 @@ async function fetchGreenDotFromTwoDeep(abbr){
   try{
     const url = `https://www.thetwodeep.com/nfl/${slug}`;
     const r = await fetchWithTimeout(`${OWN_PROXY}${encodeURIComponent(url)}`);
-    if(!r.ok){ console.warn(`[GreenDot] TWO·DEEP Fehler ${r.status} für ${abbr}`); return null; }
+    if(!r.ok){
+      const body = await r.text().catch(() => '');
+      console.warn(`[GreenDot] TWO·DEEP Fehler ${r.status} für ${abbr}:`, body.slice(0, 300));
+      return null;
+    }
     const html = await r.text();
-    const idx = html.indexOf('green-dot.png');
-    if(idx === -1) return null; // kein Träger gelistet — kommt vor, kein Fehlerfall
-    const before = html.slice(Math.max(0, idx - 400), idx);
-    const matches = [...before.matchAll(/\/nfl\/[a-z]+\/players\/([a-z0-9-]+)/gi)];
-    if(!matches.length) return null;
-    const playerSlug = matches[matches.length - 1][1];
-    return normalizeNameForMatch(playerSlug.replace(/-/g, ' '));
+    console.info(`[GreenDot] ${abbr}: Seite geladen (${html.length} Zeichen).`);
+    // Es kann mehrere Treffer für "green-dot.png" geben — z.B. steht am Seitenanfang
+    // oft ein reiner <link rel="preload">-Performance-Hinweis ohne Bezug zu einem
+    // Spieler (siehe Chat). Deshalb alle Treffer durchgehen, bis einer mit einem
+    // echten Spieler-Link davor gefunden wird, statt blind den ersten zu nehmen.
+    const allIdx = [...html.matchAll(/green-dot\.png/g)].map(m => m.index);
+    if(!allIdx.length){ console.info(`[GreenDot] ${abbr}: kein "green-dot.png" auf der Seite gefunden.`); return null; }
+    for(const idx of allIdx){
+      // Fenster deutlich größer (Foto-URLs/CSS-Klassen zwischen Link und Bild
+      // können mehr als 400 Zeichen sein, siehe Chat) — UND zusätzlich auch
+      // NACH dem Bild suchen, falls der Slug doch dahinter steht.
+      const before = html.slice(Math.max(0, idx - 2500), idx);
+      const after = html.slice(idx, idx + 500);
+      const beforeMatches = [...before.matchAll(/\/nfl\/[a-z]+\/players\/([a-z0-9-]+)/gi)];
+      const afterMatches = [...after.matchAll(/\/nfl\/[a-z]+\/players\/([a-z0-9-]+)/gi)];
+      const playerSlug = beforeMatches.length ? beforeMatches[beforeMatches.length - 1][1]
+                        : (afterMatches.length ? afterMatches[0][1] : null);
+      if(!playerSlug) continue;
+      const norm = normalizeNameForMatch(playerSlug.replace(/-/g, ' '));
+      console.info(`[GreenDot] ${abbr}: Träger laut TWO·DEEP = "${playerSlug}" → normalisiert "${norm}"`);
+      return norm;
+    }
+    // Nichts gefunden — vollen Kontext um den ERSTEN "echten" (nicht-preload)
+    // Treffer loggen, damit wir die tatsächliche Struktur sehen statt zu raten.
+    const dumpIdx = allIdx[allIdx.length - 1];
+    console.warn(`[GreenDot] ${abbr}: ${allIdx.length} Treffer für "green-dot.png", kein Spieler-Link in der Nähe. Kontext um letzten Treffer:`,
+      html.slice(Math.max(0, dumpIdx - 600), dumpIdx + 200));
+    return null;
   }catch(e){ console.warn('[GreenDot] TWO·DEEP-Abruf fehlgeschlagen:', e); return null; }
 }
 
@@ -3266,7 +3295,7 @@ function renderDepthChartSection(key, label, positions, greenDotNormName){
       const dotHtml = (linkable && greenDotNormName && normalizeNameForMatch(a.name) === greenDotNormName)
         ? `<span class="dc-greendot" title="Trägt den Green Dot — meldet den Play Call">●</span>`
         : '';
-      return `<td class="dc-player-cell">${dotHtml}${nameHtml}</td>`;
+      return `<td class="dc-player-cell">${nameHtml}${dotHtml}</td>`;
     }).join('');
     return `<tr><td class="dc-pos-cell">${p.name}</td>${cells}</tr>`;
   }).join('');
