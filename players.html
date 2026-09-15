@@ -450,10 +450,27 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
+// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
+const LEAGUE_ID = '1265652443362889728';
+const LEAGUE_ID_BOWL = '1381701756060188672';
+let SCORING_SETTINGS = { standard: null, bowl: null };
+const scoringSettingsReadyPromise = (async () => {
+  const [std, bowl] = await Promise.all([
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
+  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
+})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function getScoringTable(mode){
+  const m = mode || getScoringMode();
+  const live = SCORING_SETTINGS[m];
+  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
+}
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 // Identisch zu player.html — Sleeper liefert die Körpergröße als reine Zoll-Zahl
 // (z.B. "77"), hier ins übliche US-Format (6'5") umgerechnet.
@@ -499,6 +516,7 @@ async function fetchBulkSeasonStats(yr){
 }
 
 async function loadTop50ByPosition(){
+  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   // Cache-Objekte enthalten jetzt beide Modi zusammen (siehe Chat) —
   // {standard:{...}, bowl:{...}} statt eines einzelnen Sets.
   try{

@@ -585,6 +585,11 @@ const CACHE_KEY = 'mim_players_db_v4', CACHE_TS_KEY = 'mim_players_db_ts_v4', CA
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
 const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const CUR_YEAR = new Date().getFullYear();
+// Saisonstart-Stichtag für "aktuelle Season" bei Stats (siehe Chat) — getrennt
+// von CURRENT_SEASON_YEAR (das ist der 1.-März-Stichtag für Rosters/Jahres-
+// Auswahl anderswo in dieser Datei, bewusst ein anderer Zweck).
+function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
+const SEASON_YEAR = isPastSeasonStart(new Date()) ? CUR_YEAR : CUR_YEAR - 1;
 const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
 const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
 const PFF_POS_MAP={DI:'DT',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
@@ -715,14 +720,32 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
+// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
+const LEAGUE_ID = '1265652443362889728';
+const LEAGUE_ID_BOWL = '1381701756060188672';
+let SCORING_SETTINGS = { standard: null, bowl: null };
+const scoringSettingsReadyPromise = (async () => {
+  const [std, bowl] = await Promise.all([
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
+  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
+})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function getScoringTable(mode){
+  const m = mode || getScoringMode();
+  const live = SCORING_SETTINGS[m];
+  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
+}
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){ if(!s) return 0; let pts=0; const table=getScoringTable(mode); for(const [k,v] of Object.entries(table)){ const val=getStat(s,k); if(val && val>0) pts += val*v; } return Math.round(pts*100)/100; }
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonPts(id, yr){
+  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
       const r = await fetch(url); if(!r.ok) continue;
@@ -815,9 +838,9 @@ function renderSelected(){
   selectedIds.forEach(async id => {
     const p = allPlayers.find(x => x.sleeper_id === id);
     if(!p) return;
-    const pts = await fetchSeasonPts(id, CUR_YEAR-1);
+    const pts = await fetchSeasonPts(id, SEASON_YEAR);
     const el = document.getElementById(`cmp-pts-${id}`);
-    if(el) el.innerHTML = `<b>${pts.toFixed(1)}</b> Pts (${CUR_YEAR-1})`;
+    if(el) el.innerHTML = `<b>${pts.toFixed(1)}</b> Pts (${SEASON_YEAR})`;
   });
 }
 

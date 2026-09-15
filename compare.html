@@ -479,10 +479,27 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
+// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
+// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
+const LEAGUE_ID = '1265652443362889728';
+const LEAGUE_ID_BOWL = '1381701756060188672';
+let SCORING_SETTINGS = { standard: null, bowl: null };
+const scoringSettingsReadyPromise = (async () => {
+  const [std, bowl] = await Promise.all([
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
+  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
+})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function getScoringTable(mode){
+  const m = mode || getScoringMode();
+  const live = SCORING_SETTINGS[m];
+  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
+}
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){
   if(!s) return 0;
@@ -492,6 +509,11 @@ function calcPts(s, mode){
   return Math.round(pts*100)/100;
 }
 const NOW_YEAR = new Date().getFullYear();
+// Saisonstart-Stichtag für "aktuelle Season" bei Stats (siehe Chat, identisch
+// zum Fix in index.html — NOW_YEAR-1 allein hätte hier die ganze Season über
+// weiterhin "2025 Stats" gezeigt statt auf 2026 umzuschalten).
+function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
+const SEASON_YEAR = isPastSeasonStart(new Date()) ? NOW_YEAR : NOW_YEAR - 1;
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
@@ -510,13 +532,14 @@ async function fetchSeasonStats(id, yr){
   return null;
 }
 async function loadPlayerSeasons(id){
+  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   const years = [NOW_YEAR, NOW_YEAR-1, NOW_YEAR-2];
   const pts = {};
   let lastSeasonStats = null;
   for(const yr of years){
     const s = await fetchSeasonStats(id, yr);
     pts[yr] = s ? calcPts(s) : 0;
-    if(yr === NOW_YEAR-1) lastSeasonStats = s;
+    if(yr === SEASON_YEAR) lastSeasonStats = s;
   }
   return { pts, lastSeasonStats };
 }
@@ -555,7 +578,7 @@ function fillCard(id, data){
       <div class="cmp-pts-val">${(data.pts && data.pts[y] != null) ? data.pts[y].toFixed(1) : '0.0'}</div>
     </div>`).join('')}</div>`;
   const s = data.lastSeasonStats;
-  const statsHtml = `<div class="cmp-stats-title">${NOW_YEAR-1} Stats</div>
+  const statsHtml = `<div class="cmp-stats-title">${SEASON_YEAR} Stats</div>
     <div class="cmp-stats-grid">${STAT_DEFS.map(([label,key]) => `
       <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
     </div>`;

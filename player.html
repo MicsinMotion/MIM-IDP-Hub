@@ -815,10 +815,28 @@ const SCORING_STANDARD={idp_tkl_solo:1.5,idp_tkl_ast:0.5,idp_sack:4,idp_qb_hit:1
 const SCORING_BOWL={idp_tkl_solo:1.5,idp_tkl_ast:0.75,idp_sack:5,idp_qb_hit:2,
   idp_tkl_loss:3,idp_pass_def:5,idp_int:5,idp_fum_rec:2,idp_ff:4,idp_td:6,
   idp_safe:10,idp_blk_kick:6};
+// Live-Scoring-Settings aus den zwei echten Ligen (LEAGUE_ID/LEAGUE_ID_BOWL,
+// oben schon vorhanden) — Tabellen darüber nur noch Rückfall (siehe Chat).
+// Getrennt von buildLeagueChain()/fetchSeasonPtsForPlayer(), die weiterhin die
+// noch genauere Matchup-Scan-Quelle für die "echten" Season-Punktkarten sind —
+// calcPts() hier wird für Wochen-Einzelwerte/Schnellschätzungen daneben genutzt.
+let SCORING_SETTINGS = { standard: null, bowl: null };
+const scoringSettingsReadyPromise = (async () => {
+  const [std, bowl] = await Promise.all([
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
+  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
+})();
 const SCORING_MODE_KEY='mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
+function getScoringTable(mode){
+  const m = mode || getScoringMode();
+  const live = SCORING_SETTINGS[m];
+  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
+}
 function calcPts(s,mode){
   if(!s)return 0;
   let pts=0;
@@ -1170,6 +1188,7 @@ const SEASON_RANK_CACHE_PREFIX = 'mim_szn_rank_v2_';
 const SEASON_RANK_CACHE_TTL = 23*60*60*1000;
 
 async function buildSeasonRankGroup(tag, year){
+  await scoringSettingsReadyPromise; // gleiche Absicherung wie in loadAllStats (siehe Chat)
   const cacheKey = SEASON_RANK_CACHE_PREFIX + tag + '_' + year;
   const sharedKey = `season_rank_v2_${tag}_${year}`;
   try{
@@ -2085,6 +2104,7 @@ async function toggleWeekly(yr){
 
 // ── LOAD ALL STATS ────────────────────────────────────────────────────────────
 async function loadAllStats(p){
+  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor irgendein calcPts()-Aufruf hier unten rechnet (siehe Chat)
   const seasons=window._S||[];
   let statsMap={},ptsMap={},teamMap={},snapMap={};
   let cum={gp:0,snaps:0,solo:0,ast:0,tkl:0,tfl:0,sk:0,qbh:0,pbu:0,int:0,fr:0,ff:0,safe:0,td:0};
