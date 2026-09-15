@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('mim_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }catch(e){}
+})();
+</script>
 <title>IDP Rankings · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -14,13 +22,22 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
   --green:#238636;--green-light:#2ea043;--red:#da3633;
   --radius:8px;
+  --nav-bg:rgba(13,17,23,0.95);
+}
+[data-theme="light"]{
+  --bg:#e5dfd0;--bg2:#f5f0e6;--bg3:#d9d0bb;--bg4:#cec3ac;
+  --border:#c4b9a0;--border2:#a89b7d;
+  --text:#201c15;--muted:#52493a;--muted2:#6b6152;
+  --orange:#C4722A;--orange-dim:#e8c9a8;--orange-glow:rgba(196,114,42,.12);
+  --green:#1a6b29;--green-light:#1e7a32;--red:#b3261e;
+  --nav-bg:rgba(245,240,230,0.92);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
 
 /* NAV (shared pattern) */
-nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
+nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--text);text-decoration:none;}
 .brand em{color:var(--orange);font-style:normal;}
 .nav-mid{display:flex;gap:4px;min-width:0;}
 .nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
@@ -29,6 +46,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 /* AUTH WIDGET + MODAL (shared with index.html) */
 .auth-wrap{display:flex;align-items:center;gap:10px;}
+.theme-switch { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.theme-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn.active { background: var(--orange); color: #fff; }
 .auth-btn{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
 .auth-btn:hover{border-color:var(--orange);}
 .auth-user{display:flex;align-items:center;gap:10px;}
@@ -41,7 +62,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .modal{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:360px;position:relative;}
 .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
 .modal-close:hover{color:var(--text);}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--text);margin-bottom:4px;}
 .modal-tabs{display:flex;gap:4px;margin:16px 0 20px;border-bottom:1px solid var(--border);}
 .modal-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:1px;text-transform:uppercase;}
 .modal-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
@@ -61,7 +82,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .tb-left{flex-shrink:0;}
 .tb-center{flex:1;display:flex;justify-content:center;align-items:flex-start;gap:56px;flex-wrap:wrap;}
 .tb-right{flex-shrink:0;display:flex;align-items:center;gap:12px;}
-.tb-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#fff;}
+.tb-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--text);}
 .tb-title span{color:var(--orange);}
 .tb-group{display:flex;flex-direction:column;gap:6px;}
 .tb-group label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
@@ -96,14 +117,14 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .ov-list-hdr{display:grid;gap:8px;align-items:end;padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:5;}
 .ov-list-hdr>span{text-align:center;}
 .ov-list-hdr>span:nth-child(3){text-align:left;}
-.ov-tier-bar{padding:8px 14px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:#fff;background:var(--bg3);border-radius:6px;margin:14px 0 6px;}
+.ov-tier-bar{padding:8px 14px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--text);background:var(--bg3);border-radius:6px;margin:14px 0 6px;}
 .ov-list-row{display:grid;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);}
 .ov-list-row:hover{background:var(--bg2);}
 .ov-list-rk{text-align:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted2);}
 .ov-list-hs,.ov-list-hs-fb{width:32px;height:32px;border-radius:6px;object-fit:cover;object-position:top;background:var(--bg3);cursor:pointer;}
 .ov-list-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--muted);}
 .ov-list-name-wrap{min-width:0;cursor:pointer;}
-.ov-list-name{font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ov-list-name{font-weight:700;color:var(--text);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ov-list-sub{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ov-list-cell{text-align:center;font-size:12px;color:var(--text);}
 .ov-list-cell.best{color:var(--green-light);}
@@ -162,7 +183,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .view-toggle-btn{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .15s;}
 .view-toggle-btn:hover{color:var(--text);}
 .view-toggle-btn.active{background:var(--orange);color:#fff;}
-.col-hdr-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:#fff;}
+.col-hdr-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--text);}
 .col-hdr-count{font-size:11px;color:var(--muted);background:var(--bg4);border-radius:10px;padding:2px 8px;}
 .tier-1 .col-hdr-title{color:#e0464a;}
 .tier-2 .col-hdr-title{color:var(--orange);}
@@ -218,13 +239,13 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .drag-clone{position:fixed;pointer-events:none;z-index:1000;width:190px;box-shadow:0 12px 30px rgba(0,0,0,.6);border-radius:6px;opacity:.95;transform:rotate(2deg);}
 
 .empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
-.empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
+.empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);letter-spacing:1px;margin-bottom:8px;}
 
 /* COMPARE PANEL */
 .compare-panel{position:fixed;top:60px;right:0;bottom:0;width:360px;background:var(--bg2);border-left:1px solid var(--border);box-shadow:-8px 0 24px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .25s ease;z-index:400;overflow-y:auto;display:flex;flex-direction:column;}
 .compare-panel.open{transform:translateX(0);}
 .compare-hdr{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:2;}
-.compare-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:#fff;}
+.compare-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--text);}
 .compare-close-all{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
 .compare-close-all:hover{color:var(--text);}
 .compare-body{flex:1;}
@@ -234,7 +255,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .cmp-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-right:20px;}
 .cmp-hs,.cmp-hs-fb{width:52px;height:52px;border-radius:8px;object-fit:cover;object-position:top;background:var(--bg3);flex-shrink:0;}
 .cmp-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);}
-.cmp-name{font-size:15px;font-weight:700;color:#fff;}
+.cmp-name{font-size:15px;font-weight:700;color:var(--text);}
 .cmp-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 .cmp-loading{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0 14px;}
 .cmp-pts-row{display:flex;gap:8px;margin-bottom:14px;}
@@ -292,8 +313,14 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
     <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
-  <div class="auth-wrap" id="auth-wrap">
-    <button class="auth-btn" id="auth-open-btn">Login</button>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-switch-btn" data-theme="dark">🌙 <span data-i18n="theme_dark">Dunkel</span></button>
+      <button class="theme-switch-btn" data-theme="light">☀️ <span data-i18n="theme_light">Hell</span></button>
+    </div>
+    <div class="auth-wrap" id="auth-wrap">
+      <button class="auth-btn" id="auth-open-btn">Login</button>
+    </div>
   </div>
 </nav>
 
@@ -383,6 +410,7 @@ const LANG_KEY = 'mim_lang';
 function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
 const I18N = {
   de: {
+    theme_dark: 'Dunkel', theme_light: 'Hell',
     login: 'Login', logout: 'Logout',
     login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
     login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
@@ -413,6 +441,7 @@ const I18N = {
     footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
   },
   en: {
+    theme_dark: 'Dark', theme_light: 'Light',
     login: 'Login', logout: 'Logout',
     login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
     login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
@@ -459,6 +488,26 @@ function applyI18n(){
   document.documentElement.lang = getLang();
 }
 applyI18n();
+
+// ── HELLER/DUNKLER MODUS (siehe Chat) ───────────────────────────────────────
+const THEME_KEY = 'mim_theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)==='light' ? 'light' : 'dark'; }catch{ return 'dark'; } }
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  try{ localStorage.setItem(THEME_KEY, theme); }catch{}
+  updateThemeButton();
+}
+function updateThemeButton(){
+  const theme = getTheme();
+  document.querySelectorAll('.theme-switch-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+}
+updateThemeButton();
+document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.theme === getTheme()) return;
+    setTheme(btn.dataset.theme);
+  });
+});
 
 // ── SLEEPER PLAYER CACHE (wie player.html / players.html) ──────────────────
 const SLEEPER_ALL = 'https://api.sleeper.app/v1/players/nfl';
@@ -645,27 +694,10 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
-// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
-// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
-const LEAGUE_ID = '1265652443362889728';
-const LEAGUE_ID_BOWL = '1381701756060188672';
-let SCORING_SETTINGS = { standard: null, bowl: null };
-const scoringSettingsReadyPromise = (async () => {
-  const [std, bowl] = await Promise.all([
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
-  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
-})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){
-  const m = mode || getScoringMode();
-  const live = SCORING_SETTINGS[m];
-  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
-}
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){
   if(!s) return 0;
@@ -961,7 +993,6 @@ async function fetchBulkSeasonStats(yr){
 }
 
 async function loadTop50Leaderboard(){
-  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   const cached = (()=>{ try{ const s=store(), ts=s.getItem(TOP50_CACHE_TS); if(ts && Date.now()-parseInt(ts)<TOP50_CACHE_TTL){ const r=s.getItem(TOP50_CACHE_KEY); return r?JSON.parse(r):null; } }catch{} return null; })();
   if(cached){ top50ByPosStandard = cached.standard; top50ByPosBowl = cached.bowl; return; }
 
@@ -1082,14 +1113,13 @@ function radarBlockHtml(radar){
 }
 
 async function loadPlayerSeasons(id){
-  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   const years = [NOW_YEAR, NOW_YEAR-1, NOW_YEAR-2];
   const pts = {};
   let lastSeasonStats = null;
   for(const yr of years){
     const s = await fetchSeasonStats(id, yr);
     pts[yr] = s ? calcPts(s) : 0;
-    if(yr === SEASON_YEAR) lastSeasonStats = s;
+    if(yr === NOW_YEAR-1) lastSeasonStats = s;
   }
   return { pts, lastSeasonStats };
 }
@@ -1156,7 +1186,7 @@ function renderComparePanel(){
           <div class="cmp-pts-val">${(data.pts && data.pts[y] != null) ? data.pts[y].toFixed(1) : '0.0'}</div>
         </div>`).join('')}</div>`;
       const s = data.lastSeasonStats;
-      statsHtml = `<div class="cmp-stats-title">${SEASON_YEAR} Stats</div>
+      statsHtml = `<div class="cmp-stats-title">${NOW_YEAR-1} Stats</div>
         <div class="cmp-stats-grid">${STAT_DEFS.map(([label,key]) => `
           <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
         </div>`;
@@ -1195,10 +1225,6 @@ document.getElementById('compare-close-all').addEventListener('click', () => {
 const TIERS = ['inbox','t1','t2','t3','t4','t5','t6','t7'];
 const TIER_LABELS = { inbox:'Inbox', t1:'Tier 1', t2:'Tier 2', t3:'Tier 3', t4:'Tier 4', t5:'Tier 5', t6:'Tier 6', t7:'Tier 7' };
 const NOW_YEAR = new Date().getFullYear();
-// Saisonstart-Stichtag für "aktuelle Season" bei Stats (siehe Chat, identisch
-// zum Fix in index.html/compare.html).
-function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
-const SEASON_YEAR = isPastSeasonStart(new Date()) ? NOW_YEAR : NOW_YEAR - 1;
 let currentUser = null;              // Firebase user (eingeloggt oder null)
 let viewingUserId = null;            // wessen Board wird gerade angezeigt
 let boardDisplayMode = 'grid';       // 'grid' (bisherige Tier-Spalten) oder 'list' (neue Rangliste, siehe Chat)

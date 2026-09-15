@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('mim_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }catch(e){}
+})();
+</script>
 <title>Spielerdatenbank · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -15,13 +23,23 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --green:#238636; --green-light:#2ea043;
   --red:#da3633; --blue:#1f6feb;
   --radius:8px;
+  --nav-bg:rgba(13,17,23,0.95);
+}
+[data-theme="light"]{
+  --bg:#e5dfd0; --bg2:#f5f0e6; --bg3:#d9d0bb; --bg4:#cec3ac;
+  --border:#c4b9a0; --border2:#a89b7d;
+  --text:#201c15; --muted:#52493a; --muted2:#6b6152;
+  --orange:#C4722A; --orange-dim:#e8c9a8; --orange-glow:rgba(196,114,42,.12);
+  --green:#1a6b29; --green-light:#1e7a32;
+  --red:#b3261e; --blue:#1a56b8;
+  --nav-bg:rgba(245,240,230,0.92);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
 
 /* NAV */
-nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
+nav{background:var(--nav-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:10px;}
 .brand-logo{width:32px;height:32px;display:block;}
 .brand em{color:var(--orange);font-style:normal;}
 .nav-links{display:flex;gap:6px;min-width:0;}
@@ -29,6 +47,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 .nav-link:hover{color:var(--text);background:var(--bg3);}
 .nav-link.active{color:var(--orange);background:var(--orange-glow);}
 .auth-wrap{display:flex;align-items:center;gap:10px;}
+.theme-switch { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.theme-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn.active { background: var(--orange); color: #fff; }
 .auth-btn{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
 .auth-btn:hover{border-color:var(--orange);}
 .auth-user{display:flex;align-items:center;gap:10px;}
@@ -41,7 +63,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 .modal{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:360px;position:relative;}
 .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
 .modal-close:hover{color:var(--text);}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--text);margin-bottom:4px;}
 .modal-field{margin-bottom:14px;}
 .modal-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;}
 .modal-field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
@@ -58,7 +80,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
   border-bottom:1px solid var(--border);
 }
 .sh-eyebrow{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
-.sh-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,5vw,56px);letter-spacing:4px;color:#fff;line-height:1;}
+.sh-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,5vw,56px);letter-spacing:4px;color:var(--text);line-height:1;}
 .sh-title span{color:var(--orange);}
 .sh-sub{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.3px;}
 
@@ -111,7 +133,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
 .pr-hs{width:48px;height:48px;border-radius:6px;object-fit:cover;object-position:top;background:var(--bg2);border:1px solid var(--border2);flex-shrink:0;}
 .pr-hs-fb{width:48px;height:48px;border-radius:6px;background:var(--bg2);border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);}
 .pr-info{flex:1;min-width:0;}
-.pr-name{font-weight:600;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pr-name{font-weight:600;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pr-sub{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
 
 .pr-check{width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0;margin-right:2px;}
@@ -183,8 +205,14 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px s
     <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
     <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
-  <div class="auth-wrap" id="auth-wrap">
-    <button class="auth-btn" id="auth-open-btn">Login</button>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-switch-btn" data-theme="dark">🌙 <span data-i18n="theme_dark">Dunkel</span></button>
+      <button class="theme-switch-btn" data-theme="light">☀️ <span data-i18n="theme_light">Hell</span></button>
+    </div>
+    <div class="auth-wrap" id="auth-wrap">
+      <button class="auth-btn" id="auth-open-btn">Login</button>
+    </div>
   </div>
 </nav>
 
@@ -300,6 +328,7 @@ const LANG_KEY = 'mim_lang';
 function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
 const I18N = {
   de: {
+    theme_dark: 'Dunkel', theme_light: 'Hell',
     login: 'Login', logout: 'Logout',
     login_username: 'Benutzername', login_password: 'Passwort', login_submit: 'Anmelden',
     login_error_credentials: 'Benutzername oder Passwort falsch.', login_error_generic: 'Fehler: ',
@@ -324,6 +353,7 @@ const I18N = {
     footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
   },
   en: {
+    theme_dark: 'Dark', theme_light: 'Light',
     login: 'Login', logout: 'Logout',
     login_username: 'Username', login_password: 'Password', login_submit: 'Sign In',
     login_error_credentials: 'Incorrect username or password.', login_error_generic: 'Error: ',
@@ -362,6 +392,26 @@ window.getLang = getLang;
 window.t = t;
 window.applyI18n = applyI18n;
 applyI18n();
+
+// ── HELLER/DUNKLER MODUS (siehe Chat) ───────────────────────────────────────
+const THEME_KEY = 'mim_theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)==='light' ? 'light' : 'dark'; }catch{ return 'dark'; } }
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  try{ localStorage.setItem(THEME_KEY, theme); }catch{}
+  updateThemeButton();
+}
+function updateThemeButton(){
+  const theme = getTheme();
+  document.querySelectorAll('.theme-switch-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+}
+updateThemeButton();
+document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.theme === getTheme()) return;
+    setTheme(btn.dataset.theme);
+  });
+});
 
 // ── CONFIG ──
 const SLEEPER_URL = 'https://api.sleeper.app/v1/players/nfl';
@@ -450,27 +500,10 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
-// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
-// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
-const LEAGUE_ID = '1265652443362889728';
-const LEAGUE_ID_BOWL = '1381701756060188672';
-let SCORING_SETTINGS = { standard: null, bowl: null };
-const scoringSettingsReadyPromise = (async () => {
-  const [std, bowl] = await Promise.all([
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
-  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
-})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){
-  const m = mode || getScoringMode();
-  const live = SCORING_SETTINGS[m];
-  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
-}
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 // Identisch zu player.html — Sleeper liefert die Körpergröße als reine Zoll-Zahl
 // (z.B. "77"), hier ins übliche US-Format (6'5") umgerechnet.
@@ -516,7 +549,6 @@ async function fetchBulkSeasonStats(yr){
 }
 
 async function loadTop50ByPosition(){
-  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   // Cache-Objekte enthalten jetzt beide Modi zusammen (siehe Chat) —
   // {standard:{...}, bowl:{...}} statt eines einzelnen Sets.
   try{

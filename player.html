@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('mim_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }catch(e){}
+})();
+</script>
 <title>Player · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -14,17 +22,30 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
   --green:#238636;--green-light:#2ea043;--red:#da3633;
   --radius:8px;--team-color:#C4722A;
+  --nav-bg:rgba(13,17,23,0.95);
+}
+[data-theme="light"]{
+  --bg:#e5dfd0;--bg2:#f5f0e6;--bg3:#d9d0bb;--bg4:#cec3ac;
+  --border:#c4b9a0;--border2:#a89b7d;
+  --text:#201c15;--muted:#52493a;--muted2:#6b6152;
+  --orange:#C4722A;--orange-dim:#e8c9a8;--orange-glow:rgba(196,114,42,.12);
+  --green:#1a6b29;--green-light:#1e7a32;--red:#b3261e;
+  --nav-bg:rgba(245,240,230,0.92);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
-nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
+nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--text);text-decoration:none;}
 .brand em{color:var(--orange);font-style:normal;}
 .nav-mid{display:flex;gap:4px;min-width:0;}
 .nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
 .nav-link:hover{color:var(--text);background:var(--bg3);}
 .nav-link.active{color:var(--orange);background:var(--orange-glow);}
 .nav-search-wrap{position:relative;}
+.theme-switch { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.theme-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn.active { background: var(--orange); color: #fff; }
 .nav-search{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:7px 34px 7px 13px;width:190px;outline:none;transition:all .2s;}
 .nav-search:focus{border-color:var(--orange);width:250px;box-shadow:0 0 0 3px var(--orange-glow);}
 .nav-search::placeholder{color:var(--muted);}
@@ -64,12 +85,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .bnum{background:transparent;color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.12);font-size:14px;padding:3px 10px;}
 .bnv{background:rgba(163,113,247,.12);color:#a371f7;border:1px solid rgba(163,113,247,.28);}
 .nv-src{font-size:10px;color:var(--muted);align-self:center;margin-left:-2px;}
-.ph-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,5.5vw,72px);letter-spacing:3px;color:#fff;line-height:.95;margin-bottom:6px;text-shadow:0 2px 16px rgba(0,0,0,.6);}
+.ph-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,5.5vw,72px);letter-spacing:3px;color:var(--text);line-height:.95;margin-bottom:6px;text-shadow:0 2px 16px rgba(0,0,0,.6);}
 .ph-sub{font-size:16px;color:rgba(255,255,255,.55);font-weight:500;margin-bottom:22px;}
 .vitals{display:flex;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);overflow:hidden;backdrop-filter:blur(8px);width:fit-content;}
 .vit{padding:14px 24px;border-right:1px solid rgba(255,255,255,.05);text-align:center;}
 .vit:last-child{border-right:none;}
-.vit-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#fff;line-height:1;}
+.vit-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--text);line-height:1;}
 .vit-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:4px;}
 .ph-extra{margin-top:16px;display:flex;gap:24px;flex-wrap:wrap;}
 .ph-ei{font-size:13px;color:rgba(255,255,255,.45);}
@@ -77,7 +98,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .main{padding:32px 48px 80px;}
 .section{margin-bottom:36px;}
 .sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:11px;border-bottom:1px solid var(--border);}
-.sec-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);}
 .sec-badge{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:3px 9px;border-radius:4px;}
 
 /* IDP RANKINGS BOX */
@@ -172,7 +193,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .weekly-loading{padding:22px;text-align:center;color:var(--muted);font-size:13px;font-style:italic;}
 
 /* ── STAT CELL SIZES — bigger ── */
-.yr{font-family:'Bebas Neue',sans-serif;font-size:19px;color:#fff;}
+.yr{font-family:'Bebas Neue',sans-serif;font-size:19px;color:var(--text);}
 .now-badge{font-size:9px;color:var(--orange);font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle;}
 .team-cell{display:flex;align-items:center;gap:8px;}
 .tl{width:24px;height:24px;object-fit:contain;}
@@ -239,10 +260,16 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <a href="matchups.html" class="nav-link" id="nav-matchups-link" style="display:none;">Matchups</a>
     <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
-  <div class="nav-search-wrap">
-    <input class="nav-search" id="nav-search" type="text" placeholder="Search player…" oninput="onNavSearch()" autocomplete="off">
-    <span class="nav-si">⌕</span>
-    <div class="nav-res" id="nav-res"></div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-switch-btn" data-theme="dark">🌙 <span data-i18n="theme_dark">Dunkel</span></button>
+      <button class="theme-switch-btn" data-theme="light">☀️ <span data-i18n="theme_light">Hell</span></button>
+    </div>
+    <div class="nav-search-wrap">
+      <input class="nav-search" id="nav-search" type="text" placeholder="Search player…" oninput="onNavSearch()" autocomplete="off">
+      <span class="nav-si">⌕</span>
+      <div class="nav-res" id="nav-res"></div>
+    </div>
   </div>
 </nav>
 <div class="breadcrumb">
@@ -343,6 +370,7 @@ const LANG_KEY = 'mim_lang';
 function getLang(){ try{ return localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de'; }catch{ return 'de'; } }
 const I18N = {
   de: {
+    theme_dark: 'Dunkel', theme_light: 'Hell',
     radar_title: 'Stärken & Schwächen',
     radar_loading: 'Lade Positionsvergleich',
     radar_loading_full: 'Lade Positionsvergleich…',
@@ -357,6 +385,7 @@ const I18N = {
     footer_copyright: '© 2026 Mics in Motion. Alle Rechte vorbehalten.',
   },
   en: {
+    theme_dark: 'Dark', theme_light: 'Light',
     radar_title: 'Strengths & Weaknesses',
     radar_loading: 'Loading position comparison',
     radar_loading_full: 'Loading position comparison…',
@@ -384,6 +413,26 @@ window.getLang = getLang;
 window.t = t;
 window.applyI18n = applyI18n;
 applyI18n();
+
+// ── HELLER/DUNKLER MODUS (siehe Chat) ───────────────────────────────────────
+const THEME_KEY = 'mim_theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)==='light' ? 'light' : 'dark'; }catch{ return 'dark'; } }
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  try{ localStorage.setItem(THEME_KEY, theme); }catch{}
+  updateThemeButton();
+}
+function updateThemeButton(){
+  const theme = getTheme();
+  document.querySelectorAll('.theme-switch-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+}
+updateThemeButton();
+document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.theme === getTheme()) return;
+    setTheme(btn.dataset.theme);
+  });
+});
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const SLEEPER_ALL = 'https://api.sleeper.app/v1/players/nfl';
@@ -416,12 +465,6 @@ const nvProxyUrls = rawUrl => [
 ];
 const NV_CSV_URLS = yr=>nvProxyUrls(NV_GH_URL(yr));
 const LEAGUE_ID   = '1265652443362889728';
-// Zweite, echte Sleeper-Liga speziell für MIM-Bowl-Scoring (siehe Chat) — ohne
-// das würde die Detailseite bei aktivem Bowl-Modus trotzdem die echten
-// Matchup-Punkte aus der STANDARD-Liga ziehen, obwohl die Bowl-Liga andere
-// Scoring-Einstellungen hat. Welche der beiden als Kette aufgebaut wird,
-// entscheidet buildLeagueChain() unten anhand des aktuell aktiven Modus.
-const LEAGUE_ID_BOWL = '1381701756060188672';
 const LEAGUE_MU   = (lgId,wk)=>`https://api.sleeper.app/v1/league/${lgId}/matchups/${wk}`;
 const SL_SCHEDULE = yr=>`https://api.sleeper.app/schedule/nfl/regular/${yr}`;
 
@@ -653,11 +696,7 @@ function fetchNvSnapMap(yr){
           const wk=parseInt(c[iWk])||0;
           const team=(iTeam>=0?c[iTeam]:'')||'';
           const snaps=parseFloat(c[iDsnp]);
-          // Gleiche Format-Absicherung wie in team.html (siehe Chat) — manche
-          // Zeilen liefern den Wert schon als Prozent statt als Anteil, sonst
-          // würde z.B. "20.26" zu "2026%" werden.
-          let pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
-          if(!isNaN(pctRaw) && pctRaw > 1) pctRaw = pctRaw / 100;
+          const pctRaw=parseFloat(c[iDpct]); // nflverse liefert als Anteil (0.82), nicht Prozent
           if(!map.has(pid))map.set(pid,new Map());
           map.get(pid).set(wk,{
             defense_snaps: isNaN(snaps)?null:snaps,
@@ -815,28 +854,10 @@ const SCORING_STANDARD={idp_tkl_solo:1.5,idp_tkl_ast:0.5,idp_sack:4,idp_qb_hit:1
 const SCORING_BOWL={idp_tkl_solo:1.5,idp_tkl_ast:0.75,idp_sack:5,idp_qb_hit:2,
   idp_tkl_loss:3,idp_pass_def:5,idp_int:5,idp_fum_rec:2,idp_ff:4,idp_td:6,
   idp_safe:10,idp_blk_kick:6};
-// Live-Scoring-Settings aus den zwei echten Ligen (LEAGUE_ID/LEAGUE_ID_BOWL,
-// oben schon vorhanden) — Tabellen darüber nur noch Rückfall (siehe Chat).
-// Getrennt von buildLeagueChain()/fetchSeasonPtsForPlayer(), die weiterhin die
-// noch genauere Matchup-Scan-Quelle für die "echten" Season-Punktkarten sind —
-// calcPts() hier wird für Wochen-Einzelwerte/Schnellschätzungen daneben genutzt.
-let SCORING_SETTINGS = { standard: null, bowl: null };
-const scoringSettingsReadyPromise = (async () => {
-  const [std, bowl] = await Promise.all([
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
-  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
-})();
 const SCORING_MODE_KEY='mim_scoring_mode';
 // Bowl-Scoring ist jetzt auch für die Community wählbar (siehe Chat, vormals nur intern).
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl' ? 'bowl' : 'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){
-  const m = mode || getScoringMode();
-  const live = SCORING_SETTINGS[m];
-  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
-}
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function calcPts(s,mode){
   if(!s)return 0;
   let pts=0;
@@ -895,13 +916,9 @@ async function fetchFB(d,p){
 
 // ── LEAGUE CHAIN ─────────────────────────────────────────────────────────────
 async function buildLeagueChain(){
-  // Welche der beiden echten Ligen als Kette aufgebaut wird, richtet sich nach
-  // dem aktuell aktiven Scoring-Modus (siehe Chat) — vorher stand hier immer
-  // fest LEAGUE_ID, unabhängig vom Standard/Bowl-Schalter.
-  const startId = getScoringMode()==='bowl' ? LEAGUE_ID_BOWL : LEAGUE_ID;
-  leagueChain[CUR_YEAR]=startId;
+  leagueChain[CUR_YEAR]=LEAGUE_ID;
   try{
-    let lgId=startId;
+    let lgId=LEAGUE_ID;
     for(let i=0;i<7;i++){
       const r=await fetch(`https://api.sleeper.app/v1/league/${lgId}`);if(!r.ok)break;
       const lg=await r.json();
@@ -1188,7 +1205,6 @@ const SEASON_RANK_CACHE_PREFIX = 'mim_szn_rank_v2_';
 const SEASON_RANK_CACHE_TTL = 23*60*60*1000;
 
 async function buildSeasonRankGroup(tag, year){
-  await scoringSettingsReadyPromise; // gleiche Absicherung wie in loadAllStats (siehe Chat)
   const cacheKey = SEASON_RANK_CACHE_PREFIX + tag + '_' + year;
   const sharedKey = `season_rank_v2_${tag}_${year}`;
   try{
@@ -2104,7 +2120,6 @@ async function toggleWeekly(yr){
 
 // ── LOAD ALL STATS ────────────────────────────────────────────────────────────
 async function loadAllStats(p){
-  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor irgendein calcPts()-Aufruf hier unten rechnet (siehe Chat)
   const seasons=window._S||[];
   let statsMap={},ptsMap={},teamMap={},snapMap={};
   let cum={gp:0,snaps:0,solo:0,ast:0,tkl:0,tfl:0,sk:0,qbh:0,pbu:0,int:0,fr:0,ff:0,safe:0,td:0};

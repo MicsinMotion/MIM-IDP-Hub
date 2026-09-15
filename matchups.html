@@ -3,17 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('mim_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }catch(e){}
+})();
+</script>
 <title>Matchups · Mics in Motion</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, unabhängig von individuellem Browser-Zoom. Zahl bei Bedarf einfach anpassen. */
 :root{--bg:#080c10;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2128;--border:#21262d;--border2:#30363d;
 --text:#e6edf3;--muted:#7d8590;--muted2:#9198a1;--orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
---green:#238636;--green-light:#2ea043;--red:#da3633;--radius:8px;}
+--green:#238636;--green-light:#2ea043;--red:#da3633;--radius:8px;--nav-bg:rgba(13,17,23,0.95);}
+[data-theme="light"]{--bg:#e5dfd0;--bg2:#f5f0e6;--bg3:#d9d0bb;--bg4:#cec3ac;--border:#c4b9a0;--border2:#a89b7d;
+--text:#201c15;--muted:#52493a;--muted2:#6b6152;--orange:#C4722A;--orange-dim:#e8c9a8;--orange-glow:rgba(196,114,42,.12);
+--green:#1a6b29;--green-light:#1e7a32;--red:#b3261e;--nav-bg:rgba(245,240,230,0.92);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
-nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
+nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--text);text-decoration:none;}
 .brand em{color:var(--orange);font-style:normal;}
 .nav-mid{display:flex;gap:4px;min-width:0;}
 .nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:all .15s;}
@@ -21,6 +32,10 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .nav-link.active{color:var(--orange);background:var(--orange-glow);}
 
 .auth-wrap{display:flex;align-items:center;gap:10px;}
+.theme-switch { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.theme-switch-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn.active { background: var(--orange); color: #fff; }
 .auth-btn{font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
 .auth-btn:hover{border-color:var(--orange);}
 .auth-user{display:flex;align-items:center;gap:10px;}
@@ -33,7 +48,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px;width:340px;position:relative;}
 .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
 .modal-close:hover{color:var(--text);}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--text);margin-bottom:4px;}
 .modal-field{margin-bottom:14px;margin-top:16px;}
 .modal-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;}
 .modal-field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
@@ -45,11 +60,11 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 .gate-wrap{max-width:520px;margin:80px auto;padding:0 24px;text-align:center;}
 .gate-icon{font-size:40px;margin-bottom:18px;}
-.gate-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;margin-bottom:12px;}
+.gate-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--text);margin-bottom:12px;}
 .gate-text{font-size:13px;color:var(--muted);line-height:1.7;}
 
 .page-hdr{padding:28px 32px 20px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.page-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#fff;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--text);}
 .page-title span{color:var(--orange);}
 .page-sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:720px;line-height:1.6;}
 
@@ -75,7 +90,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .team-side{display:flex;flex-direction:column;gap:8px;}
 .team-side-hdr{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
 .team-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;}
-.team-side-name{font-weight:700;font-size:14px;color:#fff;}
+.team-side-name{font-weight:700;font-size:14px;color:var(--text);}
 .team-side-sub{font-size:10px;color:var(--muted);}
 
 .pos-tile{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s;}
@@ -94,12 +109,12 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .pos-metric-row b{color:var(--text);font-weight:600;}
 
 .empty-state{padding:60px 32px;text-align:center;color:var(--muted);}
-.empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;}
+.empty-state h3{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);letter-spacing:1px;margin-bottom:8px;}
 .loading-row{padding:16px;text-align:center;color:var(--muted);font-size:13px;font-style:italic;}
 
 /* ── SIDEBAR: COMPARE-TOOL ── */
 .cmp-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
-.cmp-box-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#fff;margin-bottom:4px;}
+.cmp-box-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);margin-bottom:4px;}
 .cmp-box-sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
 .cmp-search-wrap{position:relative;margin-bottom:12px;}
 .cmp-search{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;}
@@ -119,7 +134,7 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 .cmp-mini-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .cmp-mini-hs,.cmp-mini-hs-fb{width:42px;height:42px;border-radius:8px;object-fit:cover;object-position:top;background:var(--bg4);flex-shrink:0;}
 .cmp-mini-hs-fb{display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--muted);}
-.cmp-mini-name{font-size:13px;font-weight:700;color:#fff;}
+.cmp-mini-name{font-size:13px;font-weight:700;color:var(--text);}
 .cmp-mini-sub{font-size:10px;color:var(--muted);margin-top:1px;}
 .cmp-mini-remove{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
 .cmp-mini-remove:hover{color:var(--red);}
@@ -161,8 +176,14 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
     <a href="matchups.html" class="nav-link active" id="nav-matchups-link">Matchups</a>
     <a href="https://coaching-tree.app/" target="_blank" rel="noopener" class="nav-link" id="nav-coaching-tree-link" style="display:none;">Coaching Tree</a>
   </div>
-  <div class="auth-wrap" id="auth-wrap">
-    <button class="auth-btn" id="auth-open-btn">Login</button>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-switch-btn" data-theme="dark">🌙 Dunkel</button>
+      <button class="theme-switch-btn" data-theme="light">☀️ Hell</button>
+    </div>
+    <div class="auth-wrap" id="auth-wrap">
+      <button class="auth-btn" id="auth-open-btn">Login</button>
+    </div>
   </div>
 </nav>
 
@@ -235,6 +256,26 @@ nav{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px s
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser } from './firebase-init.js';
+
+// ── HELLER/DUNKLER MODUS (siehe Chat) ───────────────────────────────────────
+const THEME_KEY = 'mim_theme';
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)==='light' ? 'light' : 'dark'; }catch{ return 'dark'; } }
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  try{ localStorage.setItem(THEME_KEY, theme); }catch{}
+  updateThemeButton();
+}
+function updateThemeButton(){
+  const theme = getTheme();
+  document.querySelectorAll('.theme-switch-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+}
+updateThemeButton();
+document.querySelectorAll('.theme-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.dataset.theme === getTheme()) return;
+    setTheme(btn.dataset.theme);
+  });
+});
 
 const authWrap = document.getElementById('auth-wrap');
 const overlay = document.getElementById('modal-overlay');
@@ -585,11 +626,6 @@ const CACHE_KEY = 'mim_players_db_v4', CACHE_TS_KEY = 'mim_players_db_ts_v4', CA
 const MIM_WORKER = 'https://mics-in-motion.tarik-hurem96.workers.dev/?url=';
 const OWN_PROXY = 'https://mim-frontoffice.de/proxy.php?url=';
 const CUR_YEAR = new Date().getFullYear();
-// Saisonstart-Stichtag für "aktuelle Season" bei Stats (siehe Chat) — getrennt
-// von CURRENT_SEASON_YEAR (das ist der 1.-März-Stichtag für Rosters/Jahres-
-// Auswahl anderswo in dieser Datei, bewusst ein anderer Zweck).
-function isPastSeasonStart(d){ return d >= new Date(d.getFullYear(), 8, 1); }
-const SEASON_YEAR = isPastSeasonStart(new Date()) ? CUR_YEAR : CUR_YEAR - 1;
 const NV_ROSTER_URL = yr => `https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_${yr}.csv`;
 const PFF_TEAM_ID={ARI:1,ATL:2,BAL:3,BUF:4,CAR:5,CHI:6,CIN:7,CLE:8,DAL:9,DEN:10,DET:11,GB:12,HOU:13,IND:14,JAX:15,KC:16,MIA:17,MIN:18,NE:19,NO:20,NYG:21,NYJ:22,LV:23,PHI:24,PIT:25,LAR:26,LAC:27,SF:28,SEA:29,TB:30,TEN:31,WAS:32,LA:26};
 const PFF_POS_MAP={DI:'DT',ED:'ED',LB:'LB',CB:'CB',S:'S',FS:'S',SS:'S'};
@@ -720,32 +756,14 @@ const SCORING_STANDARD = {idp_tkl_solo:1.5, idp_tkl_ast:0.5, idp_sack:4, idp_qb_
 const SCORING_BOWL = {idp_tkl_solo:1.5, idp_tkl_ast:0.75, idp_sack:5, idp_qb_hit:2,
   idp_tkl_loss:3, idp_pass_def:5, idp_int:5, idp_fum_rec:2, idp_ff:4, idp_td:6,
   idp_safe:10, idp_blk_kick:6};
-// Zwei echte Sleeper-Ligen als Quelle der tatsächlichen Scoring-Regeln (siehe
-// Chat) — Tabellen oben nur noch Rückfall, falls der Live-Abruf fehlschlägt.
-const LEAGUE_ID = '1265652443362889728';
-const LEAGUE_ID_BOWL = '1381701756060188672';
-let SCORING_SETTINGS = { standard: null, bowl: null };
-const scoringSettingsReadyPromise = (async () => {
-  const [std, bowl] = await Promise.all([
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID_BOWL}`).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  if(std && std.scoring_settings && Object.keys(std.scoring_settings).length) SCORING_SETTINGS.standard = std.scoring_settings;
-  if(bowl && bowl.scoring_settings && Object.keys(bowl.scoring_settings).length) SCORING_SETTINGS.bowl = bowl.scoring_settings;
-})();
 const SCORING_MODE_KEY = 'mim_scoring_mode';
 function getScoringMode(){ try{ return localStorage.getItem(SCORING_MODE_KEY)==='bowl'?'bowl':'standard'; }catch{ return 'standard'; } }
-function getScoringTable(mode){
-  const m = mode || getScoringMode();
-  const live = SCORING_SETTINGS[m];
-  return (live && Object.keys(live).length) ? live : (m==='bowl' ? SCORING_BOWL : SCORING_STANDARD);
-}
+function getScoringTable(mode){ return (mode||getScoringMode())==='bowl'?SCORING_BOWL:SCORING_STANDARD; }
 function getStat(s, ...keys){ if(!s) return null; for(const k of keys){ if(s[k]!==undefined && s[k]!==null) return parseFloat(s[k]); } return null; }
 function calcPts(s, mode){ if(!s) return 0; let pts=0; const table=getScoringTable(mode); for(const [k,v] of Object.entries(table)){ const val=getStat(s,k); if(val && val>0) pts += val*v; } return Math.round(pts*100)/100; }
 const SL_SEASON_DIRECT = (id,yr) => `https://api.sleeper.com/stats/nfl/player/${id}?season_type=regular&season=${yr}&grouping=season`;
 const SL_SEASON_PROXY  = (id,yr) => `https://corsproxy.io/?url=${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`;
 async function fetchSeasonPts(id, yr){
-  await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor calcPts() rechnet (siehe Chat)
   for(const url of [SL_SEASON_DIRECT(id,yr), `${OWN_PROXY}${encodeURIComponent(SL_SEASON_DIRECT(id,yr))}`, SL_SEASON_PROXY(id,yr)]){
     try{
       const r = await fetch(url); if(!r.ok) continue;
@@ -838,9 +856,9 @@ function renderSelected(){
   selectedIds.forEach(async id => {
     const p = allPlayers.find(x => x.sleeper_id === id);
     if(!p) return;
-    const pts = await fetchSeasonPts(id, SEASON_YEAR);
+    const pts = await fetchSeasonPts(id, CUR_YEAR-1);
     const el = document.getElementById(`cmp-pts-${id}`);
-    if(el) el.innerHTML = `<b>${pts.toFixed(1)}</b> Pts (${SEASON_YEAR})`;
+    if(el) el.innerHTML = `<b>${pts.toFixed(1)}</b> Pts (${CUR_YEAR-1})`;
   });
 }
 
