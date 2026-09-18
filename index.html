@@ -1206,7 +1206,11 @@ function calcPts(s, mode){
 }
 
 const NOW_YEAR = new Date().getFullYear();
-const SEASON_YEAR = NOW_YEAR - 1; // aktuelle Season hat mitten im Jahr meist noch keine Stats -> letzte volle Season
+// Stichtag 1. September (siehe Chat): davor läuft die neue Season noch nicht
+// (bzw. hat noch keine belastbaren Stats), danach zeigen wir die LAUFENDE
+// Season statt der letzten abgeschlossenen.
+function isPastSeasonStart(d){ return d.getMonth() > 8 || (d.getMonth() === 8 && d.getDate() >= 1); }
+const SEASON_YEAR = isPastSeasonStart(new Date()) ? NOW_YEAR : NOW_YEAR - 1;
 
 // ─── BULK STATS (Season Leaders + Rookie Leaders) — mit CORS-Fallback wie im Ranking-Tool ──
 async function fetchBulkSeasonStats(yr){
@@ -1332,7 +1336,7 @@ async function loadPlayerSeasons(id){
   for(const yr of years){
     const s = await fetchSeasonStats(id, yr);
     pts[yr] = s ? calcPts(s) : 0;
-    if(yr === NOW_YEAR-1) lastSeasonStats = s;
+    if(yr === SEASON_YEAR) lastSeasonStats = s;
   }
   return { pts, lastSeasonStats };
 }
@@ -1689,7 +1693,7 @@ function renderComparePanel(){
           <div class="cmp-pts-val">${(data.pts && data.pts[y] != null) ? data.pts[y].toFixed(1) : '0.0'}</div>
         </div>`).join('')}</div>`;
       const s = data.lastSeasonStats;
-      statsHtml = `<div class="cmp-stats-title">${NOW_YEAR-1} Stats</div>
+      statsHtml = `<div class="cmp-stats-title">${SEASON_YEAR} Stats</div>
         <div class="cmp-stats-grid">${STAT_DEFS.map(([label,key]) => `
           <div class="cmp-stat"><span class="cmp-stat-label">${label}</span><span class="cmp-stat-val">${getStat(s,key) || 0}</span></div>`).join('')}
         </div>`;
