@@ -447,6 +447,7 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 
 <script type="module">
 import { watchAuth, loginUser, logoutUser, loadSharedCache, saveSharedCache } from './firebase-init.js';
+import { wirePlayerPopupLinks } from './player-popup.js';
 
 // ── SPRACHE (DE/EN, siehe Chat) ──────────────────────────────────────────────
 const LANG_KEY = 'mim_lang';
@@ -2390,7 +2391,7 @@ function renderRosterPlayerRow(p, snapInfo, summary, prevSummary){
       <div class="roster-total-snaps">Total Snaps: <b>${snapInfo.seasonSnaps!=null?snapInfo.seasonSnaps:'–'}</b></div>
       ${renderSnapChart(snapInfo.byWeek)}
       <div class="roster-season-grid">${seasonStats}</div>
-      <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}">${t('open_profile')}</a>
+      <a class="roster-profile-link" href="player.html?id=${p.sleeper_id}" data-no-popup>${t('open_profile')}</a>
     </div>`;
 }
 
@@ -3352,6 +3353,7 @@ async function renderDepthChart(abbr, year){
     if(!html.trim()){ statusEl.textContent = 'Für diese Season liegt keine Depth Chart vor.'; return; }
     statusEl.style.display = 'none';
     container.innerHTML = html;
+    wirePlayerPopupLinks(container);
     const glossaryBox = document.getElementById('dc-glossary');
     renderGlossary(groups);
     const glossaryHasContent = glossaryBox.style.display !== 'none';
