@@ -3477,7 +3477,7 @@ async function fetchFormationFromTwoDeep(abbr){
       if(!slugMatch) continue;
       const slug2 = slugMatch[1];
       if(seen.has(slug2)) continue;
-      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 400);
+      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 900);
       const roleMatch = afterRaw.match(/td-fnode-role">([A-Z]+)</);
       if(!roleMatch) continue; // z.B. der zweite Link desselben Spielers ohne Rollen-Badge — überspringen, nicht als Fehltreffer werten
       seen.add(slug2);
