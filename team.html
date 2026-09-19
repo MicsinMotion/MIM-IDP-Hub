@@ -3527,18 +3527,23 @@ function layoutPersonnel(list){
   const positioned = [];
   Object.entries(byGroup).forEach(([group, items]) => {
     if(group === 'CB'){
-      const boundary = items.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      const slot = items.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
+      // Nur LCB/RCB (mit Seiten-Präfix) zählen als Außen-Corner — ein
+      // generisches "CB" (4. Cornerback in Dime, ohne L/R-Präfix) gehört zur
+      // Slot-Gruppe (Reihe mit NB), nicht zu den Außen-Corners (siehe Chat:
+      // "der 4. CB kommt parallel zum NB rein").
+      const boundary = items.filter(e => /^(LCB|RCB)$/i.test(e.posLabel));
+      const slot = items.filter(e => !/^(LCB|RCB)$/i.test(e.posLabel));
       boundary.forEach((e, i) => {
         const x = boundary.length === 1 ? 50 : 8 + i * (84 / (boundary.length - 1 || 1));
         positioned.push({ ...e, x, y: bands.CB });
       });
       if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
       slot.forEach((e, i) => {
-        // NB/Slot-Corner sitzt bei TWO·DEEP seitlich (eher unter dem linken
-        // Safety), nicht zentriert (siehe Chat) — deshalb Basis-Position nach
-        // links verschoben statt bei 50%.
-        const x = 26 + (i - (slot.length-1)/2) * 24;
+        // Bei nur einem Slot-Spieler (NB, Nickel-Fall): seitlich links, nicht
+        // zentriert (siehe Chat). Bei zwei Slot-Spielern (Dime, NB + 4. CB):
+        // beide deutlich auseinander (links/rechts), nicht beide zusammen
+        // links geklumpt — passt zu TWO·DEEPs Anordnung (NB links, 4. CB rechts).
+        const x = slot.length === 1 ? 26 : 15 + i * 50;
         positioned.push({ ...e, x, y: 58 });
       });
     } else {
