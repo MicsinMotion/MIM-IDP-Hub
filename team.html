@@ -3458,6 +3458,11 @@ function twoDeepPosToGroup(posLabel){
   if(['MLB','WLB','SLB','MIKE','WILL','SAM','LILB','RILB','ILB','LB'].includes(l)) return 'LB';
   if(['LCB','RCB','CB','NB','SCB','DB'].includes(l)) return 'CB';
   if(['FS','SS','S'].includes(l)) return 'S';
+  // Unbekanntes Label (siehe Chat) — statt den Spieler still verschwinden zu
+  // lassen (wie beim ursprünglichen SF/Mike-Will-Sam-Fall), laut warnen, damit
+  // sowas bei anderen Teams sofort in der Konsole auffällt statt nur ein
+  // Spieler-Chip fehlt, ohne dass klar ist warum.
+  console.warn(`[Formation] Unbekanntes Positions-Label von TWO·DEEP: "${posLabel}" — Spieler wird nicht angezeigt.`);
   return null;
 }
 
@@ -3538,15 +3543,14 @@ function layoutPersonnel(list){
         positioned.push({ ...e, x, y: bands.CB });
       });
       if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
-      // NB/SCB bleibt immer an seiner festen Position außen links (x=26,
-      // siehe Chat — egal ob noch ein 4. CB dazukommt, NB soll nicht wegen
-      // der Gesamtzahl der Slot-Spieler wandern). Ein zusätzlicher, nicht-NB
-      // Slot-Spieler (generisches "CB", 4. Cornerback in Dime) kommt separat
-      // dazu, deutlich rechts von NB.
+      // NB/SCB: allein (Nickel) außen links, nicht zentriert (siehe Chat).
+      // Kommt ein zusätzlicher Slot-Spieler dazu (Dime, 4. CB), dann bilden
+      // beide ein symmetrisches Paar um die Mitte statt schief zu stehen.
       const nb = slot.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
       const extra = slot.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      nb.forEach(e => positioned.push({ ...e, x: 26, y: 58 }));
-      extra.forEach((e, i) => positioned.push({ ...e, x: 65 + i * 15, y: 58 }));
+      const nbX = extra.length ? 30 : 26;
+      nb.forEach(e => positioned.push({ ...e, x: nbX, y: 58 }));
+      extra.forEach((e, i) => positioned.push({ ...e, x: 70 + i * 15, y: 58 }));
     } else {
       const y = bands[group] ?? 40;
       const margin = margins[group] ?? 20;
