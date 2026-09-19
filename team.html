@@ -3424,92 +3424,89 @@ async function renderDepthChart(abbr, year){
 }
 
 // ─── FORMATION / PERSONNEL PACKAGES (siehe Chat) ───────────────────────────
-// Projektion, kein Video-Charting — exakt wie im Sketch besprochen. Nutzt
-// dieselben Depth-Chart-Daten wie der Depth-Chart-Tab (gecacht, kein Doppel-
-// Fetch) und PFFs Roster für die echte ED/DI/LB/CB/S-Klassifizierung (dieselbe
-// Quelle, die schon für Stärken/Schwächen auf player.html/rankings.html/
-// compare.html/index.html genutzt wird — hier nach team.html portiert).
-const formationPffCache = {};
-async function fetchPffRosterMapCached(abbr){
-  if(formationPffCache[abbr]) return formationPffCache[abbr];
-  const result = await fetchPffRosterMap(abbr);
-  formationPffCache[abbr] = result;
-  return result;
-}
-
+// Live von TWO·DEEPs Formation-Seite übernommen (mit deren ausdrücklicher
+// Erlaubnis für dieses Projekt, siehe Chat) — NICHT mehr selbst hergeleitet.
+// WICHTIG: ihr Base/Nickel/Dime-Umschalter ist reines Client-JS (kein URL-
+// Parameter, getestet), wir bekommen also nur das EINE Paket, das ihre Seite
+// gerade serverseitig ausliefert — dafür aber die echten 11 Spieler mit den
+// echten Positions-Labels, nicht unsere eigene Annahme. Die ED/DI/LB/CB/S-
+// Farbaufteilung ist unsere eigene, rein optische Zuordnung ANHAND von TWO·
+// DEEPs eigenen Positions-Labels (LOLB/ROLB = Edge, DT/NT/RDE/LDE = Interior,
+// MLB/WLB = Off-Ball) — welches Paket gezeigt wird und wer draufsteht, ist
+// aber zu 100% von TWO·DEEP, nichts davon ist erfunden.
 const FORMATION_GROUP_COLOR = { ED: 'var(--orange)', DI: '#a371f7', LB: '#1f6feb', CB: '#2ea043', S: '#e3b341' };
 
-// Fällt nur zurück, wenn PFF keinen Treffer für den Spieler hat (Name-Mismatch,
-// verletzt/inaktiv o.ä.) — sonst gilt PFFs Einordnung. isOddFront unterscheidet
-// 3-4 (DE spielt wie ein Interior-Tackle) von 4-3 (DE ist der Edge-Rusher) —
-// siehe Chat, exakt der Barmore/Ponder-Fall vom Sketch.
-function guessFormationGroup(posLabel, isOddFront){
+function twoDeepPosToGroup(posLabel){
   const l = (posLabel||'').toUpperCase();
-  if(['NT','DT','LDT','RDT','DL'].includes(l)) return 'DI';
-  if(l.includes('DE')) return isOddFront ? 'DI' : 'ED';
-  if(['MLB','LILB','RILB','ILB','MIKE'].includes(l)) return 'LB';
-  if(['SLB','WLB','OLB','LOLB','ROLB','SAM','WILL'].includes(l)) return isOddFront ? 'ED' : 'LB';
-  if(['CB','LCB','RCB','NB','SCB','DB'].includes(l)) return 'CB';
-  if(['S','FS','SS'].includes(l)) return 'S';
+  if(['LOLB','ROLB','OLB'].includes(l)) return 'ED';
+  if(['NT','DT','LDT','RDT','LDE','RDE','DE','DL'].includes(l)) return 'DI';
+  if(['MLB','WLB','LILB','RILB','ILB','LB','SLB'].includes(l)) return 'LB';
+  if(['LCB','RCB','CB','NB','SCB','DB'].includes(l)) return 'CB';
+  if(['FS','SS','S'].includes(l)) return 'S';
   return null;
 }
 
-async function buildBasePersonnel(abbr, groups){
-  const entries = (groups.defense || [])
-    .map(posGroup => ({ posLabel: posGroup.name, athlete: posGroup.athletes[0] }))
-    .filter(e => e.athlete);
+async function fetchFormationFromTwoDeep(abbr){
+  const slug = ESPN_A[abbr];
+  if(!slug) return null;
+  try{
+    const url = `https://www.thetwodeep.com/nfl/${slug}/formation`;
+    const r = await fetchWithTimeout(`${OWN_PROXY}${encodeURIComponent(url)}`);
+    if(!r.ok){ console.warn(`[Formation-2Deep] TWO·DEEP Fehler ${r.status} für ${abbr}`); return null; }
+    const html = await r.text();
+    console.info(`[Formation-2Deep] ${abbr}: Seite geladen (${html.length} Zeichen).`);
 
-  const dlCount = entries.filter(e => /^(LDE|RDE|DE|NT|DT|LDT|RDT|DL)$/i.test(e.posLabel)).length;
-  const isOddFront = dlCount <= 3; // 3 Mann Front = 3-4-artig, 4 Mann = 4-3-artig
+    // Paketname (Base/Nickel/Dime) — steht im "Package Summary"-Block als
+    // "{Team} · {Paket}" direkt nach dem Wort "Defense".
+    const pkgMatch = html.match(/Defense[\s\S]{0,400}?·\s*(Base|Nickel|Dime)\b/i);
+    const packageName = pkgMatch ? pkgMatch[1] : null;
+    console.info(`[Formation-2Deep] ${abbr}: Paket laut TWO·DEEP = "${packageName}"`);
 
-  const { rawPlayers } = await fetchPffRosterMapCached(abbr).catch(() => ({ rawPlayers: [] }));
-  function classify(e){
-    const target = normalizeNameForMatch(e.athlete.name);
-    const match = (rawPlayers || []).find(pl => normalizeNameForMatch(pl.name) === target);
-    if(match && match.position){
-      const g = PFF_POS_MAP[match.position.toUpperCase()];
-      if(g) return g;
+    // Jeder Def-Spieler kommt zweimal als Link vor (Positions-Badge + Nachname),
+    // beide auf denselben "...&pside=def"-Link — wir brauchen nur den ERSTEN
+    // Treffer pro Spieler-Slug und die Positions-Kennung direkt davor.
+    const linkRe = /player=([a-z0-9-]+)&(?:amp;)?pside=def/g;
+    const seen = new Set();
+    const rawPlayers = [];
+    let m;
+    while((m = linkRe.exec(html))){
+      const slug2 = m[1];
+      if(seen.has(slug2)) continue;
+      seen.add(slug2);
+      const before = html.slice(Math.max(0, m.index - 60), m.index);
+      const posMatch = before.match(/([A-Z]{1,6})\d{1,3}(?:ROOKIE|YR|\s|")/);
+      if(posMatch) rawPlayers.push({ posLabel: posMatch[1], slug: slug2 });
     }
-    return guessFormationGroup(e.posLabel, isOddFront);
-  }
+    console.info(`[Formation-2Deep] ${abbr}: ${rawPlayers.length} Def-Spieler mit Position gefunden:`, rawPlayers.map(p=>`${p.posLabel}:${p.slug}`).join(', '));
 
-  return entries.map(e => ({ ...e, group: classify(e) })).filter(e => e.group);
-}
+    if(!packageName || !rawPlayers.length) return null;
 
-// Nickel/Dime: reduziert die Front Seven um jeweils einen Spieler und ersetzt
-// ihn durch einen zusätzlichen Secondary-Spieler aus der Depth Chart (NB-Slot
-// bzw. dessen Backup). Regel fürs Kürzen (siehe Chat): immer aus der größeren
-// der beiden Front-Seven-Gruppen (ED oder LB) — bei einer 3-4 trifft das meist
-// den zweiten Outside-Backer, bei einer 4-3 einen der Off-Ball-Linebacker.
-function dropOneFrontSeven(list){
-  const edCount = list.filter(p => p.group === 'ED').length;
-  const lbCount = list.filter(p => p.group === 'LB').length;
-  const dropGroup = edCount >= lbCount ? 'ED' : 'LB';
-  const idx = list.map(p => p.group).lastIndexOf(dropGroup);
-  if(idx === -1) return list;
-  return list.slice(0, idx).concat(list.slice(idx + 1));
-}
+    // Slug → echter Name + sleeperId über unseren eigenen, schon geladenen
+    // Sleeper-Datensatz (gleiche Namens-Normalisierung wie beim Rookie-Link-Fix).
+    const sleeperAll = await fetchSleeperAllPlayers();
+    const bySlugName = new Map();
+    Object.entries(sleeperAll || {}).forEach(([sid, p]) => {
+      if(!p || p.team !== abbr) return;
+      const key = normalizeNameForMatch(p.full_name || `${p.first_name||''} ${p.last_name||''}`);
+      bySlugName.set(key, { sleeperId: sid, name: p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim() });
+    });
 
-function findDbAddition(groups, alreadyUsedNames){
-  const nbGroup = (groups.defense || []).find(g => /^(NB|SCB)$/i.test(g.name));
-  if(!nbGroup) return null;
-  const candidate = nbGroup.athletes.find(a => !alreadyUsedNames.has(normalizeNameForMatch(a.name)));
-  if(!candidate) return null;
-  return { posLabel: nbGroup.name, athlete: candidate, group: 'CB' };
-}
+    const entries = rawPlayers.map(rp => {
+      const group = twoDeepPosToGroup(rp.posLabel);
+      if(!group) return null;
+      const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
+      const matched = bySlugName.get(nameFromSlug);
+      return {
+        posLabel: rp.posLabel,
+        group,
+        athlete: matched
+          ? { name: matched.name, sleeperId: matched.sleeperId }
+          : { name: rp.slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), sleeperId: null },
+      };
+    }).filter(Boolean);
 
-function buildPackages(base, groups){
-  const usedNames = new Set(base.map(e => normalizeNameForMatch(e.athlete.name)));
-  const nb1 = findDbAddition(groups, usedNames);
-  const nickel = nb1 ? dropOneFrontSeven(base).concat([nb1]) : null;
-
-  let dime = null;
-  if(nickel){
-    const usedNames2 = new Set(nickel.map(e => normalizeNameForMatch(e.athlete.name)));
-    const nb2 = findDbAddition(groups, usedNames2);
-    dime = nb2 ? dropOneFrontSeven(nickel).concat([nb2]) : null;
-  }
-  return { base, nickel, dime };
+    return { packageName, entries };
+  }catch(e){ console.warn('[Formation-2Deep] Abruf fehlgeschlagen:', e); return null; }
 }
 
 // Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich über die
@@ -3549,76 +3546,45 @@ function layoutPersonnel(list){
 }
 
 
-let formationPackages = null;
-
 async function renderFormation(abbr, year){
   const statusEl = document.getElementById('formation-status');
   const container = document.getElementById('formation-container');
   statusEl.style.display = 'block';
   container.style.display = 'none';
   try{
-    const groups = await fetchDepthChartEspn(abbr, year);
-    if(!groups || !groups.defense || !groups.defense.length){
-      statusEl.textContent = 'Für diese Season liegen keine Depth-Chart-Daten vor.';
+    const data = await fetchFormationFromTwoDeep(abbr);
+    if(!data || !data.entries.length){
+      statusEl.textContent = 'Formation-Daten von TWO·DEEP konnten nicht geladen werden.';
       return;
     }
-    const base = await buildBasePersonnel(abbr, groups);
-    if(!base.length){
-      statusEl.textContent = 'Formation konnte nicht ermittelt werden.';
-      return;
-    }
-    formationPackages = buildPackages(base, groups);
 
     statusEl.style.display = 'none';
     container.style.display = 'block';
+    const positioned = layoutPersonnel(data.entries);
+    const counts = {};
+    data.entries.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
+    const countLabel = ['ED','DI','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
     container.innerHTML = `
-      <div class="pkg-switch" id="pkg-switch">
-        <button class="pkg-btn active" data-pkg="base">BASE</button>
-        <button class="pkg-btn" data-pkg="nickel">NICKEL</button>
-        <button class="pkg-btn" data-pkg="dime">DIME</button>
-      </div>
-      <div id="formation-field-wrap"></div>
-    `;
-    document.getElementById('pkg-switch').addEventListener('click', (e) => {
-      const btn = e.target.closest('.pkg-btn');
-      if(!btn) return;
-      document.querySelectorAll('#pkg-switch .pkg-btn').forEach(b => b.classList.toggle('active', b === btn));
-      renderInto(btn.dataset.pkg);
-    });
-    function renderInto(key){
-      const wrap = document.getElementById('formation-field-wrap');
-      const list = formationPackages[key];
-      if(!list){
-        wrap.innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px;">Für dieses Paket liegen nicht genug Depth-Chart-Daten vor (z.B. kein separater Nickel-Back-Eintrag).</div>`;
-        return;
-      }
-      const positioned = layoutPersonnel(list);
-      const counts = {};
-      list.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
-      const countLabel = ['ED','DI','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
-      wrap.innerHTML = `
-        <div class="field-card">
-          <div class="field-hdr">
-            <div class="field-title">${key === 'base' ? 'Base' : key === 'nickel' ? 'Nickel' : 'Dime'}</div>
-            <div class="field-count">${countLabel}</div>
-          </div>
-          <div class="field">
-            <div class="los"></div>
-            ${positioned.map(p => `
-              <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
-                <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
-                <div class="player-name">${p.athlete.name}</div>
-              </a>
-            `).join('')}
-          </div>
-          <div class="legend">
-            ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
-          </div>
+      <div class="field-card">
+        <div class="field-hdr">
+          <div class="field-title">${data.packageName} <span style="color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:400;">— laut TWO·DEEP</span></div>
+          <div class="field-count">${countLabel}</div>
         </div>
-      `;
-      wirePlayerPopupLinks(wrap);
-    }
-    renderInto('base');
+        <div class="field">
+          <div class="los"></div>
+          ${positioned.map(p => `
+            <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
+              <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
+              <div class="player-name">${p.athlete.name}</div>
+            </a>
+          `).join('')}
+        </div>
+        <div class="legend">
+          ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    wirePlayerPopupLinks(container);
   }catch(e){
     console.warn('Formation konnte nicht geladen werden:', e);
     statusEl.textContent = 'Formation konnte nicht geladen werden.';
