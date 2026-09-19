@@ -3538,14 +3538,15 @@ function layoutPersonnel(list){
         positioned.push({ ...e, x, y: bands.CB });
       });
       if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
-      slot.forEach((e, i) => {
-        // Bei nur einem Slot-Spieler (NB, Nickel-Fall): seitlich links, nicht
-        // zentriert (siehe Chat). Bei zwei Slot-Spielern (Dime, NB + 4. CB):
-        // beide deutlich auseinander (links/rechts), nicht beide zusammen
-        // links geklumpt — passt zu TWO·DEEPs Anordnung (NB links, 4. CB rechts).
-        const x = slot.length === 1 ? 26 : 15 + i * 50;
-        positioned.push({ ...e, x, y: 58 });
-      });
+      // NB/SCB bleibt immer an seiner festen Position außen links (x=26,
+      // siehe Chat — egal ob noch ein 4. CB dazukommt, NB soll nicht wegen
+      // der Gesamtzahl der Slot-Spieler wandern). Ein zusätzlicher, nicht-NB
+      // Slot-Spieler (generisches "CB", 4. Cornerback in Dime) kommt separat
+      // dazu, deutlich rechts von NB.
+      const nb = slot.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
+      const extra = slot.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
+      nb.forEach(e => positioned.push({ ...e, x: 26, y: 58 }));
+      extra.forEach((e, i) => positioned.push({ ...e, x: 65 + i * 15, y: 58 }));
     } else {
       const y = bands[group] ?? 40;
       const margin = margins[group] ?? 20;
