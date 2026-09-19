@@ -3515,59 +3515,37 @@ async function fetchFormationFromTwoDeep(abbr){
   };
 }
 
-// Layout: JEDE Position bekommt eine eigene, leicht versetzte Tiefe (y) statt
-// starrer 3-Reihen — genau wie bei TWO·DEEP beobachtet (siehe Chat): MIKE
-// sitzt dort z.B. spürbar näher an der Line als WILL/NB, obwohl beide
-// "Linebacker/Slot" sind — keine strikte Reihe, sondern "halbe Schritte"
-// zwischen den Positionen. X-Sortierung bleibt wie zuvor über sideKey.
-const FORMATION_SIDE_KEY = {
-  LCB: -0.15, LOLB: 0.0, LDE: 0.05, LDT: 0.25, NT: 0.5, DT: 0.5, DE: 0.5,
-  RDT: 0.75, RDE: 0.95, ROLB: 1.0, RCB: 1.15,
-  NB: 0.1, SCB: 0.1, WILL: 0.35, SLB: 0.35, MLB: 0.6, MIKE: 0.6, SAM: 0.8, CB: 0.9,
-  FS: 0.35, SS: 0.65, S: 0.5,
-};
-function sideKey(posLabel){
-  const l = (posLabel || '').toUpperCase();
-  return FORMATION_SIDE_KEY[l] ?? 0.5;
-}
-// Individuelle Tiefe pro Position, aus TWO·DEEPs eigener Darstellung abgelesen
-// (siehe Chat) — bewusst NICHT auf 3 Werte reduziert.
-const FORMATION_DEPTH = {
-  LOLB: 4, LDE: 4, LDT: 4, NT: 4, DT: 4, DE: 4, RDT: 4, RDE: 4, ROLB: 4,
-  LCB: 24, RCB: 24,
-  CB: 38,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
-  MIKE: 50, MLB: 50,
-  WILL: 62, SLB: 62, SAM: 62,
-  NB: 74, SCB: 74,
-  FS: 92, SS: 92, S: 92,
-};
-function depthFor(posLabel){
-  const l = (posLabel || '').toUpperCase();
-  return FORMATION_DEPTH[l] ?? 50;
-}
+// Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich über die
+// Breite (x) — Rückkehr zu dieser Version (siehe Chat: die feineren Positions-
+// Tiefen-Experimente danach haben neue Überlappungs-/Abschneide-Probleme
+// eingeführt, ohne das ursprüngliche Ergebnis wirklich zu verbessern).
 function layoutPersonnel(list){
-  // Nach Tiefe gruppieren (Spieler mit identischer Tiefe teilen sich eine
-  // "Zeile" für die X-Verteilung), dann jede Tiefen-Gruppe per sideKey sortiert
-  // gleichmäßig über die Breite verteilen. Rand bewusst EINHEITLICH für alle
-  // Reihen (siehe Chat) — die Staffelung ist rein vertikal (Y), an den Rändern
-  // wird nicht mehr rumgeschraubt, das hat nur Labels abgeschnitten. Die
-  // Überlappung wird stattdessen ausschließlich über großzügige Y-Abstände
-  // zwischen den Tiefen-Stufen verhindert (mind. 12-18 Punkte Abstand).
-  const MARGIN = 10;
-  const byDepth = new Map();
-  list.forEach(e => {
-    const y = depthFor(e.posLabel);
-    if(!byDepth.has(y)) byDepth.set(y, []);
-    byDepth.get(y).push(e);
-  });
-
+  const bands = { DI: 8, ED: 22, LB: 36, CB: 46, S: 72 };
+  const margins = { DI: 34, ED: 12, LB: 26, S: 32 };
+  const byGroup = {};
+  list.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
   const positioned = [];
-  byDepth.forEach((items, y) => {
-    const sorted = [...items].sort((a, b) => sideKey(a.posLabel) - sideKey(b.posLabel));
-    sorted.forEach((e, i) => {
-      const x = sorted.length === 1 ? 50 : MARGIN + i * ((100 - 2*MARGIN) / (sorted.length - 1));
-      positioned.push({ ...e, x, y });
-    });
+  Object.entries(byGroup).forEach(([group, items]) => {
+    if(group === 'CB'){
+      const boundary = items.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
+      const slot = items.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
+      boundary.forEach((e, i) => {
+        const x = boundary.length === 1 ? 50 : 8 + i * (84 / (boundary.length - 1 || 1));
+        positioned.push({ ...e, x, y: bands.CB });
+      });
+      if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
+      slot.forEach((e, i) => {
+        const x = 50 + (i - (slot.length-1)/2) * 24;
+        positioned.push({ ...e, x, y: 58 });
+      });
+    } else {
+      const y = bands[group] ?? 40;
+      const margin = margins[group] ?? 20;
+      items.forEach((e, i) => {
+        const x = items.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (items.length - 1));
+        positioned.push({ ...e, x, y });
+      });
+    }
   });
   return positioned;
 }
