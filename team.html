@@ -3446,62 +3446,38 @@ function twoDeepPosToGroup(posLabel){
   return null;
 }
 
-async function fetchFormationFromTwoDeep(abbr){
-  const slug = ESPN_A[abbr];
-  if(!slug) return null;
+// Liest die von GitHub Actions vorberechnete formations.json (siehe
+// scripts/scrape-formations.js + .github/workflows/formation-scrape.yml) —
+// kein Live-Scraping mehr auf Seitenaufruf, dafür alle drei Pakete echt
+// verfügbar (Base/Nickel/Dime), da der Klick beim Vorberechnen simuliert wird.
+let formationsJsonCache = null;
+async function loadFormationsJson(){
+  if(formationsJsonCache) return formationsJsonCache;
   try{
-    const url = `https://www.thetwodeep.com/nfl/${slug}/formation`;
-    const r = await fetchWithTimeout(`${OWN_PROXY}${encodeURIComponent(url)}`);
-    if(!r.ok){ console.warn(`[Formation-2Deep] TWO·DEEP Fehler ${r.status} für ${abbr}`); return null; }
-    const html = await r.text();
-    console.info(`[Formation-2Deep] ${abbr}: Seite geladen (${html.length} Zeichen).`);
+    const r = await fetch('formations.json');
+    if(!r.ok){ console.warn(`[Formation] formations.json Fehler ${r.status}`); return null; }
+    formationsJsonCache = await r.json();
+    console.info(`[Formation] formations.json geladen — Stand: ${formationsJsonCache.updatedAt}`);
+    return formationsJsonCache;
+  }catch(e){ console.warn('[Formation] formations.json konnte nicht geladen werden:', e); return null; }
+}
 
-    // Paketname (Base/Nickel/Dime) — steht im "Package Summary"-Block als
-    // "{Team} · {Paket}" direkt nach dem Wort "Defense".
-    const pkgMatch = html.match(/Defense[\s\S]{0,400}?·\s*(Base|Nickel|Dime)\b/i);
-    const packageName = pkgMatch ? pkgMatch[1] : null;
-    console.info(`[Formation-2Deep] ${abbr}: Paket laut TWO·DEEP = "${packageName}"`);
+async function fetchFormationFromTwoDeep(abbr){
+  const data = await loadFormationsJson();
+  const teamData = data && data.teams && data.teams[abbr];
+  if(!teamData){ console.warn(`[Formation] Keine Formation-Daten für ${abbr} in formations.json.`); return null; }
 
-    // Jeder Def-Spieler-Knoten trägt Position + Trikotnummer sauber in eigenen
-    // Elementen direkt nach dem Link: class="td-fnode-role">XXX< und
-    // class="td-fnode-jersey">##< (per echtem HTML-Dump bestätigt, siehe Chat).
-    const hrefRe = /href="([^"]*pside=def[^"]*)"/g;
-    const seen = new Set();
-    const rawPlayers = [];
-    let m;
-    let hrefHits = 0;
-    while((m = hrefRe.exec(html))){
-      hrefHits++;
-      const hrefVal = m[1];
-      const slugMatch = hrefVal.match(/player=([a-z0-9-]+)/);
-      if(!slugMatch) continue;
-      const slug2 = slugMatch[1];
-      if(seen.has(slug2)) continue;
-      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 900);
-      const roleMatch = afterRaw.match(/td-fnode-role">([A-Z]+)</);
-      if(!roleMatch) continue; // z.B. der zweite Link desselben Spielers ohne Rollen-Badge — überspringen, nicht als Fehltreffer werten
-      seen.add(slug2);
-      const jerseyMatch = afterRaw.match(/td-fnode-jersey">(\d+)</);
-      rawPlayers.push({ posLabel: roleMatch[1], jersey: jerseyMatch ? jerseyMatch[1] : null, slug: slug2 });
-    }
-    console.info(`[Formation-2Deep] ${abbr}: ${hrefHits} href-Treffer mit "pside=def" insgesamt, ${rawPlayers.length} Def-Spieler mit erkannter Position:`, rawPlayers.map(p=>`${p.posLabel}#${p.jersey}:${p.slug}`).join(', '));
-    if(hrefHits === 0){
-      console.warn(`[Formation-2Deep] ${abbr}: GAR KEIN href mit "pside=def" gefunden. Kontext um "pside" (falls vorhanden):`, html.slice(Math.max(0, html.indexOf('pside')-100), html.indexOf('pside')+200));
-    }
+  const sleeperAll = await fetchSleeperAllPlayers();
+  const bySlugName = new Map();
+  Object.entries(sleeperAll || {}).forEach(([sid, p]) => {
+    if(!p || p.team !== abbr) return;
+    const key = normalizeNameForMatch(p.full_name || `${p.first_name||''} ${p.last_name||''}`);
+    bySlugName.set(key, { sleeperId: sid, name: p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim() });
+  });
 
-    if(!packageName || !rawPlayers.length) return null;
-
-    // Slug → echter Name + sleeperId über unseren eigenen, schon geladenen
-    // Sleeper-Datensatz (gleiche Namens-Normalisierung wie beim Rookie-Link-Fix).
-    const sleeperAll = await fetchSleeperAllPlayers();
-    const bySlugName = new Map();
-    Object.entries(sleeperAll || {}).forEach(([sid, p]) => {
-      if(!p || p.team !== abbr) return;
-      const key = normalizeNameForMatch(p.full_name || `${p.first_name||''} ${p.last_name||''}`);
-      bySlugName.set(key, { sleeperId: sid, name: p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim() });
-    });
-
-    const entries = rawPlayers.map(rp => {
+  function toEntries(rawPlayers){
+    if(!rawPlayers) return null;
+    return rawPlayers.map(rp => {
       const group = twoDeepPosToGroup(rp.posLabel);
       if(!group) return null;
       const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
@@ -3514,9 +3490,14 @@ async function fetchFormationFromTwoDeep(abbr){
           : { name: rp.slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), sleeperId: null },
       };
     }).filter(Boolean);
+  }
 
-    return { packageName, entries };
-  }catch(e){ console.warn('[Formation-2Deep] Abruf fehlgeschlagen:', e); return null; }
+  return {
+    base: toEntries(teamData.base),
+    nickel: toEntries(teamData.nickel),
+    dime: toEntries(teamData.dime),
+    updatedAt: data.updatedAt,
+  };
 }
 
 // Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich über die
@@ -3562,39 +3543,64 @@ async function renderFormation(abbr, year){
   statusEl.style.display = 'block';
   container.style.display = 'none';
   try{
-    const data = await fetchFormationFromTwoDeep(abbr);
-    if(!data || !data.entries.length){
+    const packages = await fetchFormationFromTwoDeep(abbr);
+    if(!packages || (!packages.base && !packages.nickel && !packages.dime)){
       statusEl.textContent = 'Formation-Daten von TWO·DEEP konnten nicht geladen werden.';
       return;
     }
 
     statusEl.style.display = 'none';
     container.style.display = 'block';
-    const positioned = layoutPersonnel(data.entries);
-    const counts = {};
-    data.entries.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
-    const countLabel = ['ED','DI','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
+
+    const available = ['base','nickel','dime'].filter(k => packages[k]);
+    const labelDe = { base: 'BASE', nickel: 'NICKEL', dime: 'DIME' };
     container.innerHTML = `
-      <div class="field-card">
-        <div class="field-hdr">
-          <div class="field-title">${data.packageName} <span style="color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:400;">— laut TWO·DEEP</span></div>
-          <div class="field-count">${countLabel}</div>
-        </div>
-        <div class="field">
-          <div class="los"></div>
-          ${positioned.map(p => `
-            <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
-              <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
-              <div class="player-name">${p.athlete.name}</div>
-            </a>
-          `).join('')}
-        </div>
-        <div class="legend">
-          ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
-        </div>
+      <div class="pkg-switch" id="pkg-switch">
+        ${['base','nickel','dime'].map(k => `<button class="pkg-btn${k===available[0]?' active':''}" data-pkg="${k}" ${packages[k] ? '' : 'disabled title="Für dieses Team von TWO·DEEP aktuell nicht verfügbar"'}>${labelDe[k]}</button>`).join('')}
       </div>
+      <div id="formation-field-wrap"></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;">Stand TWO·DEEP: ${packages.updatedAt ? new Date(packages.updatedAt).toLocaleString('de-DE') : '–'}</div>
     `;
-    wirePlayerPopupLinks(container);
+    document.getElementById('pkg-switch').addEventListener('click', (e) => {
+      const btn = e.target.closest('.pkg-btn');
+      if(!btn || btn.disabled) return;
+      document.querySelectorAll('#pkg-switch .pkg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderInto(btn.dataset.pkg);
+    });
+    function renderInto(key){
+      const wrap = document.getElementById('formation-field-wrap');
+      const entries = packages[key];
+      if(!entries){
+        wrap.innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px;">Für dieses Paket liegen von TWO·DEEP aktuell keine Daten vor.</div>`;
+        return;
+      }
+      const positioned = layoutPersonnel(entries);
+      const counts = {};
+      entries.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
+      const countLabel = ['ED','DI','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
+      wrap.innerHTML = `
+        <div class="field-card">
+          <div class="field-hdr">
+            <div class="field-title">${labelDe[key]} <span style="color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;font-weight:400;">— laut TWO·DEEP</span></div>
+            <div class="field-count">${countLabel}</div>
+          </div>
+          <div class="field">
+            <div class="los"></div>
+            ${positioned.map(p => `
+              <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
+                <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
+                <div class="player-name">${p.athlete.name}</div>
+              </a>
+            `).join('')}
+          </div>
+          <div class="legend">
+            ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
+          </div>
+        </div>
+      `;
+      wirePlayerPopupLinks(wrap);
+    }
+    renderInto(available[0]);
   }catch(e){
     console.warn('Formation konnte nicht geladen werden:', e);
     statusEl.textContent = 'Formation konnte nicht geladen werden.';
