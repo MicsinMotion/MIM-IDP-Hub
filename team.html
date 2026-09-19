@@ -601,7 +601,13 @@ document.getElementById('team-tabs').addEventListener('click', (e) => {
   if(!btn) return;
   const key = btn.dataset.tab;
   document.querySelectorAll('.team-tab').forEach(b => b.classList.toggle('active', b === btn));
-  document.querySelectorAll('.team-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === key));
+  const panels = document.querySelectorAll('.team-tab-panel');
+  console.log(`[Tabs] Klick auf "${key}" — ${panels.length} Panels gefunden:`);
+  panels.forEach(p => {
+    const shouldBeActive = p.dataset.panel === key;
+    p.classList.toggle('active', shouldBeActive);
+    console.log(`  #${p.id} (data-panel="${p.dataset.panel}") → active=${shouldBeActive}, computed display=${getComputedStyle(p).display}`);
+  });
 });
 
 const authWrap = document.getElementById('auth-wrap');
