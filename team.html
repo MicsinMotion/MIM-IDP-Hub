@@ -3481,10 +3481,14 @@ async function fetchFormationFromTwoDeep(abbr){
       const slug2 = slugMatch[1];
       if(seen.has(slug2)) continue;
       seen.add(slug2);
-      const before = html.slice(Math.max(0, m.index - 80), m.index);
-      const posMatch = before.match(/([A-Z]{1,6})\d{1,3}(?:ROOKIE|YR|\s|"|<)/);
+      // Positions-Badge steht NICHT davor (das war nur der Foto-Button), sondern
+      // als Textinhalt NACH dem href, innerhalb desselben <a>-Tags — deshalb
+      // vorwärts suchen und HTML-Tags dazwischen rausstreifen (siehe Chat).
+      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 250);
+      const afterText = afterRaw.replace(/<[^>]*>/g, '');
+      const posMatch = afterText.match(/([A-Z]{1,6})\d{1,3}(?:ROOKIE|YR)/);
       if(posMatch) rawPlayers.push({ posLabel: posMatch[1], slug: slug2 });
-      else console.warn(`[Formation-2Deep] ${abbr}: Slug "${slug2}" gefunden, aber keine Position davor. Kontext:`, before.slice(-120));
+      else console.warn(`[Formation-2Deep] ${abbr}: Slug "${slug2}" gefunden, aber keine Position danach. Roh-Kontext:`, afterRaw.slice(0, 150));
     }
     console.info(`[Formation-2Deep] ${abbr}: ${hrefHits} href-Treffer mit "pside=def" insgesamt, ${rawPlayers.length} davon mit erkannter Position:`, rawPlayers.map(p=>`${p.posLabel}:${p.slug}`).join(', '));
     if(hrefHits === 0){
