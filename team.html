@@ -2283,12 +2283,13 @@ async function fetchSleeperStatsJson(rawUrl){
   for(const url of sleeperProxyUrls(rawUrl)){
     try{
       const r = await fetch(url);
-      if(!r.ok) continue;
+      if(!r.ok){ console.warn(`[Stats-Proxy] ${r.status} für ${url.slice(0,80)}`); continue; }
       const text = await r.text();
       const parsed = url.includes('allorigins') ? JSON.parse(JSON.parse(text).contents) : JSON.parse(text);
       if(parsed) return parsed;
-    }catch(e){ /* nächster Proxy */ }
+    }catch(e){ console.warn(`[Stats-Proxy] Fehler bei ${url.slice(0,80)}:`, e.message); }
   }
+  console.warn(`[Stats-Proxy] ALLE Versuche fehlgeschlagen für: ${rawUrl}`);
   return null;
 }
 
