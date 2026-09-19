@@ -3488,7 +3488,13 @@ async function fetchFormationFromTwoDeep(abbr){
       const afterText = afterRaw.replace(/<[^>]*>/g, '');
       const posMatch = afterText.match(/([A-Z]{1,6})\d{1,3}(?:ROOKIE|YR)/);
       if(posMatch) rawPlayers.push({ posLabel: posMatch[1], slug: slug2 });
-      else console.warn(`[Formation-2Deep] ${abbr}: Slug "${slug2}" gefunden, aber keine Position danach. Roh-Kontext:`, afterRaw.slice(0, 150));
+      else if(rawPlayers.length === 0 && hrefHits <= 2){
+        // Einmaliger GROSSER Dump beim allerersten Nicht-Treffer, um die
+        // komplette Struktur an einem echten Beispiel zu sehen, statt in
+        // vielen kleinen Schritten weiterzuraten (siehe Chat).
+        console.warn(`[Formation-2Deep] ${abbr}: GROSSER Kontext-Dump für Slug "${slug2}" (500 Zeichen davor + 900 danach):`);
+        console.warn(html.slice(Math.max(0, m.index - 500), m.index + m[0].length + 900));
+      }
     }
     console.info(`[Formation-2Deep] ${abbr}: ${hrefHits} href-Treffer mit "pside=def" insgesamt, ${rawPlayers.length} davon mit erkannter Position:`, rawPlayers.map(p=>`${p.posLabel}:${p.slug}`).join(', '));
     if(hrefHits === 0){
