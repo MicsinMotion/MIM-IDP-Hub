@@ -502,6 +502,7 @@ const I18N = {
     loading_formation: 'Lade Formation…',
     pos_glossary: 'Positions-Glossar', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Lade Depth Chart…', loading_teamstats: 'Lade Team Stats…',
+    depthchart_past_season_unavailable: 'Depth Chart nur für die aktuelle Season verfügbar.',
     loading_schedule: 'Lade Schedule &amp; Standings…', loading_roster: 'Lade Team Roster…',
     loading_lineup: 'Lade Lineup-Auswertung…', loading_generic: 'Lädt…',
     no_schedule: 'Kein Schedule verfügbar.', no_standings: 'Keine Standings verfügbar.',
@@ -535,6 +536,7 @@ const I18N = {
     loading_formation: 'Loading formation…',
     pos_glossary: 'Position Glossary', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Loading depth chart…', loading_teamstats: 'Loading team stats…',
+    depthchart_past_season_unavailable: 'Depth chart only available for the current season.',
     loading_schedule: 'Loading schedule &amp; standings…', loading_roster: 'Loading team roster…',
     loading_lineup: 'Loading lineup breakdown…', loading_generic: 'Loading…',
     no_schedule: 'No schedule available.', no_standings: 'No standings available.',
@@ -601,13 +603,7 @@ document.getElementById('team-tabs').addEventListener('click', (e) => {
   if(!btn) return;
   const key = btn.dataset.tab;
   document.querySelectorAll('.team-tab').forEach(b => b.classList.toggle('active', b === btn));
-  const panels = document.querySelectorAll('.team-tab-panel');
-  console.log(`[Tabs] Klick auf "${key}" — ${panels.length} Panels gefunden:`);
-  panels.forEach(p => {
-    const shouldBeActive = p.dataset.panel === key;
-    p.classList.toggle('active', shouldBeActive);
-    console.log(`[Tabs]   #${p.id} (data-panel="${p.dataset.panel}") → active=${shouldBeActive}, class="${p.className}", computed display=${getComputedStyle(p).display}`);
-  });
+  document.querySelectorAll('.team-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === key));
 });
 
 const authWrap = document.getElementById('auth-wrap');
@@ -3382,21 +3378,25 @@ function renderDepthChartSection(key, label, positions, greenDotNormName){
 }
 
 async function renderDepthChart(abbr, year){
-  const section = document.getElementById('depthchart-section');
   const isCurrent = year === CURRENT_SEASON_YEAR;
 
   // Depth Chart gibt es nur noch für die aktuelle Season (siehe Chat: für vergangene
-  // Jahre arbeiten wir stattdessen mit Rosters) — den kompletten Bereich für
-  // vergangene Seasons ausblenden statt eine leere/negative Meldung zu zeigen.
-  if(!isCurrent){
-    section.style.display = 'none';
-    return;
-  }
-  section.style.display = 'block';
-
+  // Jahre arbeiten wir stattdessen mit Rosters) — für vergangene Seasons nur eine
+  // Meldung im Tab-Inhalt zeigen. WICHTIG (siehe Chat): hier NICHT mehr die äußere
+  // Tab-Panel-Sichtbarkeit über section.style.display anfassen — das überschrieb als
+  // Inline-Style den neuen Reiter-Mechanismus (CSS-Klasse .team-tab-panel.active)
+  // und ließ Depth Chart dauerhaft sichtbar bleiben, egal welcher Reiter aktiv war.
   const statusEl = document.getElementById('dc-status');
   const container = document.getElementById('dc-container');
   const subline = document.getElementById('dc-subline');
+  if(!isCurrent){
+    statusEl.textContent = t('depthchart_past_season_unavailable');
+    statusEl.style.display = 'block';
+    container.innerHTML = '';
+    subline.textContent = '';
+    return;
+  }
+
   statusEl.style.display = 'block';
   statusEl.textContent = 'Lade Depth Chart…';
   container.innerHTML = '';
