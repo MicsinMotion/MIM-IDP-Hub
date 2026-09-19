@@ -3535,7 +3535,10 @@ function layoutPersonnel(list){
       });
       if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
       slot.forEach((e, i) => {
-        const x = 50 + (i - (slot.length-1)/2) * 24;
+        // NB/Slot-Corner sitzt bei TWO·DEEP seitlich (eher unter dem linken
+        // Safety), nicht zentriert (siehe Chat) — deshalb Basis-Position nach
+        // links verschoben statt bei 50%.
+        const x = 26 + (i - (slot.length-1)/2) * 24;
         positioned.push({ ...e, x, y: 58 });
       });
     } else {
