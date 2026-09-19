@@ -107,6 +107,28 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .season-select:focus{border-color:var(--orange);}
 
 .team-body{padding:32px 40px;}
+.team-tabs{display:flex;gap:4px;padding:0 40px;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;}
+.team-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:14px 18px 12px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.team-tab:hover{color:var(--text);}
+.team-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.team-tab-panel{display:none;}
+.team-tab-panel.active{display:block;}
+@media(max-width:700px){ .team-tabs{padding:0 16px;} }
+.pkg-switch{display:inline-flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px;margin-bottom:20px;}
+.pkg-btn{background:transparent;border:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:8px 20px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.pkg-btn:hover{color:var(--text);}
+.pkg-btn.active{background:var(--orange);color:#fff;}
+.field-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.field-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+.field-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);}
+.field-count{font-size:11px;color:var(--muted);}
+.field{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:8px;height:380px;overflow:hidden;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 38px);}
+.los{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--orange);}
+.player{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;}
+.player-dot{width:30px;height:30px;border-radius:50%;background:var(--bg2);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.5px;color:var(--text);}
+.player-name{font-size:9px;color:var(--muted);white-space:nowrap;background:var(--bg2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);}
+.field-card .legend{display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--muted);flex-wrap:wrap;}
+.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
 .team-body h3{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);letter-spacing:1px;margin-bottom:10px;}
 .dc-loading, .dc-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 0;}
 #dc-container{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;align-items:start;}
@@ -357,8 +379,16 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
   </div>
 </div>
 
+<div class="team-tabs" id="team-tabs">
+  <button class="team-tab active" data-tab="depthchart" data-i18n="depth_chart">Depth Chart</button>
+  <button class="team-tab" data-tab="formation" data-i18n="formation_tab">Formation</button>
+  <button class="team-tab" data-tab="teamstats" data-i18n="team_stats">Team Stats</button>
+  <button class="team-tab" data-tab="roster" data-i18n="team_roster">Roster</button>
+  <button class="team-tab" data-tab="schedule" data-i18n="schedule_standings">Schedule &amp; Standings</button>
+</div>
+
 <div class="team-body" id="team-body">
-  <div id="depthchart-section">
+  <div id="depthchart-section" class="team-tab-panel active" data-panel="depthchart">
     <div class="dc-heading section-toggle-hdr" id="dc-toggle-hdr" style="cursor:pointer;user-select:none;">
       <span data-i18n="depth_chart">Depth Chart</span>
       <span class="ts-toggle-chevron" id="dc-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
@@ -375,8 +405,15 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
     </div>
   </div>
 
-  <div id="full-team-stats-section" style="display:none;">
-    <div class="dc-heading section-toggle-hdr" id="ts-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
+  <div id="formation-section" class="team-tab-panel" data-panel="formation" style="display:none;">
+    <div class="dc-heading" data-i18n="formation_tab">Formation</div>
+    <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
+    <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
+    <div id="formation-container" style="display:none;"></div>
+  </div>
+
+  <div id="full-team-stats-section" class="team-tab-panel" data-panel="teamstats" style="display:none;">
+    <div class="dc-heading section-toggle-hdr" id="ts-toggle-hdr" style="cursor:pointer;user-select:none;">
       <span data-i18n="team_stats">Team Stats</span>
       <span class="ts-toggle-chevron" id="ts-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
     </div>
@@ -393,7 +430,20 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
     </div>
   </div>
 
-  <div class="team-two-col" style="margin-top:36px;">
+  <div id="roster-section" class="team-tab-panel" data-panel="roster" style="display:none;">
+    <div class="dc-heading section-toggle-hdr" id="roster-toggle-hdr" style="cursor:pointer;user-select:none;">
+      <span data-i18n="team_roster">Team Roster</span>
+      <span class="ts-toggle-chevron" id="roster-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
+    </div>
+    <div id="roster-body">
+      <div class="dc-subline" id="roster-subline"></div>
+      <div class="dc-loading" id="roster-status" data-i18n="loading_roster">Lade Team Roster…</div>
+      <div id="roster-container"></div>
+    </div>
+  </div>
+
+  <div id="schedule-section" class="team-tab-panel" data-panel="schedule" style="display:none;">
+  <div class="team-two-col">
     <div class="team-col-left">
       <div class="dc-heading section-toggle-hdr" id="sched-toggle-hdr" style="cursor:pointer;user-select:none;">
         <span data-i18n="schedule_standings">Schedule &amp; Standings</span>
@@ -431,15 +481,6 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
       </div>
     </div>
   </div>
-
-  <div class="dc-heading section-toggle-hdr" id="roster-toggle-hdr" style="margin-top:36px;cursor:pointer;user-select:none;">
-    <span data-i18n="team_roster">Team Roster</span>
-    <span class="ts-toggle-chevron" id="roster-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
-  </div>
-  <div id="roster-body">
-    <div class="dc-subline" id="roster-subline"></div>
-    <div class="dc-loading" id="roster-status" data-i18n="loading_roster">Lade Team Roster…</div>
-    <div id="roster-container"></div>
   </div>
 </div>
 
@@ -462,6 +503,8 @@ const I18N = {
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
     depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
+    formation_tab: 'Formation', formation_subline: 'Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.',
+    loading_formation: 'Lade Formation…',
     pos_glossary: 'Positions-Glossar', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Lade Depth Chart…', loading_teamstats: 'Lade Team Stats…',
     loading_schedule: 'Lade Schedule &amp; Standings…', loading_roster: 'Lade Team Roster…',
@@ -493,6 +536,8 @@ const I18N = {
     head_coach: 'Head Coach', def_coordinator: 'Def. Coordinator', off_coordinator: 'Off. Coordinator',
     depth_chart: 'Depth Chart', team_stats: 'Team Stats', schedule_standings: 'Schedule & Standings',
     lineup_details: 'Lineup Details', team_roster: 'Team Roster',
+    formation_tab: 'Formation', formation_subline: 'Projection based on PFF roster data + fixed assignment rules — no video charting.',
+    loading_formation: 'Loading formation…',
     pos_glossary: 'Position Glossary', defense_team_stats: 'Defense Team Stats',
     loading_depthchart: 'Loading depth chart…', loading_teamstats: 'Loading team stats…',
     loading_schedule: 'Loading schedule &amp; standings…', loading_roster: 'Loading team roster…',
@@ -551,6 +596,17 @@ document.querySelectorAll('.theme-switch-btn').forEach(btn => {
     if(btn.dataset.theme === getTheme()) return;
     setTheme(btn.dataset.theme);
   });
+});
+
+// ── TEAM-SEITE ALS REITER (siehe Chat) ──────────────────────────────────────
+// Alle Inhalte laden weiterhin im Hintergrund wie bisher — hier wird nur die
+// Sichtbarkeit umgeschaltet, keine Ladevorgänge werden dadurch ausgelöst/verzögert.
+document.getElementById('team-tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.team-tab');
+  if(!btn) return;
+  const key = btn.dataset.tab;
+  document.querySelectorAll('.team-tab').forEach(b => b.classList.toggle('active', b === btn));
+  document.querySelectorAll('.team-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === key));
 });
 
 const authWrap = document.getElementById('auth-wrap');
@@ -3002,7 +3058,17 @@ async function fetchGreenDotFromTwoDeep(abbr){
   }catch(e){ console.warn('[GreenDot] TWO·DEEP-Abruf fehlgeschlagen:', e); return null; }
 }
 
+const depthChartEspnCache = {};
 async function fetchDepthChartEspn(abbr, year){
+  // Gecacht (siehe Chat) — wird jetzt sowohl vom Depth-Chart- als auch vom
+  // Formation-Tab genutzt, ohne den ESPN-Abruf doppelt auszulösen.
+  const cacheKey = `${abbr}_${year}`;
+  if(depthChartEspnCache[cacheKey]) return depthChartEspnCache[cacheKey];
+  const result = await fetchDepthChartEspnUncached(abbr, year);
+  depthChartEspnCache[cacheKey] = result;
+  return result;
+}
+async function fetchDepthChartEspnUncached(abbr, year){
   const teamId = ESPN_TEAM_ID[abbr];
   if(!teamId) return null;
   const listUrl = `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${year}/teams/${teamId}/depthcharts`;
@@ -3376,6 +3442,205 @@ async function renderDepthChart(abbr, year){
   }
 }
 
+// ─── FORMATION / PERSONNEL PACKAGES (siehe Chat) ───────────────────────────
+// Projektion, kein Video-Charting — exakt wie im Sketch besprochen. Nutzt
+// dieselben Depth-Chart-Daten wie der Depth-Chart-Tab (gecacht, kein Doppel-
+// Fetch) und PFFs Roster für die echte ED/DI/LB/CB/S-Klassifizierung (dieselbe
+// Quelle, die schon für Stärken/Schwächen auf player.html/rankings.html/
+// compare.html/index.html genutzt wird — hier nach team.html portiert).
+const formationPffCache = {};
+async function fetchPffRosterMapCached(abbr){
+  if(formationPffCache[abbr]) return formationPffCache[abbr];
+  const result = await fetchPffRosterMap(abbr);
+  formationPffCache[abbr] = result;
+  return result;
+}
+
+const FORMATION_GROUP_COLOR = { ED: 'var(--orange)', DI: '#a371f7', LB: '#1f6feb', CB: '#2ea043', S: '#e3b341' };
+
+// Fällt nur zurück, wenn PFF keinen Treffer für den Spieler hat (Name-Mismatch,
+// verletzt/inaktiv o.ä.) — sonst gilt PFFs Einordnung. isOddFront unterscheidet
+// 3-4 (DE spielt wie ein Interior-Tackle) von 4-3 (DE ist der Edge-Rusher) —
+// siehe Chat, exakt der Barmore/Ponder-Fall vom Sketch.
+function guessFormationGroup(posLabel, isOddFront){
+  const l = (posLabel||'').toUpperCase();
+  if(['NT','DT','LDT','RDT','DL'].includes(l)) return 'DI';
+  if(l.includes('DE')) return isOddFront ? 'DI' : 'ED';
+  if(['MLB','LILB','RILB','ILB','MIKE'].includes(l)) return 'LB';
+  if(['SLB','WLB','OLB','LOLB','ROLB','SAM','WILL'].includes(l)) return isOddFront ? 'ED' : 'LB';
+  if(['CB','LCB','RCB','NB','SCB','DB'].includes(l)) return 'CB';
+  if(['S','FS','SS'].includes(l)) return 'S';
+  return null;
+}
+
+async function buildBasePersonnel(abbr, groups){
+  const entries = (groups.defense || [])
+    .map(posGroup => ({ posLabel: posGroup.name, athlete: posGroup.athletes[0] }))
+    .filter(e => e.athlete);
+
+  const dlCount = entries.filter(e => /^(LDE|RDE|DE|NT|DT|LDT|RDT|DL)$/i.test(e.posLabel)).length;
+  const isOddFront = dlCount <= 3; // 3 Mann Front = 3-4-artig, 4 Mann = 4-3-artig
+
+  const { rawPlayers } = await fetchPffRosterMapCached(abbr).catch(() => ({ rawPlayers: [] }));
+  function classify(e){
+    const target = normalizeNameForMatch(e.athlete.name);
+    const match = (rawPlayers || []).find(pl => normalizeNameForMatch(pl.name) === target);
+    if(match && match.position){
+      const g = PFF_POS_MAP[match.position.toUpperCase()];
+      if(g) return g;
+    }
+    return guessFormationGroup(e.posLabel, isOddFront);
+  }
+
+  return entries.map(e => ({ ...e, group: classify(e) })).filter(e => e.group);
+}
+
+// Nickel/Dime: reduziert die Front Seven um jeweils einen Spieler und ersetzt
+// ihn durch einen zusätzlichen Secondary-Spieler aus der Depth Chart (NB-Slot
+// bzw. dessen Backup). Regel fürs Kürzen (siehe Chat): immer aus der größeren
+// der beiden Front-Seven-Gruppen (ED oder LB) — bei einer 3-4 trifft das meist
+// den zweiten Outside-Backer, bei einer 4-3 einen der Off-Ball-Linebacker.
+function dropOneFrontSeven(list){
+  const edCount = list.filter(p => p.group === 'ED').length;
+  const lbCount = list.filter(p => p.group === 'LB').length;
+  const dropGroup = edCount >= lbCount ? 'ED' : 'LB';
+  const idx = list.map(p => p.group).lastIndexOf(dropGroup);
+  if(idx === -1) return list;
+  return list.slice(0, idx).concat(list.slice(idx + 1));
+}
+
+function findDbAddition(groups, alreadyUsedNames){
+  const nbGroup = (groups.defense || []).find(g => /^(NB|SCB)$/i.test(g.name));
+  if(!nbGroup) return null;
+  const candidate = nbGroup.athletes.find(a => !alreadyUsedNames.has(normalizeNameForMatch(a.name)));
+  if(!candidate) return null;
+  return { posLabel: nbGroup.name, athlete: candidate, group: 'CB' };
+}
+
+function buildPackages(base, groups){
+  const usedNames = new Set(base.map(e => normalizeNameForMatch(e.athlete.name)));
+  const nb1 = findDbAddition(groups, usedNames);
+  const nickel = nb1 ? dropOneFrontSeven(base).concat([nb1]) : null;
+
+  let dime = null;
+  if(nickel){
+    const usedNames2 = new Set(nickel.map(e => normalizeNameForMatch(e.athlete.name)));
+    const nb2 = findDbAddition(groups, usedNames2);
+    dime = nb2 ? dropOneFrontSeven(nickel).concat([nb2]) : null;
+  }
+  return { base, nickel, dime };
+}
+
+// Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich gleich-
+// mäßig über die Breite (x). Slot-Positionen (NB/SCB) sitzen bewusst etwas
+// zentraler und weniger tief als die Außen-Cornerbacks.
+function layoutPersonnel(list){
+  const bands = { DI: 12, ED: 24, LB: 30, CB: 38, S: 65 };
+  const byGroup = {};
+  list.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
+  const positioned = [];
+  Object.entries(byGroup).forEach(([group, items]) => {
+    if(group === 'CB'){
+      const boundary = items.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
+      const slot = items.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
+      boundary.forEach((e, i) => {
+        const x = boundary.length === 1 ? 12 : 12 + i * (76 / (boundary.length - 1 || 1));
+        positioned.push({ ...e, x: boundary.length === 1 && i === 0 ? 12 : x, y: bands.CB });
+      });
+      // zweiter Boundary-CB immer rechts außen, falls genau 2 vorhanden
+      if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
+      slot.forEach((e, i) => {
+        const x = 50 + (i - (slot.length-1)/2) * 22;
+        positioned.push({ ...e, x, y: 33 });
+      });
+    } else {
+      const y = bands[group] ?? 40;
+      const margin = group === 'DI' ? 30 : group === 'S' ? 30 : 16;
+      items.forEach((e, i) => {
+        const x = items.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (items.length - 1));
+        positioned.push({ ...e, x, y });
+      });
+    }
+  });
+  return positioned;
+}
+
+let formationPackages = null;
+
+async function renderFormation(abbr, year){
+  const statusEl = document.getElementById('formation-status');
+  const container = document.getElementById('formation-container');
+  statusEl.style.display = 'block';
+  container.style.display = 'none';
+  try{
+    const groups = await fetchDepthChartEspn(abbr, year);
+    if(!groups || !groups.defense || !groups.defense.length){
+      statusEl.textContent = 'Für diese Season liegen keine Depth-Chart-Daten vor.';
+      return;
+    }
+    const base = await buildBasePersonnel(abbr, groups);
+    if(!base.length){
+      statusEl.textContent = 'Formation konnte nicht ermittelt werden.';
+      return;
+    }
+    formationPackages = buildPackages(base, groups);
+
+    statusEl.style.display = 'none';
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div class="pkg-switch" id="pkg-switch">
+        <button class="pkg-btn active" data-pkg="base">BASE</button>
+        <button class="pkg-btn" data-pkg="nickel">NICKEL</button>
+        <button class="pkg-btn" data-pkg="dime">DIME</button>
+      </div>
+      <div id="formation-field-wrap"></div>
+    `;
+    document.getElementById('pkg-switch').addEventListener('click', (e) => {
+      const btn = e.target.closest('.pkg-btn');
+      if(!btn) return;
+      document.querySelectorAll('#pkg-switch .pkg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderInto(btn.dataset.pkg);
+    });
+    function renderInto(key){
+      const wrap = document.getElementById('formation-field-wrap');
+      const list = formationPackages[key];
+      if(!list){
+        wrap.innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px;">Für dieses Paket liegen nicht genug Depth-Chart-Daten vor (z.B. kein separater Nickel-Back-Eintrag).</div>`;
+        return;
+      }
+      const positioned = layoutPersonnel(list);
+      const counts = {};
+      list.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
+      const countLabel = ['DI','ED','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
+      wrap.innerHTML = `
+        <div class="field-card">
+          <div class="field-hdr">
+            <div class="field-title">${key === 'base' ? 'Base' : key === 'nickel' ? 'Nickel' : 'Dime'}</div>
+            <div class="field-count">${countLabel}</div>
+          </div>
+          <div class="field">
+            <div class="los"></div>
+            ${positioned.map(p => `
+              <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
+                <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
+                <div class="player-name">${p.athlete.name}</div>
+              </a>
+            `).join('')}
+          </div>
+          <div class="legend">
+            ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
+          </div>
+        </div>
+      `;
+      wirePlayerPopupLinks(wrap);
+    }
+    renderInto('base');
+  }catch(e){
+    console.warn('Formation konnte nicht geladen werden:', e);
+    statusEl.textContent = 'Formation konnte nicht geladen werden.';
+  }
+}
+
 function formatGameDate(iso){
   try{ return new Date(iso).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'}); }
   catch(e){ return '–'; }
@@ -3546,6 +3811,10 @@ if(team){
 
     // Depth Chart (live)
     renderDepthChart(abbr, year);
+
+    // Formation / Personnel Packages (live) — nutzt dieselben Depth-Chart-Daten
+    // (gecacht) wie oben, kein Doppel-Fetch.
+    renderFormation(abbr, year);
 
     // Schedule & Standings (live) — für beide Zielgruppen sichtbar
     renderScheduleStandings(abbr, year);
