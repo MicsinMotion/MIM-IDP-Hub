@@ -3515,15 +3515,11 @@ async function fetchFormationFromTwoDeep(abbr){
   };
 }
 
-// Layout: drei feste Reihen, exakt nach TWO·DEEPs eigenem Muster (siehe Chat,
-// Vergleich mit deren Formation-Seite) — nicht mehr "eine Reihe pro Gruppe",
-// weil das bei mehreren Spielern derselben Gruppe zu Überlappung führte:
-//   Reihe 1 (vorne, LOS-nah): Line (ED/DI) + AUSSEN-Corner (LCB/RCB)
-//   Reihe 2 (Mitte): Linebacker (MIKE/WILL/SAM) + Slot-/Extra-Corner (NB/SCB/Dime-CB)
-//   Reihe 3 (hinten): Safeties
-// Innerhalb jeder Reihe wird per Positions-Label sortiert (links->rechts),
-// nicht per Gruppen-Zugehörigkeit — dadurch landen z.B. NB/WILL/MIKE in
-// Nickel/Dime nebeneinander statt übereinander gestapelt.
+// Layout: JEDE Position bekommt eine eigene, leicht versetzte Tiefe (y) statt
+// starrer 3-Reihen — genau wie bei TWO·DEEP beobachtet (siehe Chat): MIKE
+// sitzt dort z.B. spürbar näher an der Line als WILL/NB, obwohl beide
+// "Linebacker/Slot" sind — keine strikte Reihe, sondern "halbe Schritte"
+// zwischen den Positionen. X-Sortierung bleibt wie zuvor über sideKey.
 const FORMATION_SIDE_KEY = {
   LCB: -0.15, LOLB: 0.0, LDE: 0.05, LDT: 0.25, NT: 0.5, DT: 0.5, DE: 0.5,
   RDT: 0.75, RDE: 0.95, ROLB: 1.0, RCB: 1.15,
@@ -3534,36 +3530,44 @@ function sideKey(posLabel){
   const l = (posLabel || '').toUpperCase();
   return FORMATION_SIDE_KEY[l] ?? 0.5;
 }
+// Individuelle Tiefe pro Position, aus TWO·DEEPs eigener Darstellung abgelesen
+// (siehe Chat) — bewusst NICHT auf 3 Werte reduziert.
+const FORMATION_DEPTH = {
+  LOLB: 8, LDE: 8, LDT: 6, NT: 6, DT: 6, DE: 6, RDT: 6, RDE: 8, ROLB: 8,
+  LCB: 20, RCB: 20,
+  CB: 28,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
+  MIKE: 36, MLB: 36,
+  WILL: 44, SLB: 44, SAM: 44,
+  NB: 52, SCB: 52,
+  FS: 78, SS: 78, S: 78,
+};
+function depthFor(posLabel){
+  const l = (posLabel || '').toUpperCase();
+  return FORMATION_DEPTH[l] ?? 40;
+}
 function layoutPersonnel(list){
-  const front = [];  // ED, DI, Außen-CB (LCB/RCB)
-  const middle = []; // LB, Slot-/Extra-CB
-  const back = [];   // S
-
+  // Nach Tiefe gruppieren (Spieler mit identischer Tiefe teilen sich eine
+  // "Zeile" für die X-Verteilung), dann jede Tiefen-Gruppe per sideKey sortiert
+  // gleichmäßig über die Breite verteilen.
+  const byDepth = new Map();
   list.forEach(e => {
-    const l = (e.posLabel || '').toUpperCase();
-    if(e.group === 'S'){ back.push(e); return; }
-    if(e.group === 'CB'){
-      if(l === 'LCB' || l === 'RCB') front.push(e);
-      else middle.push(e);
-      return;
-    }
-    if(e.group === 'LB'){ middle.push(e); return; }
-    front.push(e); // ED, DI
+    const y = depthFor(e.posLabel);
+    if(!byDepth.has(y)) byDepth.set(y, []);
+    byDepth.get(y).push(e);
   });
 
-  function placeRow(items, y, margin){
+  const positioned = [];
+  byDepth.forEach((items, y) => {
     const sorted = [...items].sort((a, b) => sideKey(a.posLabel) - sideKey(b.posLabel));
-    return sorted.map((e, i) => {
+    // Rand abhängig von der Tiefe: vorne (Line) knapp an den Außenkanten,
+    // weiter hinten (Safeties) spürbar eingerückt — wie bei TWO·DEEP.
+    const margin = y <= 20 ? 6 : y >= 60 ? 30 : 14;
+    sorted.forEach((e, i) => {
       const x = sorted.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (sorted.length - 1));
-      return { ...e, x, y };
+      positioned.push({ ...e, x, y });
     });
-  }
-
-  return [
-    ...placeRow(front, 12, 6),
-    ...placeRow(middle, 42, 14),
-    ...placeRow(back, 72, 30),
-  ];
+  });
+  return positioned;
 }
 
 
