@@ -1,0 +1,44 @@
+name: Formation Scrape (TWO·DEEP)
+
+# Läuft nachts, 2×/Woche (siehe Chat, gleiche Größenordnung wie der bestehende
+# Team-Stats-Precompute) — Personnel Packages ändern sich nicht stündlich, ein
+# häufigerer Rhythmus würde nur unnötig Last auf TWO·DEEPs Seite erzeugen.
+# 2:00 UTC = 3:00 Uhr MEZ / 4:00 Uhr MESZ — Cron kennt keine Zeitzonen-Umstellung,
+# daher wandert der Lauf im Sommer eine Stunde weiter Richtung frühen Morgen statt
+# exakt 3 Uhr zu bleiben; für einen nächtlichen Hintergrund-Job unerheblich.
+# Zusätzlich manuell auslösbar über "Run workflow" im Actions-Tab, nützlich
+# zum Testen ohne auf den nächsten Cron-Zeitpunkt zu warten.
+on:
+  schedule:
+    - cron: '0 2 * * 1,4'  # Montag & Donnerstag, 02:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  scrape-formations:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Repo auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Abhängigkeiten installieren
+        working-directory: precompute-setup/scripts
+        run: npm install puppeteer
+
+      - name: Formation-Daten scrapen
+        working-directory: precompute-setup/scripts
+        run: node scrape-formations.js
+
+      - name: Ergebnis committen (nur falls sich was geändert hat)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add formations.json
+          git diff --staged --quiet || git commit -m "Formation-Daten aktualisiert (TWO·DEEP)"
+          git push
