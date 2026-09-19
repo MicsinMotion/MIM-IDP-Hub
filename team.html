@@ -3462,12 +3462,9 @@ async function fetchFormationFromTwoDeep(abbr){
     const packageName = pkgMatch ? pkgMatch[1] : null;
     console.info(`[Formation-2Deep] ${abbr}: Paket laut TWO·DEEP = "${packageName}"`);
 
-    // Jeder Def-Spieler kommt zweimal als Link vor (Positions-Badge + Nachname).
-    // WICHTIG (siehe Chat): nicht von einer festen Parameter-Reihenfolge in der
-    // href ausgehen (player=...&pside=def könnte im echten HTML auch andersrum
-    // oder mit zusätzlichen Parametern stehen) — deshalb hier robuster: erst
-    // jedes href mit "pside=def" IRGENDWO drin einsammeln, den Spieler-Slug
-    // separat daraus extrahieren.
+    // Jeder Def-Spieler-Knoten trägt Position + Trikotnummer sauber in eigenen
+    // Elementen direkt nach dem Link: class="td-fnode-role">XXX< und
+    // class="td-fnode-jersey">##< (per echtem HTML-Dump bestätigt, siehe Chat).
     const hrefRe = /href="([^"]*pside=def[^"]*)"/g;
     const seen = new Set();
     const rawPlayers = [];
@@ -3480,23 +3477,14 @@ async function fetchFormationFromTwoDeep(abbr){
       if(!slugMatch) continue;
       const slug2 = slugMatch[1];
       if(seen.has(slug2)) continue;
+      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 400);
+      const roleMatch = afterRaw.match(/td-fnode-role">([A-Z]+)</);
+      if(!roleMatch) continue; // z.B. der zweite Link desselben Spielers ohne Rollen-Badge — überspringen, nicht als Fehltreffer werten
       seen.add(slug2);
-      // Positions-Badge steht NICHT davor (das war nur der Foto-Button), sondern
-      // als Textinhalt NACH dem href, innerhalb desselben <a>-Tags — deshalb
-      // vorwärts suchen und HTML-Tags dazwischen rausstreifen (siehe Chat).
-      const afterRaw = html.slice(m.index + m[0].length, m.index + m[0].length + 250);
-      const afterText = afterRaw.replace(/<[^>]*>/g, '');
-      const posMatch = afterText.match(/([A-Z]{1,6})\d{1,3}(?:ROOKIE|YR)/);
-      if(posMatch) rawPlayers.push({ posLabel: posMatch[1], slug: slug2 });
-      else if(rawPlayers.length === 0 && hrefHits <= 2){
-        // Einmaliger GROSSER Dump beim allerersten Nicht-Treffer, um die
-        // komplette Struktur an einem echten Beispiel zu sehen, statt in
-        // vielen kleinen Schritten weiterzuraten (siehe Chat).
-        console.warn(`[Formation-2Deep] ${abbr}: GROSSER Kontext-Dump für Slug "${slug2}" (500 Zeichen davor + 900 danach):`);
-        console.warn(html.slice(Math.max(0, m.index - 500), m.index + m[0].length + 900));
-      }
+      const jerseyMatch = afterRaw.match(/td-fnode-jersey">(\d+)</);
+      rawPlayers.push({ posLabel: roleMatch[1], jersey: jerseyMatch ? jerseyMatch[1] : null, slug: slug2 });
     }
-    console.info(`[Formation-2Deep] ${abbr}: ${hrefHits} href-Treffer mit "pside=def" insgesamt, ${rawPlayers.length} davon mit erkannter Position:`, rawPlayers.map(p=>`${p.posLabel}:${p.slug}`).join(', '));
+    console.info(`[Formation-2Deep] ${abbr}: ${hrefHits} href-Treffer mit "pside=def" insgesamt, ${rawPlayers.length} Def-Spieler mit erkannter Position:`, rawPlayers.map(p=>`${p.posLabel}#${p.jersey}:${p.slug}`).join(', '));
     if(hrefHits === 0){
       console.warn(`[Formation-2Deep] ${abbr}: GAR KEIN href mit "pside=def" gefunden. Kontext um "pside" (falls vorhanden):`, html.slice(Math.max(0, html.indexOf('pside')-100), html.indexOf('pside')+200));
     }
