@@ -22,6 +22,7 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --orange:#C4722A;--orange-dim:#7a4419;--orange-glow:rgba(196,114,42,.15);
   --red:#da3633;--radius:10px;
   --nav-bg:rgba(13,17,23,0.95);
+  --field-line-rgb:255,255,255;
 }
 [data-theme="light"]{
   --bg:#e5dfd0;--bg2:#f5f0e6;--bg3:#d9d0bb;--bg4:#cec3ac;
@@ -29,6 +30,7 @@ html{zoom:85%;} /* Siehe Chat: einheitliche Basisgröße für alle Besucher, una
   --text:#201c15;--muted:#52493a;--muted2:#6b6152;
   --orange:#C4722A;--orange-dim:#e8c9a8;--orange-glow:rgba(196,114,42,.12);
   --red:#b3261e;--nav-bg:rgba(245,240,230,0.92);
+  --field-line-rgb:32,28,21;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
@@ -124,9 +126,9 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .field-count{font-size:11px;color:var(--muted);}
 .field{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:8px;height:420px;overflow:hidden;
   background-image:
-    repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 1px, transparent 1px, transparent 38px),
-    repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0px, rgba(255,255,255,.16) 6px, transparent 6px, transparent 14px),
-    repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0px, rgba(255,255,255,.16) 6px, transparent 6px, transparent 14px);
+    repeating-linear-gradient(0deg, rgba(var(--field-line-rgb),.09) 0px, rgba(var(--field-line-rgb),.09) 1px, transparent 1px, transparent 38px),
+    repeating-linear-gradient(180deg, rgba(var(--field-line-rgb),.22) 0px, rgba(var(--field-line-rgb),.22) 6px, transparent 6px, transparent 14px),
+    repeating-linear-gradient(180deg, rgba(var(--field-line-rgb),.22) 0px, rgba(var(--field-line-rgb),.22) 6px, transparent 6px, transparent 14px);
   background-position: 0 0, 23% 0, 77% 0;
   background-size: 100% 100%, 2px 100%, 2px 100%;
   background-repeat: repeat, repeat-y, repeat-y;
@@ -3513,40 +3515,55 @@ async function fetchFormationFromTwoDeep(abbr){
   };
 }
 
-// Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich über die
-// Breite (x). WICHTIG (siehe Chat): die Bänder brauchen genug vertikalen
-// Abstand UND versetzte Ränder pro Gruppe — sonst landen z.B. der erste ED-
-// und der erste LB-Spieler bei identischem x, nur wenige % Y auseinander, und
-// die Namens-Labels überlappen sich (genau der gemeldete Fehler). Deshalb hier
-// größere Sprünge zwischen den Bändern und pro Gruppe ein eigener Rand/Phase.
+// Layout: drei feste Reihen, exakt nach TWO·DEEPs eigenem Muster (siehe Chat,
+// Vergleich mit deren Formation-Seite) — nicht mehr "eine Reihe pro Gruppe",
+// weil das bei mehreren Spielern derselben Gruppe zu Überlappung führte:
+//   Reihe 1 (vorne, LOS-nah): Line (ED/DI) + AUSSEN-Corner (LCB/RCB)
+//   Reihe 2 (Mitte): Linebacker (MIKE/WILL/SAM) + Slot-/Extra-Corner (NB/SCB/Dime-CB)
+//   Reihe 3 (hinten): Safeties
+// Innerhalb jeder Reihe wird per Positions-Label sortiert (links->rechts),
+// nicht per Gruppen-Zugehörigkeit — dadurch landen z.B. NB/WILL/MIKE in
+// Nickel/Dime nebeneinander statt übereinander gestapelt.
+const FORMATION_SIDE_KEY = {
+  LCB: -0.15, LOLB: 0.0, LDE: 0.05, LDT: 0.25, NT: 0.5, DT: 0.5, DE: 0.5,
+  RDT: 0.75, RDE: 0.95, ROLB: 1.0, RCB: 1.15,
+  NB: 0.1, SCB: 0.1, WILL: 0.35, SLB: 0.35, MLB: 0.6, MIKE: 0.6, SAM: 0.8, CB: 0.9,
+  FS: 0.35, SS: 0.65, S: 0.5,
+};
+function sideKey(posLabel){
+  const l = (posLabel || '').toUpperCase();
+  return FORMATION_SIDE_KEY[l] ?? 0.5;
+}
 function layoutPersonnel(list){
-  const bands = { DI: 8, ED: 22, LB: 36, CB: 46, S: 72 };
-  const margins = { DI: 34, ED: 12, LB: 26, S: 32 };
-  const byGroup = {};
-  list.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
-  const positioned = [];
-  Object.entries(byGroup).forEach(([group, items]) => {
-    if(group === 'CB'){
-      const boundary = items.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      const slot = items.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
-      boundary.forEach((e, i) => {
-        const x = boundary.length === 1 ? 50 : 8 + i * (84 / (boundary.length - 1 || 1));
-        positioned.push({ ...e, x, y: bands.CB });
-      });
-      slot.forEach((e, i) => {
-        const x = 50 + (i - (slot.length-1)/2) * 24;
-        positioned.push({ ...e, x, y: 58 });
-      });
-    } else {
-      const y = bands[group] ?? 40;
-      const margin = margins[group] ?? 20;
-      items.forEach((e, i) => {
-        const x = items.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (items.length - 1));
-        positioned.push({ ...e, x, y });
-      });
+  const front = [];  // ED, DI, Außen-CB (LCB/RCB)
+  const middle = []; // LB, Slot-/Extra-CB
+  const back = [];   // S
+
+  list.forEach(e => {
+    const l = (e.posLabel || '').toUpperCase();
+    if(e.group === 'S'){ back.push(e); return; }
+    if(e.group === 'CB'){
+      if(l === 'LCB' || l === 'RCB') front.push(e);
+      else middle.push(e);
+      return;
     }
+    if(e.group === 'LB'){ middle.push(e); return; }
+    front.push(e); // ED, DI
   });
-  return positioned;
+
+  function placeRow(items, y, margin){
+    const sorted = [...items].sort((a, b) => sideKey(a.posLabel) - sideKey(b.posLabel));
+    return sorted.map((e, i) => {
+      const x = sorted.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (sorted.length - 1));
+      return { ...e, x, y };
+    });
+  }
+
+  return [
+    ...placeRow(front, 12, 6),
+    ...placeRow(middle, 42, 14),
+    ...placeRow(back, 72, 30),
+  ];
 }
 
 
