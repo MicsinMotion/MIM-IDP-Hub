@@ -118,17 +118,17 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .pkg-btn{background:transparent;border:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:8px 20px;border-radius:6px;cursor:pointer;transition:all .15s;}
 .pkg-btn:hover{color:var(--text);}
 .pkg-btn.active{background:var(--orange);color:#fff;}
-.field-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;}
 .field-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
 .field-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);}
 .field-count{font-size:11px;color:var(--muted);}
-.field{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:8px;height:380px;overflow:hidden;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 38px);}
-.los{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--orange);}
-.player{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;}
-.player-dot{width:30px;height:30px;border-radius:50%;background:var(--bg2);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.5px;color:var(--text);}
-.player-name{font-size:9px;color:var(--muted);white-space:nowrap;background:var(--bg2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);}
-.field-card .legend{display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--muted);flex-wrap:wrap;}
-.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+#formation-columns{display:grid;grid-template-columns:repeat(5, 1fr);gap:16px;align-items:start;}
+@media(max-width:1900px){ #formation-columns{grid-template-columns:repeat(3, 1fr);} }
+@media(max-width:1300px){ #formation-columns{grid-template-columns:1fr;} }
+.formation-player-row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+.formation-player-row:last-child{border-bottom:none;}
+.formation-player-row a{color:var(--text);text-decoration:none;}
+.formation-player-row a:hover{color:var(--orange);}
+.formation-pos-tag{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.5px;border:1px solid;border-radius:4px;padding:1px 6px;flex-shrink:0;}
 .team-body h3{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);letter-spacing:1px;margin-bottom:10px;}
 .dc-loading, .dc-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 0;}
 #dc-container{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;align-items:start;}
@@ -405,23 +405,29 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
   </div>
 
   <div id="formation-section" class="team-tab-panel" data-panel="formation">
-    <div class="dc-heading" data-i18n="formation_tab">Formation</div>
-    <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
-    <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
-    <div id="formation-container" style="display:none;"></div>
-
-    <div id="most-used-schemes-anchor" style="display:none;margin-top:36px;">
-      <div id="most-used-schemes-container"></div>
+  <div class="team-two-col">
+    <div class="team-col-left">
+      <div class="dc-heading" data-i18n="formation_tab">Formation</div>
+      <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
+      <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
+      <div id="formation-container" style="display:none;"></div>
     </div>
 
-    <div id="lineup-section" style="display:none;margin-top:36px;">
-      <div class="dc-heading" id="lineup-toggle-hdr">
-        <span data-i18n="lineup_details">Lineup Details</span>
+    <div class="team-col-right">
+      <div id="most-used-schemes-anchor" style="display:none;">
+        <div id="most-used-schemes-container"></div>
       </div>
-      <div id="lineup-body">
-        <div id="lineup-container"></div>
+
+      <div id="lineup-section" style="display:none;margin-top:24px;">
+        <div class="dc-heading" id="lineup-toggle-hdr">
+          <span data-i18n="lineup_details">Lineup Details</span>
+        </div>
+        <div id="lineup-body">
+          <div id="lineup-container"></div>
+        </div>
       </div>
     </div>
+  </div>
   </div>
 
   <div id="full-team-stats-section" class="team-tab-panel" data-panel="teamstats">
@@ -3505,39 +3511,6 @@ function buildPackages(base, groups){
   return { base, nickel, dime };
 }
 
-// Layout: jede Gruppe bekommt eine feste Tiefe (y) und verteilt sich gleich-
-// mäßig über die Breite (x). Slot-Positionen (NB/SCB) sitzen bewusst etwas
-// zentraler und weniger tief als die Außen-Cornerbacks.
-function layoutPersonnel(list){
-  const bands = { DI: 12, ED: 24, LB: 30, CB: 38, S: 65 };
-  const byGroup = {};
-  list.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
-  const positioned = [];
-  Object.entries(byGroup).forEach(([group, items]) => {
-    if(group === 'CB'){
-      const boundary = items.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      const slot = items.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
-      boundary.forEach((e, i) => {
-        const x = boundary.length === 1 ? 12 : 12 + i * (76 / (boundary.length - 1 || 1));
-        positioned.push({ ...e, x: boundary.length === 1 && i === 0 ? 12 : x, y: bands.CB });
-      });
-      // zweiter Boundary-CB immer rechts außen, falls genau 2 vorhanden
-      if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
-      slot.forEach((e, i) => {
-        const x = 50 + (i - (slot.length-1)/2) * 22;
-        positioned.push({ ...e, x, y: 33 });
-      });
-    } else {
-      const y = bands[group] ?? 40;
-      const margin = group === 'DI' ? 30 : group === 'S' ? 30 : 16;
-      items.forEach((e, i) => {
-        const x = items.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (items.length - 1));
-        positioned.push({ ...e, x, y });
-      });
-    }
-  });
-  return positioned;
-}
 
 let formationPackages = null;
 
@@ -3582,29 +3555,32 @@ async function renderFormation(abbr, year){
         wrap.innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:13px;">Für dieses Paket liegen nicht genug Depth-Chart-Daten vor (z.B. kein separater Nickel-Back-Eintrag).</div>`;
         return;
       }
-      const positioned = layoutPersonnel(list);
-      const counts = {};
-      list.forEach(e => { counts[e.group] = (counts[e.group]||0)+1; });
-      const countLabel = ['DI','ED','LB','CB','S'].filter(g => counts[g]).map(g => `${counts[g]} ${g}`).join(' · ');
+      const byGroup = { ED:[], DI:[], LB:[], CB:[], S:[] };
+      list.forEach(e => { if(byGroup[e.group]) byGroup[e.group].push(e); });
+      const countLabel = ['ED','DI','LB','CB','S'].filter(g => byGroup[g].length).map(g => `${byGroup[g].length} ${g}`).join(' · ');
+
+      const columnsHtml = ['ED','DI','LB','CB','S'].map(g => {
+        const rows = byGroup[g].map(e => `
+          <div class="formation-player-row">
+            <span class="formation-pos-tag" style="color:${FORMATION_GROUP_COLOR[g]};border-color:${FORMATION_GROUP_COLOR[g]};">${e.posLabel}</span>
+            ${e.athlete.sleeperId
+              ? `<a href="player.html?id=${e.athlete.sleeperId}">${e.athlete.name}</a>`
+              : `<span>${e.athlete.name}</span>`}
+          </div>`).join('');
+        return `<div class="dc-section" data-key="${g}">
+          <div class="dc-section-hdr">
+            <div class="dc-section-title">${g}<span class="dc-badge">${byGroup[g].length}</span></div>
+          </div>
+          <div class="dc-section-body">${rows || `<div class="dc-empty">–</div>`}</div>
+        </div>`;
+      }).join('');
+
       wrap.innerHTML = `
-        <div class="field-card">
-          <div class="field-hdr">
-            <div class="field-title">${key === 'base' ? 'Base' : key === 'nickel' ? 'Nickel' : 'Dime'}</div>
-            <div class="field-count">${countLabel}</div>
-          </div>
-          <div class="field">
-            <div class="los"></div>
-            ${positioned.map(p => `
-              <a href="player.html?id=${p.athlete.sleeperId || ''}" class="player" style="left:${p.x}%;top:${100-p.y}%;" ${p.athlete.sleeperId ? '' : 'data-no-popup'}>
-                <div class="player-dot" style="border-color:${FORMATION_GROUP_COLOR[p.group]};">${p.posLabel}</div>
-                <div class="player-name">${p.athlete.name}</div>
-              </a>
-            `).join('')}
-          </div>
-          <div class="legend">
-            ${['ED','DI','LB','CB','S'].map(g => `<span><span class="legend-dot" style="background:${FORMATION_GROUP_COLOR[g]}"></span>${g}</span>`).join('')}
-          </div>
+        <div class="field-hdr">
+          <div class="field-title">${key === 'base' ? 'Base' : key === 'nickel' ? 'Nickel' : 'Dime'}</div>
+          <div class="field-count">${countLabel}</div>
         </div>
+        <div id="formation-columns">${columnsHtml}</div>
       `;
       wirePlayerPopupLinks(wrap);
     }
