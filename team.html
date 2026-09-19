@@ -606,7 +606,7 @@ document.getElementById('team-tabs').addEventListener('click', (e) => {
   panels.forEach(p => {
     const shouldBeActive = p.dataset.panel === key;
     p.classList.toggle('active', shouldBeActive);
-    console.log(`  #${p.id} (data-panel="${p.dataset.panel}") → active=${shouldBeActive}, computed display=${getComputedStyle(p).display}`);
+    console.log(`[Tabs]   #${p.id} (data-panel="${p.dataset.panel}") → active=${shouldBeActive}, class="${p.className}", computed display=${getComputedStyle(p).display}`);
   });
 });
 
