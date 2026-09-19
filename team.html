@@ -405,14 +405,28 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
     </div>
   </div>
 
-  <div id="formation-section" class="team-tab-panel" data-panel="formation" style="display:none;">
+  <div id="formation-section" class="team-tab-panel" data-panel="formation">
     <div class="dc-heading" data-i18n="formation_tab">Formation</div>
     <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
     <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
     <div id="formation-container" style="display:none;"></div>
+
+    <div id="most-used-schemes-anchor" style="display:none;margin-top:36px;">
+      <div id="most-used-schemes-container"></div>
+    </div>
+
+    <div id="lineup-section" style="display:none;margin-top:36px;">
+      <div class="dc-heading section-toggle-hdr" id="lineup-toggle-hdr" style="cursor:pointer;user-select:none;">
+        <span data-i18n="lineup_details">Lineup Details</span>
+        <span class="ts-toggle-chevron" id="lineup-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
+      </div>
+      <div id="lineup-body">
+        <div id="lineup-container"></div>
+      </div>
+    </div>
   </div>
 
-  <div id="full-team-stats-section" class="team-tab-panel" data-panel="teamstats" style="display:none;">
+  <div id="full-team-stats-section" class="team-tab-panel" data-panel="teamstats">
     <div class="dc-heading section-toggle-hdr" id="ts-toggle-hdr" style="cursor:pointer;user-select:none;">
       <span data-i18n="team_stats">Team Stats</span>
       <span class="ts-toggle-chevron" id="ts-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
@@ -428,9 +442,20 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
         <div class="ts-glossary-item"><b>Havoc Rate</b> — <span data-i18n="ts_glossary_havoc">Anteil aller Defensiv-Snaps, die zu einem "störenden" Play führten (Forced Fumble, INT, Pass Defended oder gestoppter Lauf bei 0 oder weniger Yards). Höher ist besser für die Defense — zeigt, wie oft eure IDP-Spieler den Spielzug aktiv zerstören.</span></div>
       </div>
     </div>
+
+    <div id="community-stats-section" style="margin-top:36px;">
+      <div class="dc-heading section-toggle-hdr" id="community-stats-toggle-hdr" style="cursor:pointer;user-select:none;">
+        <span data-i18n="team_stats">Team Stats</span>
+        <span class="ts-toggle-chevron" id="community-stats-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
+      </div>
+      <div id="community-stats-body">
+        <div class="dc-loading" id="community-stats-status" data-i18n="loading_teamstats">Lade Team Stats…</div>
+        <div id="community-stats-container"></div>
+      </div>
+    </div>
   </div>
 
-  <div id="roster-section" class="team-tab-panel" data-panel="roster" style="display:none;">
+  <div id="roster-section" class="team-tab-panel" data-panel="roster">
     <div class="dc-heading section-toggle-hdr" id="roster-toggle-hdr" style="cursor:pointer;user-select:none;">
       <span data-i18n="team_roster">Team Roster</span>
       <span class="ts-toggle-chevron" id="roster-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
@@ -442,45 +467,15 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
     </div>
   </div>
 
-  <div id="schedule-section" class="team-tab-panel" data-panel="schedule" style="display:none;">
-  <div class="team-two-col">
-    <div class="team-col-left">
-      <div class="dc-heading section-toggle-hdr" id="sched-toggle-hdr" style="cursor:pointer;user-select:none;">
-        <span data-i18n="schedule_standings">Schedule &amp; Standings</span>
-        <span class="ts-toggle-chevron" id="sched-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
-      </div>
-      <div id="sched-body">
-        <div class="dc-loading" id="sched-status" data-i18n-html="loading_schedule">Lade Schedule &amp; Standings…</div>
-        <div id="sched-container"></div>
-        <div id="most-used-schemes-anchor" style="display:none;">
-          <div id="most-used-schemes-container"></div>
-        </div>
-      </div>
+  <div id="schedule-section" class="team-tab-panel" data-panel="schedule">
+    <div class="dc-heading section-toggle-hdr" id="sched-toggle-hdr" style="cursor:pointer;user-select:none;">
+      <span data-i18n="schedule_standings">Schedule &amp; Standings</span>
+      <span class="ts-toggle-chevron" id="sched-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
     </div>
-
-    <div class="team-col-right">
-      <div id="lineup-section" style="display:none;">
-        <div class="dc-heading section-toggle-hdr" id="lineup-toggle-hdr" style="cursor:pointer;user-select:none;">
-          <span data-i18n="lineup_details">Lineup Details</span>
-          <span class="ts-toggle-chevron" id="lineup-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
-        </div>
-        <div id="lineup-body">
-          <div id="lineup-container"></div>
-        </div>
-      </div>
-
-      <div id="community-stats-section">
-        <div class="dc-heading section-toggle-hdr" id="community-stats-toggle-hdr" style="cursor:pointer;user-select:none;">
-          <span data-i18n="team_stats">Team Stats</span>
-          <span class="ts-toggle-chevron" id="community-stats-toggle-chevron" style="float:right;transition:transform .2s;">▾</span>
-        </div>
-        <div id="community-stats-body">
-          <div class="dc-loading" id="community-stats-status" data-i18n="loading_teamstats">Lade Team Stats…</div>
-          <div id="community-stats-container"></div>
-        </div>
-      </div>
+    <div id="sched-body">
+      <div class="dc-loading" id="sched-status" data-i18n-html="loading_schedule">Lade Schedule &amp; Standings…</div>
+      <div id="sched-container"></div>
     </div>
-  </div>
   </div>
 </div>
 
