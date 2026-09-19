@@ -3533,17 +3533,17 @@ function sideKey(posLabel){
 // Individuelle Tiefe pro Position, aus TWO·DEEPs eigener Darstellung abgelesen
 // (siehe Chat) — bewusst NICHT auf 3 Werte reduziert.
 const FORMATION_DEPTH = {
-  LOLB: 8, LDE: 8, LDT: 6, NT: 6, DT: 6, DE: 6, RDT: 6, RDE: 8, ROLB: 8,
-  LCB: 20, RCB: 20,
-  CB: 28,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
-  MIKE: 36, MLB: 36,
-  WILL: 44, SLB: 44, SAM: 44,
-  NB: 52, SCB: 52,
-  FS: 78, SS: 78, S: 78,
+  LOLB: 6, LDE: 6, LDT: 4, NT: 4, DT: 4, DE: 4, RDT: 4, RDE: 6, ROLB: 6,
+  LCB: 24, RCB: 24,
+  CB: 36,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
+  MIKE: 46, MLB: 46,
+  WILL: 56, SLB: 56, SAM: 56,
+  NB: 66, SCB: 66,
+  FS: 86, SS: 86, S: 86,
 };
 function depthFor(posLabel){
   const l = (posLabel || '').toUpperCase();
-  return FORMATION_DEPTH[l] ?? 40;
+  return FORMATION_DEPTH[l] ?? 46;
 }
 function layoutPersonnel(list){
   // Nach Tiefe gruppieren (Spieler mit identischer Tiefe teilen sich eine
@@ -3559,9 +3559,11 @@ function layoutPersonnel(list){
   const positioned = [];
   byDepth.forEach((items, y) => {
     const sorted = [...items].sort((a, b) => sideKey(a.posLabel) - sideKey(b.posLabel));
-    // Rand abhängig von der Tiefe: vorne (Line) knapp an den Außenkanten,
-    // weiter hinten (Safeties) spürbar eingerückt — wie bei TWO·DEEP.
-    const margin = y <= 20 ? 6 : y >= 60 ? 30 : 14;
+    // Rand abhängig von der Tiefe: Line ganz knapp an den Außenkanten, Außen-
+    // Corner NOCH etwas weiter außen als die Line (siehe Chat — sonst gleiche
+    // X-Position wie der äußerste Line-Spieler, nur wenig Y getrennt, das war
+    // die gemeldete Überlappung), Safeties spürbar eingerückt.
+    const margin = y <= 10 ? 8 : y <= 26 ? 2 : y >= 80 ? 30 : 14;
     sorted.forEach((e, i) => {
       const x = sorted.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (sorted.length - 1));
       positioned.push({ ...e, x, y });
