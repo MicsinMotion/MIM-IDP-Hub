@@ -2566,6 +2566,7 @@ let rosterRequestId = 0;
 
 async function renderRoster(abbr, year){
   await scoringSettingsReadyPromise; // echte Scoring-Settings da, bevor irgendein calcPts()-Pfad hier greift (siehe Chat)
+  console.log(`[RosterPath] renderRoster(${abbr}, ${year}) gestartet.`);
   const myRequestId = ++rosterRequestId;
   const statusEl = document.getElementById('roster-status');
   const container = document.getElementById('roster-container');
@@ -2577,6 +2578,7 @@ async function renderRoster(abbr, year){
   subline.textContent = '';
 
   const cached = loadRosterCache(abbr, year);
+  console.log(`[RosterPath] loadRosterCache(lokal) →`, cached ? 'TREFFER, breche hier ab und render aus Cache' : 'kein Treffer, gehe weiter');
   if(cached){
     if(myRequestId !== rosterRequestId) return; // zwischenzeitlich kam eine neuere Anfrage
     console.timeEnd(`[Roster] Gesamtdauer ${abbr} ${year}`);
@@ -2595,6 +2597,7 @@ async function renderRoster(abbr, year){
   const shared = await loadSharedCache(sharedKey);
   const sharedIsFresh = shared && shared.grouped &&
     (year < CURRENT_SEASON_YEAR || (Date.now() - (shared.updatedAt||0) < ROSTER_CACHE_TTL));
+  console.log(`[RosterPath] loadSharedCache(Firestore) → vorhanden=${!!shared}, sharedIsFresh=${sharedIsFresh}${shared ? `, updatedAt=${new Date(shared.updatedAt||0).toLocaleString()}` : ''}`);
   if(sharedIsFresh){
     if(myRequestId !== rosterRequestId) return;
     console.timeEnd(`[Roster] Gesamtdauer ${abbr} ${year}`);
@@ -2830,6 +2833,7 @@ async function renderRoster(abbr, year){
     // siehe Chat) — separater Fetch, da wir dafür ein komplett anderes Jahr brauchen.
     const allIdp = Object.values(grouped).flat();
     statusEl.textContent = `Lade Stats für ${allIdp.length} Spieler…`;
+    console.log(`[RosterPath] Starte frischen Wochenstats-Abruf für ${allIdp.length} Spieler.`);
     const statsById = {};
     const prevYearStatsById = {};
     await Promise.all(allIdp.map(async p => {
