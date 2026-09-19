@@ -122,7 +122,15 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
 .field-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
 .field-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);}
 .field-count{font-size:11px;color:var(--muted);}
-.field{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:8px;height:420px;overflow:hidden;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 38px);}
+.field{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:8px;height:420px;overflow:hidden;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 1px, transparent 1px, transparent 38px),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0px, rgba(255,255,255,.16) 6px, transparent 6px, transparent 14px),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.16) 0px, rgba(255,255,255,.16) 6px, transparent 6px, transparent 14px);
+  background-position: 0 0, 23% 0, 77% 0;
+  background-size: 100% 100%, 2px 100%, 2px 100%;
+  background-repeat: repeat, repeat-y, repeat-y;
+}
 .los{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--orange);}
 .player{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;z-index:1;}
 .player:hover{z-index:2;}
@@ -3438,9 +3446,14 @@ const FORMATION_GROUP_COLOR = { ED: 'var(--orange)', DI: '#a371f7', LB: '#1f6feb
 
 function twoDeepPosToGroup(posLabel){
   const l = (posLabel||'').toUpperCase();
-  if(['LOLB','ROLB','OLB'].includes(l)) return 'ED';
-  if(['NT','DT','LDT','RDT','LDE','RDE','DE','DL'].includes(l)) return 'DI';
-  if(['MLB','WLB','LILB','RILB','ILB','LB','SLB'].includes(l)) return 'LB';
+  // Edge-Rusher — inkl. moderner Rollen-Namen wie "Jack"/"Leo" (z.B. bei SF/
+  // Shanahan-Baum) und klassischem LDE/RDE, das in den meisten heutigen
+  // Systemen ein echter Edge-Spot ist (z.B. Nick Bosa), nicht Interior.
+  if(['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','LDE','RDE','DE'].includes(l)) return 'ED';
+  if(['NT','DT','LDT','RDT','DL','DI'].includes(l)) return 'DI';
+  // Off-Ball-Linebacker — inkl. klassischer Rollen-Namen (Mike/Will/Sam), die
+  // TWO·DEEP bei manchen Teams statt MLB/WLB/SLB verwendet (siehe Chat, SF-Fall).
+  if(['MLB','WLB','SLB','MIKE','WILL','SAM','LILB','RILB','ILB','LB'].includes(l)) return 'LB';
   if(['LCB','RCB','CB','NB','SCB','DB'].includes(l)) return 'CB';
   if(['FS','SS','S'].includes(l)) return 'S';
   return null;
