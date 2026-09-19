@@ -3533,22 +3533,27 @@ function sideKey(posLabel){
 // Individuelle Tiefe pro Position, aus TWO·DEEPs eigener Darstellung abgelesen
 // (siehe Chat) — bewusst NICHT auf 3 Werte reduziert.
 const FORMATION_DEPTH = {
-  LOLB: 6, LDE: 6, LDT: 4, NT: 4, DT: 4, DE: 4, RDT: 4, RDE: 6, ROLB: 6,
+  LOLB: 4, LDE: 4, LDT: 4, NT: 4, DT: 4, DE: 4, RDT: 4, RDE: 4, ROLB: 4,
   LCB: 24, RCB: 24,
-  CB: 36,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
-  MIKE: 46, MLB: 46,
-  WILL: 56, SLB: 56, SAM: 56,
-  NB: 66, SCB: 66,
-  FS: 86, SS: 86, S: 86,
+  CB: 38,           // zusätzlicher Dime-Cornerback, näher an der Line als NB
+  MIKE: 50, MLB: 50,
+  WILL: 62, SLB: 62, SAM: 62,
+  NB: 74, SCB: 74,
+  FS: 92, SS: 92, S: 92,
 };
 function depthFor(posLabel){
   const l = (posLabel || '').toUpperCase();
-  return FORMATION_DEPTH[l] ?? 46;
+  return FORMATION_DEPTH[l] ?? 50;
 }
 function layoutPersonnel(list){
   // Nach Tiefe gruppieren (Spieler mit identischer Tiefe teilen sich eine
   // "Zeile" für die X-Verteilung), dann jede Tiefen-Gruppe per sideKey sortiert
-  // gleichmäßig über die Breite verteilen.
+  // gleichmäßig über die Breite verteilen. Rand bewusst EINHEITLICH für alle
+  // Reihen (siehe Chat) — die Staffelung ist rein vertikal (Y), an den Rändern
+  // wird nicht mehr rumgeschraubt, das hat nur Labels abgeschnitten. Die
+  // Überlappung wird stattdessen ausschließlich über großzügige Y-Abstände
+  // zwischen den Tiefen-Stufen verhindert (mind. 12-18 Punkte Abstand).
+  const MARGIN = 10;
   const byDepth = new Map();
   list.forEach(e => {
     const y = depthFor(e.posLabel);
@@ -3559,13 +3564,8 @@ function layoutPersonnel(list){
   const positioned = [];
   byDepth.forEach((items, y) => {
     const sorted = [...items].sort((a, b) => sideKey(a.posLabel) - sideKey(b.posLabel));
-    // Rand abhängig von der Tiefe: Line ganz knapp an den Außenkanten, Außen-
-    // Corner NOCH etwas weiter außen als die Line (siehe Chat — sonst gleiche
-    // X-Position wie der äußerste Line-Spieler, nur wenig Y getrennt, das war
-    // die gemeldete Überlappung), Safeties spürbar eingerückt.
-    const margin = y <= 10 ? 8 : y <= 26 ? 2 : y >= 80 ? 30 : 14;
     sorted.forEach((e, i) => {
-      const x = sorted.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (sorted.length - 1));
+      const x = sorted.length === 1 ? 50 : MARGIN + i * ((100 - 2*MARGIN) / (sorted.length - 1));
       positioned.push({ ...e, x, y });
     });
   });
