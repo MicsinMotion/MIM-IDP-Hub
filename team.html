@@ -3446,12 +3446,14 @@ async function renderDepthChart(abbr, year){
 // aber zu 100% von TWO·DEEP, nichts davon ist erfunden.
 const FORMATION_GROUP_COLOR = { ED: 'var(--orange)', DI: '#a371f7', LB: '#1f6feb', CB: '#2ea043', S: '#e3b341' };
 
-function twoDeepPosToGroup(posLabel){
+function twoDeepPosToGroup(posLabel, isOddFront){
   const l = (posLabel||'').toUpperCase();
-  // Edge-Rusher — inkl. moderner Rollen-Namen wie "Jack"/"Leo" (z.B. bei SF/
-  // Shanahan-Baum) und klassischem LDE/RDE, das in den meisten heutigen
-  // Systemen ein echter Edge-Spot ist (z.B. Nick Bosa), nicht Interior.
-  if(['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','LDE','RDE','DE'].includes(l)) return 'ED';
+  // LDE/RDE ist schema-abhängig (siehe Chat, ARI-Fall): bei einer 3-4 (odd
+  // front) sind das 5-Techniques, also Interior, nur die OLB sind dort Edge.
+  // Bei einer 4-3 (even front) sind LDE/RDE die echten Edge-Rusher. isOddFront
+  // wird VORHER pro Team/Paket bestimmt (siehe buildOddFrontFlag).
+  if(l === 'LDE' || l === 'RDE'){ return isOddFront ? 'DI' : 'ED'; }
+  if(['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','DE'].includes(l)) return 'ED';
   if(['NT','DT','LDT','RDT','DL','DI'].includes(l)) return 'DI';
   // Off-Ball-Linebacker — inkl. klassischer Rollen-Namen (Mike/Will/Sam), die
   // TWO·DEEP bei manchen Teams statt MLB/WLB/SLB verwendet (siehe Chat, SF-Fall).
@@ -3464,6 +3466,15 @@ function twoDeepPosToGroup(posLabel){
   // Spieler-Chip fehlt, ohne dass klar ist warum.
   console.warn(`[Formation] Unbekanntes Positions-Label von TWO·DEEP: "${posLabel}" — Spieler wird nicht angezeigt.`);
   return null;
+}
+
+// Erkennt eine 3-4/odd-front-Verteidigung an ihren eigenen TWO·DEEP-Labels:
+// "NT" (Nose Tackle) ist ein reiner 3-4-Begriff, ebenso das gleichzeitige
+// Vorkommen von LOLB UND ROLB (stehende Edge-Rusher neben einer 3-Mann-Front).
+// Ohne diese Signale gehen wir von einer 4-3 aus (LDE/RDE = echte Edge).
+function buildOddFrontFlag(rawPlayers){
+  const labels = (rawPlayers || []).map(p => (p.posLabel || '').toUpperCase());
+  return labels.includes('NT') || (labels.includes('LOLB') && labels.includes('ROLB'));
 }
 
 // Liest die von GitHub Actions vorberechnete formations.json (siehe
@@ -3497,8 +3508,9 @@ async function fetchFormationFromTwoDeep(abbr){
 
   function toEntries(rawPlayers){
     if(!rawPlayers) return null;
+    const isOddFront = buildOddFrontFlag(rawPlayers);
     return rawPlayers.map(rp => {
-      const group = twoDeepPosToGroup(rp.posLabel);
+      const group = twoDeepPosToGroup(rp.posLabel, isOddFront);
       if(!group) return null;
       const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
       const matched = bySlugName.get(nameFromSlug);
