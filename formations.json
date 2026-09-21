@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-19T13:31:22.766Z",
+  "updatedAt": "2026-09-21T07:46:09.673Z",
   "teams": {
     "ARI": {
       "base": [
@@ -741,9 +741,9 @@
           "jersey": "8"
         },
         {
-          "slug": "nick-scott",
+          "slug": "lathan-ransom",
           "posLabel": "FS",
-          "jersey": "21"
+          "jersey": "22"
         },
         {
           "slug": "trevon-moehrig",
@@ -798,9 +798,9 @@
           "jersey": "8"
         },
         {
-          "slug": "nick-scott",
+          "slug": "lathan-ransom",
           "posLabel": "FS",
-          "jersey": "21"
+          "jersey": "22"
         },
         {
           "slug": "trevon-moehrig",
@@ -840,24 +840,19 @@
           "jersey": "2"
         },
         {
-          "slug": "will-lee-iii",
-          "posLabel": "RCB",
-          "jersey": "24"
-        },
-        {
           "slug": "jaycee-horn",
           "posLabel": "CB",
           "jersey": "8"
         },
         {
-          "slug": "akayleb-evans",
+          "slug": "will-lee-iii",
           "posLabel": "CB",
-          "jersey": "29"
+          "jersey": "24"
         },
         {
-          "slug": "nick-scott",
+          "slug": "lathan-ransom",
           "posLabel": "FS",
-          "jersey": "21"
+          "jersey": "22"
         },
         {
           "slug": "trevon-moehrig",
@@ -1196,9 +1191,9 @@
           "jersey": "35"
         },
         {
-          "slug": "josh-newton",
-          "posLabel": "NB",
-          "jersey": "28"
+          "slug": "tacario-davis",
+          "posLabel": "CB",
+          "jersey": "20"
         },
         {
           "slug": "bryan-cook",
@@ -1764,9 +1759,9 @@
           "jersey": "55"
         },
         {
-          "slug": "malcolm-rodriguez",
+          "slug": "devin-white",
           "posLabel": "SLB",
-          "jersey": "44"
+          "jersey": "45"
         },
         {
           "slug": "rock-ya-sin",
@@ -1831,9 +1826,9 @@
           "jersey": "4"
         },
         {
-          "slug": "ennis-rakestraw-jr",
+          "slug": "khalil-dorsey",
           "posLabel": "CB",
-          "jersey": "2"
+          "jersey": "30"
         },
         {
           "slug": "christian-izien",
@@ -1883,14 +1878,14 @@
           "jersey": "4"
         },
         {
-          "slug": "ennis-rakestraw-jr",
+          "slug": "khalil-dorsey",
           "posLabel": "CB",
-          "jersey": "2"
+          "jersey": "30"
         },
         {
-          "slug": "keith-abney-ii",
-          "posLabel": "CB",
-          "jersey": "28"
+          "slug": "roger-mccreary",
+          "posLabel": "NCB",
+          "jersey": "21"
         },
         {
           "slug": "christian-izien",
@@ -3672,9 +3667,9 @@
           "jersey": "53"
         },
         {
-          "slug": "carlton-davis-iii",
+          "slug": "channing-canada",
           "posLabel": "LCB",
-          "jersey": "7"
+          "jersey": "29"
         },
         {
           "slug": "christian-gonzalez",
@@ -3724,9 +3719,9 @@
           "jersey": "53"
         },
         {
-          "slug": "carlton-davis-iii",
+          "slug": "channing-canada",
           "posLabel": "LCB",
-          "jersey": "7"
+          "jersey": "29"
         },
         {
           "slug": "christian-gonzalez",
@@ -3776,9 +3771,9 @@
           "jersey": "14"
         },
         {
-          "slug": "carlton-davis-iii",
+          "slug": "channing-canada",
           "posLabel": "LCB",
-          "jersey": "7"
+          "jersey": "29"
         },
         {
           "slug": "christian-gonzalez",
@@ -3907,14 +3902,14 @@
           "jersey": "29"
         },
         {
-          "slug": "jonas-sanker",
-          "posLabel": "CB",
-          "jersey": "7"
+          "slug": "jayden-price",
+          "posLabel": "S",
+          "jersey": "38"
         },
         {
-          "slug": "jayden-price",
+          "slug": "jonas-sanker",
           "posLabel": "FS",
-          "jersey": "38"
+          "jersey": "7"
         },
         {
           "slug": "justin-reid",
@@ -3959,14 +3954,14 @@
           "jersey": "29"
         },
         {
-          "slug": "martin-emerson-jr",
-          "posLabel": "CB",
-          "jersey": "22"
+          "slug": "jayden-price",
+          "posLabel": "S",
+          "jersey": "38"
         },
         {
-          "slug": "decamerion-richardson",
-          "posLabel": "CB",
-          "jersey": "25"
+          "slug": "michael-reid",
+          "posLabel": "S",
+          "jersey": "42"
         },
         {
           "slug": "jonas-sanker",
@@ -4171,9 +4166,9 @@
           "jersey": "99"
         },
         {
-          "slug": "david-onyemata",
+          "slug": "darrell-jackson-jr",
           "posLabel": "NT",
-          "jersey": "93"
+          "jersey": "95"
         },
         {
           "slug": "will-mcdonald-iv",
@@ -5007,9 +5002,9 @@
           "jersey": "3"
         },
         {
-          "slug": "ty-okada",
+          "slug": "aj-finley",
           "posLabel": "FS",
-          "jersey": "39"
+          "jersey": "30"
         },
         {
           "slug": "julian-love",
@@ -5234,9 +5229,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "kevin-winston-jr",
@@ -5286,9 +5281,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
@@ -5338,9 +5333,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
@@ -5348,9 +5343,9 @@
           "jersey": "26"
         },
         {
-          "slug": "micah-robinson",
-          "posLabel": "CB",
-          "jersey": "21"
+          "slug": "terrell-burgess",
+          "posLabel": "S",
+          "jersey": "38"
         },
         {
           "slug": "kevin-winston-jr",
