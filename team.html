@@ -3565,10 +3565,14 @@ function layoutPersonnel(list){
       // NB/SCB: allein (Nickel) außen links, nicht zentriert (siehe Chat).
       // Kommt ein zusätzlicher Slot-Spieler dazu (Dime, 4. CB), dann bilden
       // beide ein symmetrisches Paar um die Mitte statt schief zu stehen.
+      // WICHTIG (siehe Chat): mehrere NB/SCB-Einträge (manche Teams führen
+      // BEIDE Labels gleichzeitig für unterschiedliche Spieler) NIE auf
+      // dieselbe Koordinate legen — sonst verdeckt einer den anderen und ein
+      // Spieler "verschwindet" optisch, obwohl er in den Daten da ist.
       const nb = slot.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
       const extra = slot.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      const nbX = extra.length ? 30 : 26;
-      nb.forEach(e => positioned.push({ ...e, x: nbX, y: 58 }));
+      const nbBaseX = extra.length ? 30 : 26;
+      nb.forEach((e, i) => positioned.push({ ...e, x: nbBaseX - i * 12, y: 58 }));
       extra.forEach((e, i) => positioned.push({ ...e, x: 70 + i * 15, y: 58 }));
     } else {
       const y = bands[group] ?? 40;
