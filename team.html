@@ -3499,11 +3499,17 @@ async function fetchFormationFromTwoDeep(abbr){
   if(!teamData){ console.warn(`[Formation] Keine Formation-Daten für ${abbr} in formations.json.`); return null; }
 
   const sleeperAll = await fetchSleeperAllPlayers();
+  // Trikotnummer als primärer Abgleich (siehe Chat — eindeutiger als der aus
+  // dem URL-Slug rekonstruierte Name, der z.B. bei Jr./Sr./III-Suffixen oder
+  // Akzenten danebenliegen kann). Name-Match bleibt als Fallback, falls die
+  // Nummer fehlt oder nicht im aktuellen Kader-Snapshot auftaucht.
+  const byJersey = new Map();
   const bySlugName = new Map();
   Object.entries(sleeperAll || {}).forEach(([sid, p]) => {
     if(!p || p.team !== abbr) return;
-    const key = normalizeNameForMatch(p.full_name || `${p.first_name||''} ${p.last_name||''}`);
-    bySlugName.set(key, { sleeperId: sid, name: p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim() });
+    const name = p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim();
+    if(p.jersey_number != null) byJersey.set(String(p.jersey_number), { sleeperId: sid, name });
+    bySlugName.set(normalizeNameForMatch(name), { sleeperId: sid, name });
   });
 
   function toEntries(rawPlayers){
@@ -3512,8 +3518,9 @@ async function fetchFormationFromTwoDeep(abbr){
     return rawPlayers.map(rp => {
       const group = twoDeepPosToGroup(rp.posLabel, isOddFront);
       if(!group) return null;
+      const byJerseyMatch = rp.jersey != null ? byJersey.get(String(rp.jersey)) : null;
       const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
-      const matched = bySlugName.get(nameFromSlug);
+      const matched = byJerseyMatch || bySlugName.get(nameFromSlug);
       return {
         posLabel: rp.posLabel,
         group,
