@@ -3447,7 +3447,11 @@ async function renderDepthChart(abbr, year){
 const FORMATION_GROUP_COLOR = { ED: 'var(--orange)', DI: '#a371f7', LB: '#1f6feb', CB: '#2ea043', S: '#e3b341' };
 
 function twoDeepPosToGroup(posLabel, isOddFront){
-  const l = (posLabel||'').toUpperCase();
+  // Zahlen-Suffix zuerst abschneiden (siehe Chat, ATL-Fall: TWO·DEEP nummeriert
+  // generische Positionen ohne klare L/R-Zuordnung als "DE2"/"DL2" statt nur
+  // "DE"/"DL") — GENERISCH für DE2, DE3, DL2, CB2, etc., nicht einzeln
+  // aufgezählt, damit das automatisch für jede künftige Nummerierung greift.
+  const l = (posLabel||'').toUpperCase().replace(/\d+$/, '');
   // LDE/RDE ist schema-abhängig (siehe Chat, ARI-Fall): bei einer 3-4 (odd
   // front) sind das 5-Techniques, also Interior, nur die OLB sind dort Edge.
   // Bei einer 4-3 (even front) sind LDE/RDE die echten Edge-Rusher. isOddFront
@@ -3473,7 +3477,7 @@ function twoDeepPosToGroup(posLabel, isOddFront){
 // Vorkommen von LOLB UND ROLB (stehende Edge-Rusher neben einer 3-Mann-Front).
 // Ohne diese Signale gehen wir von einer 4-3 aus (LDE/RDE = echte Edge).
 function buildOddFrontFlag(rawPlayers){
-  const labels = (rawPlayers || []).map(p => (p.posLabel || '').toUpperCase());
+  const labels = (rawPlayers || []).map(p => (p.posLabel || '').toUpperCase().replace(/\d+$/, ''));
   return labels.includes('NT') || (labels.includes('LOLB') && labels.includes('ROLB'));
 }
 
@@ -3551,10 +3555,14 @@ function layoutPersonnel(list){
   const positioned = [];
   Object.entries(byGroup).forEach(([group, items]) => {
     if(group === 'CB'){
-      // Nur LCB/RCB (mit Seiten-Präfix) zählen als Außen-Corner — ein
-      // generisches "CB" (4. Cornerback in Dime, ohne L/R-Präfix) gehört zur
-      // Slot-Gruppe (Reihe mit NB), nicht zu den Außen-Corners (siehe Chat:
-      // "der 4. CB kommt parallel zum NB rein").
+      // Außen-Corner (LCB/RCB, per Seiten-Präfix erkannt — funktioniert bei
+      // jedem Team gleich, unabhängig vom genauen Label-Text) weit außen,
+      // alles andere in der CB-Gruppe (NB, SCB, generisches "CB", in welcher
+      // Kombination auch immer ein Team das nutzt) in der Slot-Reihe.
+      // WICHTIG (siehe Chat): NIE nach dem GENAUEN Label-Text weiter
+      // aufsplitten (das brach bei jeder unerwarteten Kombination erneut) —
+      // stattdessen rein nach ANZAHL gleichmäßig verteilen, dann klappt's für
+      // jede Konstellation bei jedem Team automatisch, ohne Einzelfall-Pflege.
       const boundary = items.filter(e => /^(LCB|RCB)$/i.test(e.posLabel));
       const slot = items.filter(e => !/^(LCB|RCB)$/i.test(e.posLabel));
       boundary.forEach((e, i) => {
@@ -3562,18 +3570,19 @@ function layoutPersonnel(list){
         positioned.push({ ...e, x, y: bands.CB });
       });
       if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
-      // NB/SCB: allein (Nickel) außen links, nicht zentriert (siehe Chat).
-      // Kommt ein zusätzlicher Slot-Spieler dazu (Dime, 4. CB), dann bilden
-      // beide ein symmetrisches Paar um die Mitte statt schief zu stehen.
-      // WICHTIG (siehe Chat): mehrere NB/SCB-Einträge (manche Teams führen
-      // BEIDE Labels gleichzeitig für unterschiedliche Spieler) NIE auf
-      // dieselbe Koordinate legen — sonst verdeckt einer den anderen und ein
-      // Spieler "verschwindet" optisch, obwohl er in den Daten da ist.
-      const nb = slot.filter(e => /^(NB|SCB)$/i.test(e.posLabel));
-      const extra = slot.filter(e => !/^(NB|SCB)$/i.test(e.posLabel));
-      const nbBaseX = extra.length ? 30 : 26;
-      nb.forEach((e, i) => positioned.push({ ...e, x: nbBaseX - i * 12, y: 58 }));
-      extra.forEach((e, i) => positioned.push({ ...e, x: 70 + i * 15, y: 58 }));
+      if(slot.length === 1){
+        // Ein einzelner Slot-Corner (Nickel-Normalfall): außen links, nicht
+        // zentriert (siehe Chat).
+        positioned.push({ ...slot[0], x: 26, y: 58 });
+      } else {
+        // Zwei oder mehr: gleichmäßig über die Breite verteilt (garantiert
+        // keine Überlappung, unabhängig davon wie die Spieler im Detail heißen).
+        const slotMargin = 20;
+        slot.forEach((e, i) => {
+          const x = slotMargin + i * ((100 - 2*slotMargin) / (slot.length - 1));
+          positioned.push({ ...e, x, y: 58 });
+        });
+      }
     } else {
       const y = bands[group] ?? 40;
       const margin = margins[group] ?? 20;
