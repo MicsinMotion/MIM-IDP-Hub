@@ -3456,13 +3456,15 @@ function twoDeepPosToGroup(posLabel, isOddFront){
   // front) sind das 5-Techniques, also Interior, nur die OLB sind dort Edge.
   // Bei einer 4-3 (even front) sind LDE/RDE die echten Edge-Rusher. isOddFront
   // wird VORHER pro Team/Paket bestimmt (siehe buildOddFrontFlag).
-  if(l === 'LDE' || l === 'RDE'){ return isOddFront ? 'DI' : 'ED'; }
-  if(['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','DE'].includes(l)) return 'ED';
+  // Gilt genauso für das generische "DE" (siehe Chat, BAL/BUF/DAL/...): bei
+  // 3-4-Fronten ist ein "DE" ein 5-Technique (Interior), nicht Edge.
+  if(l === 'LDE' || l === 'RDE' || l === 'DE'){ return isOddFront ? 'DI' : 'ED'; }
+  if(['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','RUSH'].includes(l)) return 'ED';
   if(['NT','DT','LDT','RDT','DL','DI'].includes(l)) return 'DI';
   // Off-Ball-Linebacker — inkl. klassischer Rollen-Namen (Mike/Will/Sam), die
   // TWO·DEEP bei manchen Teams statt MLB/WLB/SLB verwendet (siehe Chat, SF-Fall).
   if(['MLB','WLB','SLB','MIKE','WILL','SAM','LILB','RILB','ILB','LB'].includes(l)) return 'LB';
-  if(['LCB','RCB','CB','NB','SCB','DB'].includes(l)) return 'CB';
+  if(['LCB','RCB','CB','NB','NKL','SCB','DB'].includes(l)) return 'CB';
   if(['FS','SS','S'].includes(l)) return 'S';
   // Unbekanntes Label (siehe Chat) — statt den Spieler still verschwinden zu
   // lassen (wie beim ursprünglichen SF/Mike-Will-Sam-Fall), laut warnen, damit
@@ -3476,9 +3478,26 @@ function twoDeepPosToGroup(posLabel, isOddFront){
 // "NT" (Nose Tackle) ist ein reiner 3-4-Begriff, ebenso das gleichzeitige
 // Vorkommen von LOLB UND ROLB (stehende Edge-Rusher neben einer 3-Mann-Front).
 // Ohne diese Signale gehen wir von einer 4-3 aus (LDE/RDE = echte Edge).
+// Zusätzlich (siehe Chat, DEN/IND/JAX): Ein "NT"-Label allein reicht NICHT —
+// manche 4-3-Teams führen einen NT neben LDE/RDE. Eine Odd Front hat höchstens
+// 3 Linemen-Labels PLUS entweder NT oder mindestens 2 stehende Edge-Labels.
+const FRONT_LINEMEN_LABELS = ['DE','DT','NT','DL','DI','LDE','RDE','LDT','RDT'];
+const FRONT_EDGE_LABELS = ['LOLB','ROLB','OLB','JACK','LEO','EDGE','ED','RUSH'];
+function frontLabels(rawPlayers){
+  return (rawPlayers || []).map(p => (p.posLabel || '').toUpperCase().replace(/\d+$/, ''));
+}
 function buildOddFrontFlag(rawPlayers){
-  const labels = (rawPlayers || []).map(p => (p.posLabel || '').toUpperCase().replace(/\d+$/, ''));
-  return labels.includes('NT') || (labels.includes('LOLB') && labels.includes('ROLB'));
+  const labels = frontLabels(rawPlayers);
+  const lin = labels.filter(l => FRONT_LINEMEN_LABELS.includes(l)).length;
+  const edge = labels.filter(l => FRONT_EDGE_LABELS.includes(l)).length;
+  return lin <= 3 && (labels.includes('NT') || edge >= 2);
+}
+// Odd Front mit nur EINEM expliziten Edge-Label (z.B. "RUSH" + "SAM"/"SLB",
+// siehe Chat, BAL/NYG/SEA): der Strong-Side-OLB ist dann der zweite Edge-Rusher.
+function samIsEdge(rawPlayers, isOddFront){
+  if(!isOddFront) return false;
+  const edge = frontLabels(rawPlayers).filter(l => FRONT_EDGE_LABELS.includes(l)).length;
+  return edge === 1;
 }
 
 // Liest die von GitHub Actions vorberechnete formations.json (siehe
@@ -3519,8 +3538,10 @@ async function fetchFormationFromTwoDeep(abbr){
   function toEntries(rawPlayers){
     if(!rawPlayers) return null;
     const isOddFront = buildOddFrontFlag(rawPlayers);
+    const samEdge = samIsEdge(rawPlayers, isOddFront);
     return rawPlayers.map(rp => {
-      const group = twoDeepPosToGroup(rp.posLabel, isOddFront);
+      let group = twoDeepPosToGroup(rp.posLabel, isOddFront);
+      if(samEdge && /^(SAM|SLB)\d*$/i.test(rp.posLabel || '')) group = 'ED';
       if(!group) return null;
       const byJerseyMatch = rp.jersey != null ? byJersey.get(String(rp.jersey)) : null;
       const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
@@ -3563,13 +3584,24 @@ function layoutPersonnel(list){
       // aufsplitten (das brach bei jeder unerwarteten Kombination erneut) —
       // stattdessen rein nach ANZAHL gleichmäßig verteilen, dann klappt's für
       // jede Konstellation bei jedem Team automatisch, ohne Einzelfall-Pflege.
-      const boundary = items.filter(e => /^(LCB|RCB)$/i.test(e.posLabel));
-      const slot = items.filter(e => !/^(LCB|RCB)$/i.test(e.posLabel));
+      const isSlotLabel = e => /^(NB|NKL|SCB)\d*$/i.test(e.posLabel);
+      const explicitOutside = items.filter(e => /^(LCB|RCB)$/i.test(e.posLabel));
+      // Fehlt ein Außen-Corner (z.B. nur LCB + generisches "CB", siehe Chat,
+      // BAL Base), übernimmt ein generisches CB/DB die freie Außenseite —
+      // Slot-Labels (NB/NKL/SCB) bleiben immer in der Slot-Reihe.
+      const generic = items.filter(e => !/^(LCB|RCB)$/i.test(e.posLabel) && !isSlotLabel(e));
+      const fill = generic.slice(0, Math.max(0, 2 - explicitOutside.length));
+      const boundary = explicitOutside.concat(fill);
+      const slot = items.filter(e => !boundary.includes(e));
+      const usedLeft = explicitOutside.some(e => /^L/i.test(e.posLabel));
+      const usedRight = explicitOutside.some(e => /^R/i.test(e.posLabel));
       boundary.forEach((e, i) => {
-        const x = boundary.length === 1 ? 50 : 8 + i * (84 / (boundary.length - 1 || 1));
-        positioned.push({ ...e, x, y: bands.CB });
+        let side;
+        if(/^L/i.test(e.posLabel) && /CB$/i.test(e.posLabel)) side = 'L';
+        else if(/^R/i.test(e.posLabel) && /CB$/i.test(e.posLabel)) side = 'R';
+        else side = usedLeft && !usedRight ? 'R' : (usedRight && !usedLeft ? 'L' : (i === 0 ? 'L' : 'R'));
+        positioned.push({ ...e, x: side === 'L' ? 8 : 88, y: bands.CB });
       });
-      if(boundary.length === 2){ positioned[positioned.length-1].x = 88; }
       if(slot.length === 1){
         // Ein einzelner Slot-Corner (Nickel-Normalfall): außen links, nicht
         // zentriert (siehe Chat).
