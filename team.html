@@ -3504,16 +3504,34 @@ function samIsEdge(rawPlayers, isOddFront){
 // scripts/scrape-formations.js + .github/workflows/formation-scrape.yml) —
 // kein Live-Scraping mehr auf Seitenaufruf, dafür alle drei Pakete echt
 // verfügbar (Base/Nickel/Dime), da der Klick beim Vorberechnen simuliert wird.
+// Quellen: Firestore (shared_cache/formations_v1, vom Scraper geschrieben — gleiche
+// Daten auf Test UND Live, wie beim Team-Stats-Precompute) und formations.json
+// (Rückfall). Es gewinnt der NEUERE Stand, falls beide vorhanden sind.
 let formationsJsonCache = null;
 async function loadFormationsJson(){
   if(formationsJsonCache) return formationsJsonCache;
-  try{
-    const r = await fetch('formations.json');
-    if(!r.ok){ console.warn(`[Formation] formations.json Fehler ${r.status}`); return null; }
-    formationsJsonCache = await r.json();
-    console.info(`[Formation] formations.json geladen — Stand: ${formationsJsonCache.updatedAt}`);
-    return formationsJsonCache;
-  }catch(e){ console.warn('[Formation] formations.json konnte nicht geladen werden:', e); return null; }
+  const fromFirestore = (async () => {
+    try{
+      const shared = await loadSharedCache('formations_v1');
+      if(shared && shared.teams) return { teams: shared.teams, updatedAt: shared.scrapedAt || (shared.updatedAt ? new Date(shared.updatedAt).toISOString() : null), source: 'Firestore' };
+    }catch(e){ console.warn('[Formation] Firestore-Lesen fehlgeschlagen:', e); }
+    return null;
+  })();
+  const fromFile = (async () => {
+    try{
+      const r = await fetch('formations.json');
+      if(!r.ok){ console.warn(`[Formation] formations.json Fehler ${r.status}`); return null; }
+      const j = await r.json();
+      return j && j.teams ? { ...j, source: 'formations.json' } : null;
+    }catch(e){ console.warn('[Formation] formations.json konnte nicht geladen werden:', e); return null; }
+  })();
+  const [a, b] = await Promise.all([fromFirestore, fromFile]);
+  const ts = x => x && x.updatedAt ? new Date(x.updatedAt).getTime() : 0;
+  const best = (a && b) ? (ts(a) >= ts(b) ? a : b) : (a || b);
+  if(!best) return null;
+  formationsJsonCache = best;
+  console.info(`[Formation] Daten geladen aus ${best.source} — Stand: ${best.updatedAt}`);
+  return formationsJsonCache;
 }
 
 async function fetchFormationFromTwoDeep(abbr){
