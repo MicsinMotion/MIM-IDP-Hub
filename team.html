@@ -663,13 +663,25 @@ let isInternalUser = false;
 let currentDisplayedYear = null;
 let onAccessLevelResolved = null; // wird weiter unten gesetzt, sobald renderSeason existiert
 function applyAccessLevelVisibility(isInternal){
-  const fullStats = document.getElementById('full-team-stats-section');
+  // WICHTIG (siehe Chat): #full-team-stats-section ist jetzt das Reiter-Panel
+  // "Team Stats" und enthält AUCH die Community-Box. Das Panel selbst darf daher
+  // NIE per Inline-Style ausgeblendet werden (sonst verschwindet die Community-
+  // Box mit und die Reiter-Umschaltung wird überstimmt) — nur die internen
+  // Inhalte darin werden umgeschaltet.
+  const tsHdr = document.getElementById('ts-toggle-hdr');
+  const tsBody = document.getElementById('ts-body');
   const lineupSection = document.getElementById('lineup-section');
   const communitySection = document.getElementById('community-stats-section');
-  if(fullStats) fullStats.style.display = isInternal ? '' : 'none';
+  if(tsHdr) tsHdr.style.display = isInternal ? '' : 'none';
+  if(tsBody) tsBody.style.display = isInternal ? '' : 'none';
   if(lineupSection) lineupSection.style.display = isInternal ? '' : 'none';
-  if(communitySection) communitySection.style.display = isInternal ? 'none' : '';
+  if(communitySection){
+    communitySection.style.display = isInternal ? 'none' : '';
+    communitySection.style.marginTop = isInternal ? '' : '0';
+  }
 }
+// Sicherer Standard (Community), bis die Login-Prüfung zurückkommt.
+applyAccessLevelVisibility(false);
 watchAuth(user => {
   isInternalUser = !!user;
   applyAccessLevelVisibility(isInternalUser);
