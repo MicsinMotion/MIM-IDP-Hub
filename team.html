@@ -3535,13 +3535,39 @@ async function fetchFormationFromTwoDeep(abbr){
     bySlugName.set(normalizeNameForMatch(name), { sleeperId: sid, name });
   });
 
+  // Generisches "DB" (siehe Chat, BAL Dime): TWO·DEEP nennt es nicht, ob CB oder
+  // Safety. Dieselbe Trikotnummer trägt in den anderen Paketen desselben Teams
+  // meist ein eindeutiges Label (SS/FS/CB/NB...) — daran wird "DB" aufgelöst,
+  // ohne Einzelfall-Pflege. Fallback bleibt CB.
+  const dbHint = new Map();
+  ['base','nickel','dime'].forEach(k => (teamData[k] || []).forEach(rp => {
+    const l = (rp.posLabel || '').toUpperCase().replace(/\d+$/, '');
+    if(l === 'DB' || rp.jersey == null) return;
+    const g = twoDeepPosToGroup(l, false);
+    if((g === 'S' || g === 'CB') && !dbHint.has(String(rp.jersey))) dbHint.set(String(rp.jersey), g);
+  }));
+
   function toEntries(rawPlayers){
     if(!rawPlayers) return null;
     const isOddFront = buildOddFrontFlag(rawPlayers);
     const samEdge = samIsEdge(rawPlayers, isOddFront);
-    return rawPlayers.map(rp => {
+    const mapped = rawPlayers.map(rp => {
       let group = twoDeepPosToGroup(rp.posLabel, isOddFront);
       if(samEdge && /^(SAM|SLB)\d*$/i.test(rp.posLabel || '')) group = 'ED';
+      if(/^DB\d*$/i.test(rp.posLabel || '') && rp.jersey != null && dbHint.get(String(rp.jersey))) group = dbHint.get(String(rp.jersey));
+      return { rp, group };
+    });
+    // Even Front (4 Linemen): höchstens 2 Edge — weitere DE-Labels (z.B. ein
+    // zweites "RDE", siehe Chat, DEN) sind Interior. Gilt generisch pro Team/Paket.
+    if(!isOddFront){
+      let edgeCount = 0;
+      mapped.forEach(m => {
+        if(m.group !== 'ED') return;
+        edgeCount++;
+        if(edgeCount > 2 && /^(LDE|RDE|DE)\d*$/i.test(m.rp.posLabel || '')) m.group = 'DI';
+      });
+    }
+    return mapped.map(({ rp, group }) => {
       if(!group) return null;
       const byJerseyMatch = rp.jersey != null ? byJersey.get(String(rp.jersey)) : null;
       const nameFromSlug = normalizeNameForMatch(rp.slug.replace(/-/g, ' '));
@@ -3571,28 +3597,41 @@ async function fetchFormationFromTwoDeep(abbr){
 function layoutPersonnel(list){
   const bands = { DI: 8, ED: 22, LB: 36, CB: 46, S: 72 };
   const margins = { DI: 34, ED: 12, LB: 26, S: 32 };
+  const SLOT_Y = 58;
   const byGroup = {};
   list.forEach(e => { (byGroup[e.group] = byGroup[e.group] || []).push(e); });
   const positioned = [];
+
+  // Seitenreihenfolge: L-Labels links, R-Labels rechts, Rest in Datenreihenfolge.
+  const sideRank = e => /^L/i.test(e.posLabel) ? 0 : (/^R/i.test(e.posLabel) ? 2 : 1);
+  const bySide = items => items.map((e, i) => ({ e, i })).sort((a, b) => (sideRank(a.e) - sideRank(b.e)) || (a.i - b.i)).map(x => x.e);
+  const spread = (n, i, margin) => n === 1 ? 50 : margin + i * ((100 - 2 * margin) / (n - 1));
+
+  // Safeties: FS/SS bleiben hinten. Ein dritter Safety (Big Dime, siehe Chat,
+  // CAR: "S" neben FS und SS) steht davor, in der Slot-Reihe auf Höhe des
+  // Nickel-Corners — nur wenn es wirklich 3 oder mehr Safeties gibt.
+  let extraS = [];
+  if(byGroup.S && byGroup.S.length >= 3){
+    const deep = byGroup.S.filter(e => /^(FS|SS)\d*$/i.test(e.posLabel));
+    if(deep.length >= 1 && deep.length < byGroup.S.length){
+      extraS = byGroup.S.filter(e => !deep.includes(e));
+      byGroup.S = deep;
+    }
+  }
+
+  let slotCB = [];
   Object.entries(byGroup).forEach(([group, items]) => {
     if(group === 'CB'){
-      // Außen-Corner (LCB/RCB, per Seiten-Präfix erkannt — funktioniert bei
-      // jedem Team gleich, unabhängig vom genauen Label-Text) weit außen,
-      // alles andere in der CB-Gruppe (NB, SCB, generisches "CB", in welcher
-      // Kombination auch immer ein Team das nutzt) in der Slot-Reihe.
-      // WICHTIG (siehe Chat): NIE nach dem GENAUEN Label-Text weiter
-      // aufsplitten (das brach bei jeder unerwarteten Kombination erneut) —
-      // stattdessen rein nach ANZAHL gleichmäßig verteilen, dann klappt's für
-      // jede Konstellation bei jedem Team automatisch, ohne Einzelfall-Pflege.
+      // Außen-Corner (LCB/RCB) weit außen; fehlt eine Seite, übernimmt ein
+      // generisches CB/DB sie. NB/NKL/SCB bleiben immer in der Slot-Reihe.
+      // NIE nach genauem Label-Text weiter aufsplitten (siehe Chat) — nur
+      // Zählen, damit es für jede Konstellation automatisch passt.
       const isSlotLabel = e => /^(NB|NKL|SCB)\d*$/i.test(e.posLabel);
       const explicitOutside = items.filter(e => /^(LCB|RCB)$/i.test(e.posLabel));
-      // Fehlt ein Außen-Corner (z.B. nur LCB + generisches "CB", siehe Chat,
-      // BAL Base), übernimmt ein generisches CB/DB die freie Außenseite —
-      // Slot-Labels (NB/NKL/SCB) bleiben immer in der Slot-Reihe.
       const generic = items.filter(e => !/^(LCB|RCB)$/i.test(e.posLabel) && !isSlotLabel(e));
       const fill = generic.slice(0, Math.max(0, 2 - explicitOutside.length));
       const boundary = explicitOutside.concat(fill);
-      const slot = items.filter(e => !boundary.includes(e));
+      slotCB = items.filter(e => !boundary.includes(e));
       const usedLeft = explicitOutside.some(e => /^L/i.test(e.posLabel));
       const usedRight = explicitOutside.some(e => /^R/i.test(e.posLabel));
       boundary.forEach((e, i) => {
@@ -3602,27 +3641,41 @@ function layoutPersonnel(list){
         else side = usedLeft && !usedRight ? 'R' : (usedRight && !usedLeft ? 'L' : (i === 0 ? 'L' : 'R'));
         positioned.push({ ...e, x: side === 'L' ? 8 : 88, y: bands.CB });
       });
-      if(slot.length === 1){
-        // Ein einzelner Slot-Corner (Nickel-Normalfall): außen links, nicht
-        // zentriert (siehe Chat).
-        positioned.push({ ...slot[0], x: 26, y: 58 });
-      } else {
-        // Zwei oder mehr: gleichmäßig über die Breite verteilt (garantiert
-        // keine Überlappung, unabhängig davon wie die Spieler im Detail heißen).
-        const slotMargin = 20;
-        slot.forEach((e, i) => {
-          const x = slotMargin + i * ((100 - 2*slotMargin) / (slot.length - 1));
-          positioned.push({ ...e, x, y: 58 });
-        });
+    } else if(group === 'ED'){
+      // Ein einzelner Edge (z.B. "RUSH" in der 3-4-Nickel/Dime, siehe Chat)
+      // steht außen auf seiner Seite, nicht mittig vor der Line.
+      const sorted = bySide(items);
+      sorted.forEach((e, i) => {
+        const x = sorted.length === 1 ? (/^R/i.test(e.posLabel) ? 88 : 12) : spread(sorted.length, i, margins.ED);
+        positioned.push({ ...e, x, y: bands.ED });
+      });
+    } else if(group === 'DI'){
+      // Bei 3 Interior-Linemen (3-4-Front) steht der Nose Tackle in der Mitte
+      // und die Reihe ist breiter gezogen, damit die Namen nicht abgeschnitten
+      // werden bzw. sich überlappen (siehe Chat, NYG/SEA).
+      let sorted = bySide(items);
+      if(sorted.length === 3){
+        const nt = sorted.find(e => /^NT\d*$/i.test(e.posLabel));
+        if(nt){ const others = sorted.filter(e => e !== nt); sorted = [others[0], nt, others[1]]; }
       }
+      const margin = sorted.length >= 3 ? 22 : margins.DI;
+      sorted.forEach((e, i) => positioned.push({ ...e, x: spread(sorted.length, i, margin), y: bands.DI }));
     } else {
       const y = bands[group] ?? 40;
       const margin = margins[group] ?? 20;
-      items.forEach((e, i) => {
-        const x = items.length === 1 ? 50 : margin + i * ((100 - 2*margin) / (items.length - 1));
-        positioned.push({ ...e, x, y });
-      });
+      const sorted = group === 'LB' ? bySide(items) : items;
+      sorted.forEach((e, i) => positioned.push({ ...e, x: spread(sorted.length, i, margin), y }));
     }
+  });
+
+  // Slot-Reihe: Slot-Corner (NB/NKL/SCB/…) zuerst, dahinter ein dritter Safety.
+  // Einzeln: Corner links (x=26), Safety rechts (x=74); sonst gleichmäßig verteilt.
+  const slotAll = slotCB.concat(extraS);
+  slotAll.forEach((e, i) => {
+    let x;
+    if(slotAll.length === 1) x = extraS.includes(e) ? 74 : 26;
+    else x = 20 + i * (60 / (slotAll.length - 1));
+    positioned.push({ ...e, x, y: SLOT_Y });
   });
   return positioned;
 }
