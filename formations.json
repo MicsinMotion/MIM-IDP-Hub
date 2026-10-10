@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-09T16:51:40.779Z",
+  "updatedAt": "2026-10-10T05:27:07.162Z",
   "teams": {
     "ARI": {
       "base": [
@@ -197,9 +197,9 @@
           "jersey": "54"
         },
         {
-          "slug": "harold-perkins-jr",
+          "slug": "kendal-daniels",
           "posLabel": "LILB",
-          "jersey": "56"
+          "jersey": "53"
         },
         {
           "slug": "divine-deablo",
@@ -207,9 +207,9 @@
           "jersey": "0"
         },
         {
-          "slug": "kendal-daniels",
+          "slug": "harold-perkins-jr",
           "posLabel": "LILB",
-          "jersey": "53"
+          "jersey": "56"
         },
         {
           "slug": "mike-hughes",
@@ -254,9 +254,9 @@
           "jersey": "54"
         },
         {
-          "slug": "harold-perkins-jr",
+          "slug": "kendal-daniels",
           "posLabel": "LILB",
-          "jersey": "56"
+          "jersey": "53"
         },
         {
           "slug": "divine-deablo",
@@ -274,9 +274,9 @@
           "jersey": "26"
         },
         {
-          "slug": "billy-bowman-jr",
+          "slug": "avieon-terrell",
           "posLabel": "NB",
-          "jersey": "33"
+          "jersey": "12"
         },
         {
           "slug": "xavier-watts",
@@ -326,14 +326,14 @@
           "jersey": "26"
         },
         {
-          "slug": "billy-bowman-jr",
-          "posLabel": "NB",
-          "jersey": "33"
-        },
-        {
           "slug": "avieon-terrell",
           "posLabel": "NB",
           "jersey": "12"
+        },
+        {
+          "slug": "billy-bowman-jr",
+          "posLabel": "NB",
+          "jersey": "33"
         },
         {
           "slug": "xavier-watts",
@@ -1428,9 +1428,9 @@
           "jersey": "26"
         },
         {
-          "slug": "shavon-revel-jr",
+          "slug": "joey-porter-jr",
           "posLabel": "RCB",
-          "jersey": "28"
+          "jersey": "25"
         },
         {
           "slug": "caleb-downs",
@@ -1480,9 +1480,9 @@
           "jersey": "26"
         },
         {
-          "slug": "shavon-revel-jr",
+          "slug": "joey-porter-jr",
           "posLabel": "RCB",
-          "jersey": "28"
+          "jersey": "25"
         },
         {
           "slug": "caleb-downs",
@@ -1532,9 +1532,9 @@
           "jersey": "26"
         },
         {
-          "slug": "shavon-revel-jr",
+          "slug": "joey-porter-jr",
           "posLabel": "RCB",
-          "jersey": "28"
+          "jersey": "25"
         },
         {
           "slug": "caleb-downs",
@@ -2273,9 +2273,9 @@
           "jersey": "97"
         },
         {
-          "slug": "jaylon-carlies",
+          "slug": "bryce-boettcher",
           "posLabel": "WLB",
-          "jersey": "57"
+          "jersey": "50"
         },
         {
           "slug": "akeem-davis-gaither",
@@ -2283,9 +2283,9 @@
           "jersey": "51"
         },
         {
-          "slug": "bryce-boettcher",
+          "slug": "tahj-chambers",
           "posLabel": "SLB",
-          "jersey": "50"
+          "jersey": "44"
         },
         {
           "slug": "sauce-gardner",
@@ -2330,9 +2330,9 @@
           "jersey": "97"
         },
         {
-          "slug": "jaylon-carlies",
+          "slug": "bryce-boettcher",
           "posLabel": "WLB",
-          "jersey": "57"
+          "jersey": "50"
         },
         {
           "slug": "akeem-davis-gaither",
@@ -2812,9 +2812,9 @@
           "jersey": "4"
         },
         {
-          "slug": "donte-jackson",
+          "slug": "cam-hart",
           "posLabel": "RCB",
-          "jersey": "26"
+          "jersey": "20"
         },
         {
           "slug": "elijah-molden",
@@ -2864,9 +2864,9 @@
           "jersey": "4"
         },
         {
-          "slug": "donte-jackson",
+          "slug": "cam-hart",
           "posLabel": "RCB",
-          "jersey": "26"
+          "jersey": "20"
         },
         {
           "slug": "derwin-james-jr",
@@ -2916,9 +2916,9 @@
           "jersey": "4"
         },
         {
-          "slug": "donte-jackson",
+          "slug": "cam-hart",
           "posLabel": "RCB",
-          "jersey": "26"
+          "jersey": "20"
         },
         {
           "slug": "derwin-james-jr",
@@ -4542,9 +4542,9 @@
           "jersey": "22"
         },
         {
-          "slug": "jamel-dean",
+          "slug": "daylen-everette",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "23"
         },
         {
           "slug": "jaquan-brisker",
@@ -4594,9 +4594,9 @@
           "jersey": "22"
         },
         {
-          "slug": "jamel-dean",
+          "slug": "daylen-everette",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "23"
         },
         {
           "slug": "jalen-ramsey",
@@ -4646,9 +4646,9 @@
           "jersey": "22"
         },
         {
-          "slug": "jamel-dean",
+          "slug": "daylen-everette",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "23"
         },
         {
           "slug": "jalen-ramsey",
@@ -4725,9 +4725,9 @@
           "jersey": "27"
         },
         {
-          "slug": "malik-mustapha",
+          "slug": "marques-sigle",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "36"
         }
       ],
       "nickel": [
@@ -4782,9 +4782,9 @@
           "jersey": "27"
         },
         {
-          "slug": "malik-mustapha",
+          "slug": "marques-sigle",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "36"
         }
       ],
       "dime": [
@@ -4839,9 +4839,9 @@
           "jersey": "27"
         },
         {
-          "slug": "malik-mustapha",
+          "slug": "marques-sigle",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "36"
         }
       ]
     },
@@ -5002,8 +5002,13 @@
           "jersey": "28"
         },
         {
+          "slug": "aj-finley",
+          "posLabel": "S",
+          "jersey": "30"
+        },
+        {
           "slug": "nick-emmanwori",
-          "posLabel": "CB",
+          "posLabel": "FS",
           "jersey": "3"
         },
         {
