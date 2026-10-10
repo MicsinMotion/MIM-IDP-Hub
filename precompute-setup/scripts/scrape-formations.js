@@ -1,0 +1,257 @@
+// scrape-formations.js — Holt für jedes NFL-Team die ECHTEN Base/Nickel/Dime-
+// Personnel-Pakete von TWO·DEEP (mit deren ausdrücklicher Erlaubnis für dieses
+// Projekt, siehe Chat). Läuft per GitHub Actions regelmäßig (siehe zugehörige
+// .yml-Datei) und schreibt das Ergebnis als formations.json ins Repo — team.html
+// liest dann nur noch diese fertige Datei, kein Live-Scraping mehr nötig.
+//
+// WICHTIG: Dieses Skript wurde NICHT live gegen thetwodeep.com getestet (die
+// Sandbox, in der es geschrieben wurde, hat keinen Netzwerkzugriff auf die
+// Seite). Die Selektoren (.td-fnode-role, .td-fnode-jersey, a[href*="pside=def"])
+// sind aus einem echten, live abgerufenen HTML-Dump bestätigt (siehe Chat) —
+// der Klick-Mechanismus für die Base/Nickel/Dime-Buttons ist dagegen eine
+// robuste, aber ungetestete Annahme (Text-Suche über alle klickbaren
+// Elemente). Beim ERSTEN echten Lauf unbedingt die Konsolen-Ausgabe genau
+// prüfen — das Skript loggt bei jedem Schritt, was es tut/findet.
+
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+
+// Dieselbe Team-Kürzel-Tabelle wie in team.html (ESPN_A) — TWO·DEEP nutzt
+// dieselben Standard-Kürzel in ihren URLs.
+const TEAM_SLUG = {
+  ARI:'ari', ATL:'atl', BAL:'bal', BUF:'buf', CAR:'car', CHI:'chi', CIN:'cin',
+  CLE:'cle', DAL:'dal', DEN:'den', DET:'det', GB:'gb', HOU:'hou', IND:'ind',
+  JAX:'jax', KC:'kc', LAC:'lac', LAR:'lar', LV:'lv', MIA:'mia', MIN:'min',
+  NE:'ne', NO:'no', NYG:'nyg', NYJ:'nyj', PHI:'phi', PIT:'pit', SF:'sf',
+  SEA:'sea', TB:'tb', TEN:'ten', WAS:'wsh',
+};
+
+const PACKAGES = ['Base', 'Nickel', 'Dime'];
+const OUTPUT_PATH = path.join(__dirname, '..', '..', 'formations.json'); // precompute-setup/scripts/ -> Repo-Root
+const DELAY_BETWEEN_TEAMS_MS = 3000; // Höflichkeitspause, keine 32 Requests im Sekundentakt
+
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+// Sucht unter ALLEN klickbaren/text-tragenden Elementen eines, dessen
+// GESAMTER (getrimmter) Text exakt dem Label entspricht UND das selbst keine
+// Kind-Elemente hat (verhindert, dass wir einen großen Wrapper treffen, der
+// zufällig auch "Base" im Text enthält, z.B. weil er mehrere Buttons umschließt).
+async function clickPackageButton(page, label){
+  const clicked = await page.evaluate((lbl) => {
+    const candidates = [...document.querySelectorAll('button, [role="button"], a, span, div')];
+    const match = candidates.find(el => el.children.length === 0 && el.textContent.trim() === lbl);
+    if(match){
+      match.click();
+      return true;
+    }
+    return false;
+  }, label);
+  if(!clicked){
+    console.warn(`  [WARNUNG] Button "${label}" nicht gefunden — evtl. Selektor/Text hat sich geändert.`);
+    return false;
+  }
+  // Kurze Pause, damit React die Personnel-Ansicht neu rendert, bevor wir auslesen.
+  await sleep(300);
+  return true;
+}
+
+// Signatur eines Snapshots (Label:Trikot je Spieler) — damit erkennbar ist, ob
+// sich die Anzeige nach dem Klick wirklich geändert hat und stabil ist.
+function signature(players){
+  return players.map(p => `${p.posLabel}:${p.jersey}`).join('|');
+}
+
+// Klickt ein Paket an und wartet, bis die Anzeige (a) sich gegenüber dem
+// vorherigen Stand geändert hat und (b) in zwei aufeinanderfolgenden Messungen
+// identisch ist (siehe Chat: ein fester 700-ms-Wait kann mitten in der
+// Umschaltung messen — dann fehlen Spieler oder Labels sind vermischt).
+// Gibt immer das beste Ergebnis zurück, plus ein Flag ob es verlässlich ist.
+async function selectPackage(page, label, prevSig){
+  let best = { players: [], ok: false };
+  for(let attempt = 1; attempt <= 3; attempt++){
+    const clicked = await clickPackageButton(page, label);
+    if(!clicked) return { players: [], ok: false, missingButton: true };
+    let lastSig = null;
+    for(let i = 0; i < 14; i++){
+      await sleep(400);
+      const players = await extractDefense(page);
+      const sig = signature(players);
+      const changed = prevSig == null || sig !== prevSig;
+      const stable = sig === lastSig;
+      if(players.length >= best.players.length) best = { players, ok: false };
+      if(stable && changed && players.length === 11){
+        return { players, ok: true };
+      }
+      lastSig = sig;
+    }
+    console.warn(`  Paket "${label}": Versuch ${attempt} nicht verlässlich (${best.players.length} Spieler) — erneut klicken.`);
+  }
+  return best;
+}
+
+// Liest die aktuell angezeigte Defense-Formation aus dem DOM. Nutzt die live
+// bestätigten Klassennamen (siehe Chat) — direkte DOM-Abfrage statt Regex auf
+// rohem HTML, deshalb robust gegenüber Whitespace/Attribut-Reihenfolge.
+async function extractDefense(page){
+  return await page.evaluate(() => {
+    const anchors = [...document.querySelectorAll('a[href*="pside=def"]')];
+    const seen = new Set();
+    const players = [];
+    for(const a of anchors){
+      const href = a.getAttribute('href') || '';
+      const slugMatch = href.match(/player=([a-z0-9-]+)/);
+      if(!slugMatch) continue;
+      const slug = slugMatch[1];
+      if(seen.has(slug)) continue;
+      const roleEl = a.querySelector('.td-fnode-role');
+      if(!roleEl) continue; // zweiter Link desselben Spielers (nur Name, kein Rollen-Badge) — überspringen
+      seen.add(slug);
+      const jerseyEl = a.querySelector('.td-fnode-jersey');
+      players.push({
+        slug,
+        posLabel: roleEl.textContent.trim(),
+        jersey: jerseyEl ? jerseyEl.textContent.trim() : null,
+      });
+    }
+    return players;
+  });
+}
+
+async function scrapeTeamOnce(browser, abbr, slug){
+  const page = await browser.newPage();
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  const url = `https://www.thetwodeep.com/nfl/${slug}/formation`;
+  console.log(`\n[${abbr}] Lade ${url} ...`);
+
+  const result = { base: null, nickel: null, dime: null };
+
+  try{
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    // Warten, bis mindestens ein Spieler-Knoten gerendert ist, bevor wir irgendwas anfassen.
+    await page.waitForSelector('a[href*="pside=def"] .td-fnode-role', { timeout: 15000 }).catch(() => {
+      console.warn(`  [${abbr}] Kein ".td-fnode-role"-Element nach 15s gefunden — Seite evtl. anders aufgebaut oder nicht geladen.`);
+    });
+
+    let prevSig = signature(await extractDefense(page)); // Ausgangszustand (zeigt serverseitig Nickel)
+    for(const pkg of PACKAGES){
+      console.log(`  [${abbr}] Versuche Paket "${pkg}" anzuklicken...`);
+      const res = await selectPackage(page, pkg, prevSig);
+      if(res.missingButton){
+        console.warn(`  [${abbr}] Paket "${pkg}" übersprungen (Button nicht gefunden).`);
+        continue;
+      }
+      const players = res.players;
+      if(!res.ok) console.warn(`  [${abbr}] WARNUNG Paket "${pkg}": nicht verlässlich bestätigt (${players.length} Spieler).`);
+      else if(players.length !== 11) console.warn(`  [${abbr}] WARNUNG Paket "${pkg}": ${players.length} statt 11 Spieler.`);
+      console.log(`  [${abbr}] Paket "${pkg}": ${players.length} Def-Spieler erkannt — ${players.map(p => `${p.posLabel}:${p.slug}`).join(', ')}`);
+      result[pkg.toLowerCase()] = players.length ? players : null;
+      if(players.length) prevSig = signature(players);
+    }
+  }catch(e){
+    console.error(`  [${abbr}] FEHLER beim Laden/Verarbeiten:`, e.message);
+  }finally{
+    await page.close();
+  }
+
+  return result;
+}
+
+// Ein Team komplett scrapen — bei unvollständigen Paketen (nicht genau 11 Spieler)
+// wird die Seite frisch geladen und noch einmal gelesen (bis zu 3 Durchläufe).
+// Pro Paket bleibt das beste Ergebnis (am nächsten an 11) erhalten. Siehe Chat
+// (SEA Dime / WAS Nickel mit 10 Spielern): ein unvollständiges Paket soll nie
+// stillschweigend durchrutschen.
+const MAX_TEAM_ATTEMPTS = 3;
+async function scrapeTeam(browser, abbr, slug){
+  const best = { base: null, nickel: null, dime: null };
+  for(let attempt = 1; attempt <= MAX_TEAM_ATTEMPTS; attempt++){
+    const r = await scrapeTeamOnce(browser, abbr, slug);
+    for(const k of ['base','nickel','dime']){
+      if(r[k] && (!best[k] || r[k].length > best[k].length)) best[k] = r[k];
+    }
+    const incomplete = ['base','nickel','dime'].filter(k => !best[k] || best[k].length !== 11);
+    if(!incomplete.length) break;
+    if(attempt < MAX_TEAM_ATTEMPTS){
+      console.warn(`  [${abbr}] Unvollständig (${incomplete.map(k => `${k}:${best[k] ? best[k].length : 0}`).join(', ')}) — Durchlauf ${attempt + 1}/${MAX_TEAM_ATTEMPTS}.`);
+      await sleep(DELAY_BETWEEN_TEAMS_MS);
+    }
+  }
+  return best;
+}
+
+// Zusätzlich zur Datei auch nach Firestore (shared_cache/formations_v1) — genau
+// wie der Team-Stats-Precompute (siehe precompute.js): Test-Seite UND Live-
+// Server lesen dieselben Daten, ohne dass irgendeine Datei auf den Server
+// kopiert werden muss. Braucht das GitHub-Secret FIREBASE_SERVICE_ACCOUNT
+// (existiert bereits für den Precompute). Fehlt es oder schlägt das Schreiben
+// fehl, bleibt der Lauf trotzdem erfolgreich — formations.json ist der Rückfall.
+async function writeToFirestore(output){
+  if(!process.env.FIREBASE_SERVICE_ACCOUNT){
+    console.warn('[Firestore] FIREBASE_SERVICE_ACCOUNT nicht gesetzt — Firestore-Upload übersprungen (nur formations.json).');
+    return;
+  }
+  // Schutz: keinen kaputten Lauf (z.B. Seite blockiert/umgebaut) über gute Daten schreiben.
+  const complete = Object.values(output.teams).filter(t => t.base && t.nickel && t.dime).length;
+  if(complete < 24){
+    console.warn(`[Firestore] Nur ${complete}/32 Teams mit allen 3 Paketen — Upload übersprungen, um bestehende Daten nicht zu überschreiben.`);
+    return;
+  }
+  try{
+    const admin = require('firebase-admin');
+    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
+    await admin.firestore().collection('shared_cache').doc('formations_v1').set({
+      teams: output.teams,
+      scrapedAt: output.updatedAt,
+      updatedAt: Date.now(),
+    });
+    console.log(`[Firestore] shared_cache/formations_v1 geschrieben (${complete}/32 Teams komplett).`);
+  }catch(e){
+    console.error('[Firestore] Schreiben fehlgeschlagen:', e.message);
+  }
+}
+
+async function main(){
+  console.log(`Starte Formation-Scrape für ${Object.keys(TEAM_SLUG).length} Teams...`);
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'], // nötig für die meisten CI-Runner (auch GitHub Actions)
+  });
+
+  const output = { updatedAt: new Date().toISOString(), teams: {} };
+
+  for(const [abbr, slug] of Object.entries(TEAM_SLUG)){
+    output.teams[abbr] = await scrapeTeam(browser, abbr, slug);
+    await sleep(DELAY_BETWEEN_TEAMS_MS);
+  }
+
+  await browser.close();
+
+  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2));
+  console.log(`\nFertig. Ergebnis geschrieben nach: ${OUTPUT_PATH}`);
+  await writeToFirestore(output);
+
+  // Kurze Zusammenfassung, wie viele Teams pro Paket erfolgreich waren —
+  // damit im Actions-Log auf einen Blick sichtbar ist, ob was systematisch fehlschlägt.
+  const counts = { base: 0, nickel: 0, dime: 0 };
+  Object.values(output.teams).forEach(t => {
+    if(t.base) counts.base++;
+    if(t.nickel) counts.nickel++;
+    if(t.dime) counts.dime++;
+  });
+  const incomplete = [];
+  Object.entries(output.teams).forEach(([abbr, t]) => {
+    ['base','nickel','dime'].forEach(k => { if(t[k] && t[k].length !== 11) incomplete.push(`${abbr} ${k} (${t[k].length})`); });
+  });
+  if(incomplete.length){
+    console.warn(`Pakete ohne 11 Spieler: ${incomplete.join(', ')}`);
+    // Sichtbar in der Zusammenfassung des GitHub-Laufs (gelbe Warnung), ohne den Lauf rot zu machen.
+    console.log(`::warning title=Formation-Scrape unvollständig::Pakete ohne 11 Spieler: ${incomplete.join(', ')}`);
+  }
+  console.log(`Zusammenfassung: Base ${counts.base}/32, Nickel ${counts.nickel}/32, Dime ${counts.dime}/32 Teams erfolgreich.`);
+}
+
+main().catch(e => {
+  console.error('Unerwarteter Fehler im Scraper:', e);
+  process.exit(1);
+});
