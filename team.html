@@ -418,17 +418,20 @@ nav{background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid 
   <div id="formation-section" class="team-tab-panel" data-panel="formation">
   <div class="team-two-col">
     <div class="team-col-left">
-      <div class="dc-heading" data-i18n="formation_tab">Formation</div>
-      <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
-      <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
-      <div id="formation-container" style="display:none;"></div>
+      <!-- Formation gibt es nur für die aktuelle Saison (TWO·DEEP zeigt nur den aktuellen
+           Stand) — für vergangene Jahre blendet renderFormation diesen Block aus. -->
+      <div id="formation-block">
+        <div class="dc-heading" data-i18n="formation_tab">Formation</div>
+        <div class="dc-subline" id="formation-subline" data-i18n="formation_subline">Projektion auf Basis von PFF-Rosterdaten + festen Zuordnungsregeln — kein Video-Charting.</div>
+        <div class="dc-loading" id="formation-status" data-i18n="loading_formation">Lade Formation…</div>
+        <div id="formation-container" style="display:none;"></div>
+      </div>
+      <!-- Most Used Schemes: für ALLE Jahre hier im Formation-Reiter, bei der aktuellen
+           Saison unterhalb der Formation, bei vergangenen Jahren statt ihr. -->
+      <div id="most-used-schemes-container" style="margin-top:24px;"></div>
     </div>
 
     <div class="team-col-right">
-      <div id="most-used-schemes-anchor" style="display:none;">
-        <div id="most-used-schemes-container"></div>
-      </div>
-
       <div id="lineup-section" style="display:none;margin-top:24px;">
         <div class="dc-heading" id="lineup-toggle-hdr">
           <span data-i18n="lineup_details">Lineup Details</span>
@@ -3714,6 +3717,14 @@ function layoutPersonnel(list){
 async function renderFormation(abbr, year){
   const statusEl = document.getElementById('formation-status');
   const container = document.getElementById('formation-container');
+  const block = document.getElementById('formation-block');
+  const mus = document.getElementById('most-used-schemes-container');
+  // Formation zeigt nur den AKTUELLEN Stand (TWO·DEEP) — für vergangene Saisons
+  // ausblenden und gar nicht erst laden. Most Used Schemes rücken dann an die Stelle.
+  const isCurrent = year === CURRENT_SEASON_YEAR;
+  if(block) block.style.display = isCurrent ? '' : 'none';
+  if(mus) mus.style.marginTop = isCurrent ? '24px' : '0';
+  if(!isCurrent) return;
   statusEl.style.display = 'block';
   container.style.display = 'none';
   try{
@@ -3828,11 +3839,6 @@ function renderDivisionRanking(abbr, team, divRows){
 async function renderScheduleStandings(abbr, year){
   const statusEl = document.getElementById('sched-status');
   const container = document.getElementById('sched-container');
-  const musContainer = document.getElementById('most-used-schemes-container');
-  const musAnchor = document.getElementById('most-used-schemes-anchor');
-  // most-used-schemes-container VOR dem Leeren sicher aus dem Container rausparken,
-  // sonst würde container.innerHTML='' es unwiderruflich zerstören (siehe Chat).
-  if(musContainer && musAnchor) musAnchor.appendChild(musContainer);
   statusEl.style.display = 'block';
   statusEl.textContent = 'Lade Schedule & Standings…';
   container.innerHTML = '';
@@ -3870,18 +3876,8 @@ async function renderScheduleStandings(abbr, year){
     container.querySelectorAll('.dc-section-hdr').forEach(hdr => {
       hdr.addEventListener('click', () => hdr.closest('.dc-section').classList.toggle('open'));
     });
-    // most-used-schemes-container platzieren — intern bündig unter AFC/NFC (eigene
-    // Spalte, unabhängig von der Höhe der Schedule-Spalte), Community stattdessen
-    // unter die reduzierte Team-Stats-Box (siehe Chat).
-    if(musContainer){
-      if(isInternalUser){
-        const standingsCol = document.getElementById('standings-col');
-        if(standingsCol) standingsCol.appendChild(musContainer);
-      } else {
-        const communityBody = document.getElementById('community-stats-body');
-        if(communityBody) communityBody.appendChild(musContainer);
-      }
-    }
+    // Most Used Schemes liegen jetzt dauerhaft im Formation-Reiter (siehe Chat) —
+    // hier wird nichts mehr verschoben.
   }catch(e){
     console.warn('Schedule/Standings konnten nicht geladen werden:', e);
     statusEl.textContent = 'Schedule/Standings konnten nicht geladen werden.';
