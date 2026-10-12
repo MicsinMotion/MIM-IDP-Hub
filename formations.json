@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-11T08:16:34.718Z",
+  "updatedAt": "2026-10-12T08:35:29.500Z",
   "teams": {
     "ARI": {
       "base": [
@@ -894,14 +894,14 @@
           "jersey": "12"
         },
         {
-          "slug": "tj-edwards",
-          "posLabel": "SLB",
-          "jersey": "53"
-        },
-        {
           "slug": "dmarco-jackson",
           "posLabel": "SLB",
           "jersey": "48"
+        },
+        {
+          "slug": "keyshaun-elliott",
+          "posLabel": "SLB",
+          "jersey": "49"
         },
         {
           "slug": "tyrique-stevenson",
@@ -951,9 +951,9 @@
           "jersey": "12"
         },
         {
-          "slug": "tj-edwards",
+          "slug": "dmarco-jackson",
           "posLabel": "SLB",
-          "jersey": "53"
+          "jersey": "48"
         },
         {
           "slug": "tyrique-stevenson",
@@ -1004,7 +1004,7 @@
         },
         {
           "slug": "devin-bush",
-          "posLabel": "SLB",
+          "posLabel": "MLB",
           "jersey": "12"
         },
         {
@@ -1764,9 +1764,9 @@
           "jersey": "55"
         },
         {
-          "slug": "devin-white",
+          "slug": "trevor-nowaske",
           "posLabel": "SLB",
-          "jersey": "45"
+          "jersey": "53"
         },
         {
           "slug": "rock-ya-sin",
@@ -3123,9 +3123,9 @@
           "jersey": "98"
         },
         {
-          "slug": "tonka-hemingway",
+          "slug": "jonah-laulu",
           "posLabel": "LDT",
-          "jersey": "97"
+          "jersey": "96"
         },
         {
           "slug": "adam-butler",
@@ -3180,9 +3180,9 @@
           "jersey": "98"
         },
         {
-          "slug": "tonka-hemingway",
+          "slug": "jonah-laulu",
           "posLabel": "LDT",
-          "jersey": "97"
+          "jersey": "96"
         },
         {
           "slug": "adam-butler",
@@ -3237,9 +3237,9 @@
           "jersey": "98"
         },
         {
-          "slug": "tonka-hemingway",
+          "slug": "jonah-laulu",
           "posLabel": "LDT",
-          "jersey": "97"
+          "jersey": "96"
         },
         {
           "slug": "adam-butler",
@@ -5229,9 +5229,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "kevin-winston-jr",
@@ -5281,9 +5281,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
@@ -5333,9 +5333,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
