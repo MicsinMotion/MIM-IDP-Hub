@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-14T07:05:34.721Z",
+  "updatedAt": "2026-10-15T06:56:36.532Z",
   "teams": {
     "ARI": {
       "base": [
@@ -675,6 +675,11 @@
           "slug": "dee-alford",
           "posLabel": "CB",
           "jersey": "23"
+        },
+        {
+          "slug": "davison-igbinosun",
+          "posLabel": "CB",
+          "jersey": "21"
         },
         {
           "slug": "cole-bishop",
@@ -1537,9 +1542,9 @@
           "jersey": "13"
         },
         {
-          "slug": "caelen-carson",
+          "slug": "cobie-durant",
           "posLabel": "CB",
-          "jersey": "21"
+          "jersey": "2"
         },
         {
           "slug": "malik-hooker",
@@ -1556,6 +1561,11 @@
     "DEN": {
       "base": [
         {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
+        {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
           "jersey": "97"
@@ -1569,11 +1579,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "nik-bonitto",
@@ -1591,9 +1596,9 @@
           "jersey": "40"
         },
         {
-          "slug": "pat-surtain-ii",
+          "slug": "jahdae-barron",
           "posLabel": "LCB",
-          "jersey": "2"
+          "jersey": "23"
         },
         {
           "slug": "riley-moss",
@@ -1606,12 +1611,17 @@
           "jersey": "22"
         },
         {
-          "slug": "talanoa-hufanga",
+          "slug": "jl-skinner",
           "posLabel": "SS",
-          "jersey": "9"
+          "jersey": "34"
         }
       ],
       "nickel": [
+        {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
         {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
@@ -1626,11 +1636,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "alex-singleton",
@@ -1643,9 +1648,9 @@
           "jersey": "40"
         },
         {
-          "slug": "pat-surtain-ii",
+          "slug": "jahdae-barron",
           "posLabel": "LCB",
-          "jersey": "2"
+          "jersey": "23"
         },
         {
           "slug": "riley-moss",
@@ -1663,12 +1668,17 @@
           "jersey": "22"
         },
         {
-          "slug": "talanoa-hufanga",
+          "slug": "jl-skinner",
           "posLabel": "SS",
-          "jersey": "9"
+          "jersey": "34"
         }
       ],
       "dime": [
+        {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
         {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
@@ -1683,11 +1693,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "alex-singleton",
@@ -1710,14 +1715,19 @@
           "jersey": "29"
         },
         {
+          "slug": "jahdae-barron",
+          "posLabel": "NB",
+          "jersey": "23"
+        },
+        {
           "slug": "brandon-jones",
           "posLabel": "FS",
           "jersey": "22"
         },
         {
-          "slug": "talanoa-hufanga",
+          "slug": "jl-skinner",
           "posLabel": "SS",
-          "jersey": "9"
+          "jersey": "34"
         }
       ]
     },
@@ -2224,9 +2234,9 @@
           "jersey": "5"
         },
         {
-          "slug": "tremon-smith",
+          "slug": "collin-wright",
           "posLabel": "CB",
-          "jersey": "11"
+          "jersey": "37"
         },
         {
           "slug": "calen-bullock",
@@ -3148,9 +3158,9 @@
           "jersey": "5"
         },
         {
-          "slug": "hezekiah-masses",
+          "slug": "darien-porter",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "26"
         },
         {
           "slug": "taron-johnson",
@@ -3200,9 +3210,9 @@
           "jersey": "5"
         },
         {
-          "slug": "hezekiah-masses",
+          "slug": "darien-porter",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "26"
         },
         {
           "slug": "taron-johnson",
@@ -3252,9 +3262,9 @@
           "jersey": "5"
         },
         {
-          "slug": "hezekiah-masses",
+          "slug": "darien-porter",
           "posLabel": "RCB",
-          "jersey": "35"
+          "jersey": "26"
         },
         {
           "slug": "taron-johnson",
@@ -3902,6 +3912,11 @@
           "jersey": "7"
         },
         {
+          "slug": "lorenzo-styles-jr",
+          "posLabel": "FS",
+          "jersey": "36"
+        },
+        {
           "slug": "justin-reid",
           "posLabel": "SS",
           "jersey": "21"
@@ -3949,9 +3964,9 @@
           "jersey": "22"
         },
         {
-          "slug": "lorenzo-styles-jr",
+          "slug": "decamerion-richardson",
           "posLabel": "CB",
-          "jersey": "36"
+          "jersey": "25"
         },
         {
           "slug": "jonas-sanker",
