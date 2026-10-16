@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-15T06:56:36.532Z",
+  "updatedAt": "2026-10-16T06:43:39.293Z",
   "teams": {
     "ARI": {
       "base": [
@@ -4695,9 +4695,9 @@
           "jersey": "97"
         },
         {
-          "slug": "dre-greenlaw",
+          "slug": "garret-wallow",
           "posLabel": "WILL",
-          "jersey": "57"
+          "jersey": "49"
         },
         {
           "slug": "fred-warner",
@@ -4752,14 +4752,14 @@
           "jersey": "97"
         },
         {
-          "slug": "dre-greenlaw",
-          "posLabel": "WILL",
-          "jersey": "57"
-        },
-        {
           "slug": "fred-warner",
           "posLabel": "MIKE",
           "jersey": "54"
+        },
+        {
+          "slug": "jaden-dugger",
+          "posLabel": "SAM",
+          "jersey": "53"
         },
         {
           "slug": "renardo-green",
@@ -5229,9 +5229,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "kevin-winston-jr",
@@ -5281,9 +5281,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
@@ -5333,9 +5333,9 @@
           "jersey": "24"
         },
         {
-          "slug": "cordale-flott",
+          "slug": "micah-robinson",
           "posLabel": "RCB",
-          "jersey": "18"
+          "jersey": "21"
         },
         {
           "slug": "marcus-harris",
