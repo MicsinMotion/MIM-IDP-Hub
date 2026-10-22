@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-21T07:02:18.150Z",
+  "updatedAt": "2026-10-22T07:04:35.187Z",
   "teams": {
     "ARI": {
       "base": [
@@ -696,9 +696,9 @@
     "CAR": {
       "base": [
         {
-          "slug": "jaelan-phillips",
+          "slug": "princely-umanmielen",
           "posLabel": "LOLB",
-          "jersey": "5"
+          "jersey": "3"
         },
         {
           "slug": "derrick-brown",
@@ -753,9 +753,9 @@
       ],
       "nickel": [
         {
-          "slug": "jaelan-phillips",
+          "slug": "princely-umanmielen",
           "posLabel": "LOLB",
-          "jersey": "5"
+          "jersey": "3"
         },
         {
           "slug": "derrick-brown",
@@ -810,9 +810,9 @@
       ],
       "dime": [
         {
-          "slug": "jaelan-phillips",
+          "slug": "princely-umanmielen",
           "posLabel": "LOLB",
-          "jersey": "5"
+          "jersey": "3"
         },
         {
           "slug": "derrick-brown",
