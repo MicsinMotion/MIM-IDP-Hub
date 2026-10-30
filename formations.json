@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-29T08:00:00.579Z",
+  "updatedAt": "2026-10-30T08:01:57.966Z",
   "teams": {
     "ARI": {
       "base": [
@@ -4329,9 +4329,9 @@
     "PHI": {
       "base": [
         {
-          "slug": "aj-epenesa",
+          "slug": "nolan-smith-jr",
           "posLabel": "LOLB",
-          "jersey": "57"
+          "jersey": "3"
         },
         {
           "slug": "moro-ojomo",
@@ -4386,9 +4386,9 @@
       ],
       "nickel": [
         {
-          "slug": "aj-epenesa",
+          "slug": "nolan-smith-jr",
           "posLabel": "LOLB",
-          "jersey": "57"
+          "jersey": "3"
         },
         {
           "slug": "moro-ojomo",
@@ -4443,9 +4443,9 @@
       ],
       "dime": [
         {
-          "slug": "aj-epenesa",
+          "slug": "nolan-smith-jr",
           "posLabel": "LOLB",
-          "jersey": "57"
+          "jersey": "3"
         },
         {
           "slug": "moro-ojomo",
@@ -5194,9 +5194,9 @@
           "jersey": "57"
         },
         {
-          "slug": "jeffery-simmons",
+          "slug": "solomon-thomas",
           "posLabel": "LDT",
-          "jersey": "98"
+          "jersey": "90"
         },
         {
           "slug": "john-franklin-myers",
@@ -5251,9 +5251,9 @@
           "jersey": "57"
         },
         {
-          "slug": "jeffery-simmons",
+          "slug": "solomon-thomas",
           "posLabel": "LDT",
-          "jersey": "98"
+          "jersey": "90"
         },
         {
           "slug": "john-franklin-myers",
@@ -5308,9 +5308,9 @@
           "jersey": "57"
         },
         {
-          "slug": "jeffery-simmons",
+          "slug": "solomon-thomas",
           "posLabel": "LDT",
-          "jersey": "98"
+          "jersey": "90"
         },
         {
           "slug": "john-franklin-myers",
@@ -5447,6 +5447,11 @@
           "slug": "sonny-styles",
           "posLabel": "MLB",
           "jersey": "52"
+        },
+        {
+          "slug": "rasul-douglas",
+          "posLabel": "LCB",
+          "jersey": "29"
         },
         {
           "slug": "mike-sainristil",
