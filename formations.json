@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-30T08:01:57.966Z",
+  "updatedAt": "2026-10-31T07:58:43.425Z",
   "teams": {
     "ARI": {
       "base": [
@@ -2350,9 +2350,9 @@
           "jersey": "7"
         },
         {
-          "slug": "justin-walley",
+          "slug": "kapena-gushiken",
           "posLabel": "NB",
-          "jersey": "27"
+          "jersey": "34"
         },
         {
           "slug": "cam-bynum",
@@ -2402,14 +2402,14 @@
           "jersey": "7"
         },
         {
-          "slug": "justin-walley",
-          "posLabel": "NB",
-          "jersey": "27"
-        },
-        {
           "slug": "kapena-gushiken",
           "posLabel": "NB",
           "jersey": "34"
+        },
+        {
+          "slug": "justin-walley",
+          "posLabel": "NB",
+          "jersey": "27"
         },
         {
           "slug": "cam-bynum",
@@ -2476,9 +2476,9 @@
           "jersey": "29"
         },
         {
-          "slug": "antonio-johnson",
+          "slug": "jalen-huskey",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "22"
         }
       ],
       "nickel": [
@@ -2533,9 +2533,9 @@
           "jersey": "29"
         },
         {
-          "slug": "antonio-johnson",
+          "slug": "jalen-huskey",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "22"
         }
       ],
       "dime": [
@@ -2590,9 +2590,9 @@
           "jersey": "29"
         },
         {
-          "slug": "antonio-johnson",
+          "slug": "jalen-huskey",
           "posLabel": "SS",
-          "jersey": "6"
+          "jersey": "22"
         }
       ]
     },
@@ -4166,9 +4166,9 @@
           "jersey": "97"
         },
         {
-          "slug": "tvondre-sweat",
+          "slug": "jack-heflin",
           "posLabel": "DT",
-          "jersey": "99"
+          "jersey": "96"
         },
         {
           "slug": "jowon-briggs",
@@ -4223,9 +4223,9 @@
           "jersey": "97"
         },
         {
-          "slug": "tvondre-sweat",
+          "slug": "jack-heflin",
           "posLabel": "DT",
-          "jersey": "99"
+          "jersey": "96"
         },
         {
           "slug": "david-bailey",
@@ -4280,9 +4280,9 @@
           "jersey": "97"
         },
         {
-          "slug": "tvondre-sweat",
+          "slug": "jack-heflin",
           "posLabel": "DT",
-          "jersey": "99"
+          "jersey": "96"
         },
         {
           "slug": "david-bailey",
@@ -5367,9 +5367,9 @@
           "jersey": "98"
         },
         {
-          "slug": "javon-kinlaw",
+          "slug": "charles-omenihu",
           "posLabel": "DE",
-          "jersey": "99"
+          "jersey": "90"
         },
         {
           "slug": "daron-payne",
@@ -5424,9 +5424,9 @@
           "jersey": "98"
         },
         {
-          "slug": "javon-kinlaw",
+          "slug": "charles-omenihu",
           "posLabel": "DE",
-          "jersey": "99"
+          "jersey": "90"
         },
         {
           "slug": "daron-payne",
@@ -5481,9 +5481,9 @@
           "jersey": "98"
         },
         {
-          "slug": "javon-kinlaw",
+          "slug": "charles-omenihu",
           "posLabel": "DE",
-          "jersey": "99"
+          "jersey": "90"
         },
         {
           "slug": "daron-payne",
