@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T09:04:40.068Z",
+  "updatedAt": "2026-11-10T09:14:50.463Z",
   "teams": {
     "ARI": {
       "base": [
@@ -331,9 +331,9 @@
           "jersey": "12"
         },
         {
-          "slug": "billy-bowman-jr",
-          "posLabel": "NB",
-          "jersey": "33"
+          "slug": "mike-ford-jr",
+          "posLabel": "CB",
+          "jersey": "28"
         },
         {
           "slug": "xavier-watts",
@@ -1546,6 +1546,11 @@
     "DEN": {
       "base": [
         {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
+        {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
           "jersey": "97"
@@ -1559,11 +1564,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "nik-bonitto",
@@ -1591,9 +1591,9 @@
           "jersey": "21"
         },
         {
-          "slug": "brandon-jones",
+          "slug": "devon-key",
           "posLabel": "FS",
-          "jersey": "22"
+          "jersey": "26"
         },
         {
           "slug": "jaquan-mcmillian",
@@ -1602,6 +1602,11 @@
         }
       ],
       "nickel": [
+        {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
         {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
@@ -1616,11 +1621,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "alex-singleton",
@@ -1648,9 +1648,9 @@
           "jersey": "29"
         },
         {
-          "slug": "brandon-jones",
+          "slug": "devon-key",
           "posLabel": "FS",
-          "jersey": "22"
+          "jersey": "26"
         },
         {
           "slug": "jl-skinner",
@@ -1659,6 +1659,11 @@
         }
       ],
       "dime": [
+        {
+          "slug": "jordan-jackson",
+          "posLabel": "RDE",
+          "jersey": "94"
+        },
         {
           "slug": "malcolm-roach",
           "posLabel": "LDE",
@@ -1673,11 +1678,6 @@
           "slug": "zach-allen",
           "posLabel": "RDE",
           "jersey": "99"
-        },
-        {
-          "slug": "eyioma-uwazurike",
-          "posLabel": "LDE",
-          "jersey": "96"
         },
         {
           "slug": "alex-singleton",
@@ -1705,9 +1705,9 @@
           "jersey": "23"
         },
         {
-          "slug": "brandon-jones",
+          "slug": "devon-key",
           "posLabel": "FS",
-          "jersey": "22"
+          "jersey": "26"
         },
         {
           "slug": "jl-skinner",
@@ -4665,9 +4665,9 @@
           "jersey": "56"
         },
         {
-          "slug": "gracen-halton",
+          "slug": "sebastian-valdez",
           "posLabel": "LDT",
-          "jersey": "93"
+          "jersey": "55"
         },
         {
           "slug": "osa-odighizuwa",
@@ -4722,9 +4722,9 @@
           "jersey": "56"
         },
         {
-          "slug": "gracen-halton",
+          "slug": "sebastian-valdez",
           "posLabel": "LDT",
-          "jersey": "93"
+          "jersey": "55"
         },
         {
           "slug": "osa-odighizuwa",
@@ -4779,9 +4779,9 @@
           "jersey": "56"
         },
         {
-          "slug": "gracen-halton",
+          "slug": "sebastian-valdez",
           "posLabel": "LDT",
-          "jersey": "93"
+          "jersey": "55"
         },
         {
           "slug": "osa-odighizuwa",
