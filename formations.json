@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-14T08:34:48.279Z",
+  "updatedAt": "2026-11-15T08:48:50.063Z",
   "teams": {
     "ARI": {
       "base": [
@@ -44,9 +44,9 @@
           "jersey": "29"
         },
         {
-          "slug": "max-melton",
+          "slug": "kalen-king",
           "posLabel": "RCB",
-          "jersey": "16"
+          "jersey": "35"
         },
         {
           "slug": "andrew-wingard",
@@ -96,14 +96,14 @@
           "jersey": "29"
         },
         {
-          "slug": "max-melton",
+          "slug": "kalen-king",
           "posLabel": "RCB",
-          "jersey": "16"
+          "jersey": "35"
         },
         {
-          "slug": "kalen-king",
+          "slug": "max-melton",
           "posLabel": "NB",
-          "jersey": "35"
+          "jersey": "16"
         },
         {
           "slug": "andrew-wingard",
@@ -148,19 +148,19 @@
           "jersey": "29"
         },
         {
-          "slug": "max-melton",
-          "posLabel": "RCB",
-          "jersey": "16"
-        },
-        {
           "slug": "kalen-king",
-          "posLabel": "NB",
+          "posLabel": "RCB",
           "jersey": "35"
         },
         {
-          "slug": "garrett-williams",
+          "slug": "max-melton",
           "posLabel": "NB",
-          "jersey": "21"
+          "jersey": "16"
+        },
+        {
+          "slug": "keitrel-clark",
+          "posLabel": "NB",
+          "jersey": "13"
         },
         {
           "slug": "andrew-wingard",
@@ -457,9 +457,9 @@
           "jersey": "24"
         },
         {
-          "slug": "jaylinn-hawkins",
+          "slug": "keondre-jackson",
           "posLabel": "SS",
-          "jersey": "21"
+          "jersey": "39"
         }
       ],
       "dime": [
@@ -504,9 +504,9 @@
           "jersey": "44"
         },
         {
-          "slug": "jaylinn-hawkins",
+          "slug": "kyle-hamilton",
           "posLabel": "DB",
-          "jersey": "21"
+          "jersey": "14"
         },
         {
           "slug": "malaki-starks",
@@ -1408,9 +1408,9 @@
           "jersey": "97"
         },
         {
-          "slug": "donovan-ezeiruaku",
+          "slug": "james-houston",
           "posLabel": "ROLB",
-          "jersey": "6"
+          "jersey": "41"
         },
         {
           "slug": "demarvion-overshown",
@@ -1460,9 +1460,9 @@
           "jersey": "91"
         },
         {
-          "slug": "donovan-ezeiruaku",
+          "slug": "james-houston",
           "posLabel": "ROLB",
-          "jersey": "6"
+          "jersey": "41"
         },
         {
           "slug": "demarvion-overshown",
@@ -1495,9 +1495,9 @@
           "jersey": "24"
         },
         {
-          "slug": "pj-locke",
+          "slug": "markquese-bell",
           "posLabel": "SS",
-          "jersey": "1"
+          "jersey": "14"
         }
       ],
       "dime": [
@@ -1517,9 +1517,9 @@
           "jersey": "91"
         },
         {
-          "slug": "donovan-ezeiruaku",
+          "slug": "james-houston",
           "posLabel": "ROLB",
-          "jersey": "6"
+          "jersey": "41"
         },
         {
           "slug": "shemar-james",
@@ -1552,9 +1552,9 @@
           "jersey": "24"
         },
         {
-          "slug": "pj-locke",
+          "slug": "markquese-bell",
           "posLabel": "SS",
-          "jersey": "1"
+          "jersey": "14"
         }
       ]
     },
@@ -2105,14 +2105,14 @@
           "jersey": "39"
         },
         {
-          "slug": "azeez-al-shaair",
+          "slug": "jake-hansen",
           "posLabel": "MLB",
-          "jersey": "0"
+          "jersey": "35"
         },
         {
-          "slug": "jake-hansen",
+          "slug": "wade-woodaz",
           "posLabel": "SLB",
-          "jersey": "35"
+          "jersey": "30"
         },
         {
           "slug": "derek-stingley-jr",
@@ -2162,9 +2162,9 @@
           "jersey": "39"
         },
         {
-          "slug": "azeez-al-shaair",
+          "slug": "jake-hansen",
           "posLabel": "MLB",
-          "jersey": "0"
+          "jersey": "35"
         },
         {
           "slug": "derek-stingley-jr",
@@ -2214,9 +2214,9 @@
           "jersey": "90"
         },
         {
-          "slug": "azeez-al-shaair",
+          "slug": "jake-hansen",
           "posLabel": "MLB",
-          "jersey": "0"
+          "jersey": "35"
         },
         {
           "slug": "derek-stingley-jr",
@@ -2278,9 +2278,9 @@
           "jersey": "50"
         },
         {
-          "slug": "akeem-davis-gaither",
+          "slug": "cj-allen",
           "posLabel": "MLB",
-          "jersey": "51"
+          "jersey": "53"
         },
         {
           "slug": "tahj-chambers",
@@ -2335,9 +2335,9 @@
           "jersey": "50"
         },
         {
-          "slug": "akeem-davis-gaither",
+          "slug": "cj-allen",
           "posLabel": "MLB",
-          "jersey": "51"
+          "jersey": "53"
         },
         {
           "slug": "sauce-gardner",
@@ -2387,9 +2387,9 @@
           "jersey": "97"
         },
         {
-          "slug": "akeem-davis-gaither",
+          "slug": "cj-allen",
           "posLabel": "MLB",
-          "jersey": "51"
+          "jersey": "53"
         },
         {
           "slug": "sauce-gardner",
@@ -3474,9 +3474,9 @@
           "jersey": "61"
         },
         {
-          "slug": "tyrion-ingram-dawkins",
+          "slug": "elijah-williams",
           "posLabel": "DT",
-          "jersey": "90"
+          "jersey": "99"
         },
         {
           "slug": "levi-drake-rodriguez",
@@ -3531,9 +3531,9 @@
           "jersey": "61"
         },
         {
-          "slug": "tyrion-ingram-dawkins",
+          "slug": "elijah-williams",
           "posLabel": "DT",
-          "jersey": "90"
+          "jersey": "99"
         },
         {
           "slug": "andrew-van-ginkel",
@@ -3588,9 +3588,9 @@
           "jersey": "61"
         },
         {
-          "slug": "tyrion-ingram-dawkins",
+          "slug": "elijah-williams",
           "posLabel": "DT",
-          "jersey": "90"
+          "jersey": "99"
         },
         {
           "slug": "andrew-van-ginkel",
