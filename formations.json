@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-19T09:52:46.537Z",
+  "updatedAt": "2026-11-20T09:39:27.699Z",
   "teams": {
     "ARI": {
       "base": [
@@ -2061,9 +2061,9 @@
           "jersey": "7"
         },
         {
-          "slug": "carrington-valentine",
+          "slug": "kamal-hadden",
           "posLabel": "NB",
-          "jersey": "24"
+          "jersey": "36"
         },
         {
           "slug": "evan-williams",
@@ -2293,9 +2293,9 @@
           "jersey": "1"
         },
         {
-          "slug": "kenneth-harris",
+          "slug": "charvarius-ward",
           "posLabel": "RCB",
-          "jersey": "33"
+          "jersey": "7"
         },
         {
           "slug": "cam-bynum",
@@ -2345,9 +2345,9 @@
           "jersey": "1"
         },
         {
-          "slug": "kenneth-harris",
+          "slug": "charvarius-ward",
           "posLabel": "RCB",
-          "jersey": "33"
+          "jersey": "7"
         },
         {
           "slug": "justin-walley",
@@ -2397,9 +2397,9 @@
           "jersey": "1"
         },
         {
-          "slug": "kenneth-harris",
+          "slug": "charvarius-ward",
           "posLabel": "RCB",
-          "jersey": "33"
+          "jersey": "7"
         },
         {
           "slug": "justin-walley",
@@ -4349,9 +4349,9 @@
           "jersey": "58"
         },
         {
-          "slug": "zack-baun",
+          "slug": "smael-mondon-jr",
           "posLabel": "WLB",
-          "jersey": "53"
+          "jersey": "42"
         },
         {
           "slug": "jihaad-campbell",
@@ -4359,9 +4359,9 @@
           "jersey": "11"
         },
         {
-          "slug": "smael-mondon-jr",
-          "posLabel": "WLB",
-          "jersey": "42"
+          "slug": "jeremiah-trotter-jr",
+          "posLabel": "MLB",
+          "jersey": "54"
         },
         {
           "slug": "riq-woolen",
@@ -4406,9 +4406,9 @@
           "jersey": "58"
         },
         {
-          "slug": "zack-baun",
+          "slug": "smael-mondon-jr",
           "posLabel": "WLB",
-          "jersey": "53"
+          "jersey": "42"
         },
         {
           "slug": "jihaad-campbell",
@@ -4463,9 +4463,9 @@
           "jersey": "58"
         },
         {
-          "slug": "zack-baun",
-          "posLabel": "WLB",
-          "jersey": "53"
+          "slug": "jihaad-campbell",
+          "posLabel": "MLB",
+          "jersey": "11"
         },
         {
           "slug": "riq-woolen",
